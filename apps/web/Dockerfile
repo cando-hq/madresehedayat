@@ -11,6 +11,8 @@ COPY apps/api/package.json apps/api/
 COPY apps/web/package.json apps/web/
 RUN npm config set registry ${NPM_REGISTRY} && npm ci --workspace apps/web --include-workspace-root=false --no-audit --no-fund
 COPY apps/web apps/web
+# فهرست ابزارها مشترک وب و API است (نسخهٔ نمایشی آن را از apps/api می‌خواند)
+COPY apps/api/src/tools/catalog.json apps/api/src/tools/catalog.json
 RUN npm run build -w apps/web
 
 FROM ${NGINX_IMAGE}

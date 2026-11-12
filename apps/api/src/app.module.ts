@@ -37,13 +37,16 @@ import { GrowthController, GrowthService } from './growth/growth';
 import { CohortsController, CohortsService } from './cohorts/cohorts';
 import { ConsoleSms, KavenegarSms, SmsSender } from './sms/sms';
 
+/** نسخهٔ برنامه، از package.json؛ در /api/health دیده می‌شود تا بعد از هر به‌روزرسانی معلوم باشد چه نسخه‌ای بالاست */
+const APP_VERSION: string = (() => { try { return require('../package.json').version; } catch { return 'dev'; } })();
+
 @Controller('health')
 class HealthController {
   constructor(@InjectDb() private readonly db: Db) {}
   @Public() @Get()
   async health() {
     await this.db.execute(sql`select 1`);
-    return { ok: true };
+    return { ok: true, version: APP_VERSION };
   }
 }
 

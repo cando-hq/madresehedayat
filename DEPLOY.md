@@ -64,7 +64,7 @@ docker compose up -d --build
 
 ```bash
 docker compose ps            # همه باید healthy/running باشند
-curl -s http://localhost:8080/api/health
+curl -s http://localhost:8080/api/health        # {"ok":true,"version":"1.0.0"}
 curl -s http://localhost:8080/api/v2/paths | head -c 300   # باید مسیرها را برگرداند
 ```
 
@@ -108,7 +108,22 @@ systemctl restart caddy
 | راهیار مسیر | برگزارکننده در `/pub/rahyars` با شماره به مسیر می‌گمارد | `/rahyar`: کنشگران، تأیید گام رشد، گزارش مأموریت |
 | ستاد | `BOOTSTRAP_ADMIN_MOBILES` یا نقش در `/admin/users` | `/admin` |
 
-## ۸. نگهداری
+## ۸. به‌روزرسانی به نسخهٔ تازه
+
+هر نسخه یک برچسب گیت دارد (`v1.0.0`, `v1.1.0`, …) و تغییراتش در `CHANGELOG.md` نوشته شده. به‌روزرسانی همیشه همین سه خط است:
+
+```bash
+cd madresehedayat
+git pull                                  # یا: git fetch && git checkout v1.1.0
+docker compose up -d --build              # می‌سازد، مهاجرت دیتابیس را خودش می‌زند، بالا می‌آورد
+curl -s https://madresehedayat.ir/api/health   # باید {"ok":true,"version":"1.1.0"} بدهد
+```
+
+- مهاجرت‌های پایگاه داده تکرارپذیرند و هنگام شروع کانتینر API خودکار اجرا می‌شوند؛ کار دستی ندارد.
+- قبل از هر به‌روزرسانیِ «اصلی» (مثلاً 1.x → 2.0) یک پشتیبان دستی بگیرید (بخش ۹).
+- اگر چیزی خراب شد: `git checkout v1.0.0 && docker compose up -d --build` به نسخهٔ قبل برمی‌گردد (داده‌ها سر جایشان می‌مانند).
+
+## ۹. نگهداری
 
 ```bash
 docker compose logs -f api          # لاگ API (کد پیامک در حالت console هم اینجاست)
@@ -120,7 +135,7 @@ docker compose exec db pg_dump -U madrese madrese | gzip > backup.sql.gz   # پ�
 
 بازگردانی: `gunzip -c backup.sql.gz | docker compose exec -T db psql -U madrese madrese`
 
-## ۹. اگر مشکلی بود
+## ۱۰. اگر مشکلی بود
 
 | نشانه | علت معمول | کار |
 |---|---|---|
@@ -131,6 +146,6 @@ docker compose exec db pg_dump -U madrese madrese | gzip > backup.sql.gz   # پ�
 | صفحهٔ ستاد «رمز دوم» می‌خواهد و گوشی گم شده | — | مدیر ستاد دیگری در `/admin/users` رمز دوم آن نفر را بازنشانی کند |
 | پس از عوض کردن DATA_KEY شماره‌ها خالی شده | کلید با زمان ذخیره فرق دارد | کلید قبلی را برگردانید؛ لاگ `[crypto]` هشدار می‌دهد |
 
-## ۱۰. فونت
+## ۱۱. فونت
 
 سایت بدون هیچ کاری با فونت آزاد **وزیرمتن** بالا می‌آید. فونت «رواق» که در طراحی‌ها دیده‌اید مجوز شخصی دارد و عمداً در مخزن نیست. اگر بنیاد مجوز وب آن را بخرد، فقط کافی است چهار فایل `RavaghFaNum-{Regular,Medium,SemiBold,Bold}.woff` را در `apps/web/public/fonts/` بگذارید و دوباره بیلد کنید؛ CSS خودش آن را برمی‌دارد.

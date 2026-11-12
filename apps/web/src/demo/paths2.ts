@@ -120,7 +120,7 @@ export function registerPaths2(X: Any) {
   const gaadeNext = (uid: string) => { const g = (DB().gaade ?? []).find((x: Any) => (DB().gaadeMembers ?? []).some((m: Any) => m.gaadeId === x.id && m.userId === uid) && x.next); return g ? { id: g.id, title: g.title, at: g.next.at, where: g.next.where, topic: g.next.topic } : null; };
 
   /** پیشرفت یک آیتم مسیر: دوره، مسیر تو در تو، پخش زنده، ارزیابی */
-  function itemView(it: Any, uid: string | undefined, depth = 0): Any {
+  function itemView(it: Any, uid: string | undefined, depth = 0, p?: Any, stepId?: string): Any {
     if (it.kind === 'course') {
       const c = DB().courses.find((x: Any) => x.id === it.refId); if (!c) return null;
       const st = courseState(uid, c); const ls = allLessons(c.id);
@@ -140,12 +140,13 @@ export function registerPaths2(X: Any) {
     if (it.kind === 'assess') {
       const need = Number(String(it.refId).replace('L', '')) || 1;
       const lv = uid ? assessLevel(uid) : 0;
-      return { kind: 'assess', id: it.refId, title: it.title ?? 'دیدار میدانی راهیار', optional: false, percent: lv >= need ? 100 : 0, done: lv >= need, started: false, to: '/imamat' };
+      const ok = lv >= need || (!!uid && (DB().pathAssess ?? []).some((a: Any) => p && a.pathId === p.id && a.stepId === stepId && a.userId === uid));
+      return { kind: 'assess', id: it.refId, title: it.title ?? 'دیدار میدانی راهیار', optional: false, percent: ok ? 100 : 0, done: ok, started: false, to: '/imamat' };
     }
     return null;
   }
   function pathView(p: Any, uid: string | undefined, depth = 0) {
-    const steps = p.steps.map((s: Any) => { const items = s.items.map((it: Any) => itemView(it, uid, depth)).filter(Boolean); const req = items.filter((i: Any) => !i.optional); const done = req.length > 0 && req.every((i: Any) => i.done); const pct = req.length ? Math.round(req.reduce((a: number, i: Any) => a + i.percent, 0) / req.length) : 0; return { id: s.id, title: s.title, rule: s.rule ?? null, items, done, percent: pct }; });
+    const steps = p.steps.map((s: Any) => { const items = s.items.map((it: Any) => itemView(it, uid, depth, p, s.id)).filter(Boolean); const req = items.filter((i: Any) => !i.optional); const done = req.length > 0 && req.every((i: Any) => i.done); const pct = req.length ? Math.round(req.reduce((a: number, i: Any) => a + i.percent, 0) / req.length) : 0; return { id: s.id, title: s.title, rule: s.rule ?? null, items, done, percent: pct }; });
     const total = steps.length ? Math.round(steps.reduce((a: number, s: Any) => a + s.percent, 0) / steps.length) : 0;
     const curIdx = steps.findIndex((s: Any) => !s.done);
     const e = uid ? penr(uid, p.id) : null;
@@ -322,6 +323,19 @@ export function registerPaths2(X: Any) {
     const { pid } = needPub(); const c = C(m[1]); if (c.publisherId !== pid) throw E(403, 'forbidden', '');
     if (!allLessons(c.id).length) throw E(400, 'not_ready', 'دوره هنوز درسی ندارد');
     c.reviewStatus = 'IN_REVIEW'; c.submittedAt = now(); notify(DB().roles.filter((r: Any) => r.role === 'HQ_ADMIN').map((r: Any) => r.userId), { kind: 'review', title: `دورهٔ تازه برای بازبینی: ${c.title}`, body: pub(pid)?.name, link: '/admin/review' }); return { ok: true };
+  });
+  on('GET', '/v2/rahyar/learners/:id/paths', (_b: Any, prm: Any) => {
+    const u = me(); const lid = prm.id;
+    const paths = DB().pathEnr.filter((e: Any) => e.userId === lid).map((e: Any) => DB().paths2.find((x: Any) => x.id === e.pathId)).filter((p: Any) => p && (staff() || DB().pathRahyars.some((r: Any) => r.pathId === p.id && r.userId === u.id)))
+      .map((p: Any) => ({ ...pathView(p, lid), canAssess: true, assessments: (DB().pathAssess ?? []).filter((a: Any) => a.pathId === p.id && a.userId === lid) }));
+    return { learner: nm(lid), paths };
+  });
+  on('POST', '/v2/rahyar/assess/:id', (b: Any, prm: Any) => {
+    const u = me(); const p = PATH(b.pathId);
+    if (!staff() && !DB().pathRahyars.some((r: Any) => r.pathId === p.id && r.userId === u.id)) throw E(403, 'forbidden', 'فقط راهیار این مسیر دیدار میدانی را ثبت می‌کند');
+    const db = DB(); db.pathAssess = db.pathAssess ?? []; db.pathAssess.push({ pathId: p.id, stepId: b.stepId, userId: prm.id, byId: u.id, note: b.note || null, at: new Date().toISOString() });
+    notify(prm.id, { kind: 'GROWTH', title: `گام رشدت در «${p.title}» تأیید شد`, link: `/paths/${p.slug}` });
+    return { ok: true };
   });
   on('GET', '/v2/pub/rahyars', () => {
     const { pid } = needPub();

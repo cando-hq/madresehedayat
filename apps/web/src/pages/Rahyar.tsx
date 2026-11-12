@@ -224,6 +224,7 @@ export function RahyarLearner() {
             {c.me?.completedAt ? <span className="chip chip-leaf">تمام شد</span> : <><div className="bar w-28"><span style={{ width: `${c.me?.percent ?? 0}%` }} /></div><span className="tnum text-sm">٪{fa(c.me?.percent ?? 0)}</span></>}</li>
         ))}{!p.courses.length && <li className="text-sm text-muted">هنوز در دوره‌ای ثبت‌نام نکرده.</li>}</ul>
       </section>
+      <PathSteps learnerId={p.id} />
       <section><h2 className="mb-3 font-extrabold">مأموریت‌ها</h2>{p.missions.length ? <ReportList rows={p.missions} /> : <p className="text-sm text-muted">گزارشی نفرستاده.</p>}</section>
       <AssessPanel learnerId={p.id} />
       <p className="hint">نمرهٔ آزمون‌ها و برگه‌های کار به راهیار نشان داده نمی‌شود.</p>
@@ -291,5 +292,46 @@ export function RahyarAssign() {
         ))}</ul>
       ) : <Empty icon={Shuffle} title="کسی منتظر تقسیم نیست" />}
     </div>
+  );
+}
+
+/** مسیرهای کنشگر و تأیید «دیدار میدانی» هر پله توسط راهیار مسیر */
+function PathSteps({ learnerId }: { learnerId: string }) {
+  const toast = useToast(); const qc = useQueryClient();
+  const q = useQuery({ queryKey: ['rahyar-learner-paths', learnerId], queryFn: () => api<{ paths: any[] }>(`/v2/rahyar/learners/${learnerId}/paths`) });
+  const [note, setNote] = useState<Record<string, string>>({});
+  const m = useMutation({
+    mutationFn: (b: { pathId: string; stepId: string; note?: string }) => api(`/v2/rahyar/assess/${learnerId}`, { body: b }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['rahyar-learner-paths', learnerId] }); toast('گام رشد تأیید شد و به کنشگر خبر رفت'); },
+    onError: (e) => toast((e as Error).message, 'err'),
+  });
+  if (q.isLoading || q.error || !q.data?.paths.length) return null;
+  return (
+    <section>
+      <h2 className="mb-3 font-extrabold">مسیرها و گام رشد</h2>
+      <ul className="grid gap-3">{q.data.paths.map((p) => (
+        <li key={p.id} className="card p-4">
+          <div className="mb-3 flex items-center gap-3"><b className="flex-1 text-ink">{p.title}</b><span className="chip">{p.sizeFa}</span><span className="tnum text-sm text-muted">{fa(p.percent ?? 0)}٪</span></div>
+          <ol className="grid gap-2">{p.steps.map((st: any, i: number) => {
+            const assess = st.items.find((it: any) => it.kind === 'assess');
+            const key = p.id + st.id;
+            return (
+              <li key={st.id} className="flex flex-wrap items-center gap-3 rounded-2xl bg-sunken px-4 py-3 text-sm">
+                <span className="grid size-7 place-items-center rounded-full bg-card font-extrabold text-ink">{fa(i + 1)}</span>
+                <span className="flex-1 font-bold text-ink">{st.title}</span>
+                <span className="text-muted">{fa(st.items.filter((it: any) => it.done).length)} از {fa(st.items.length)} انجام شد</span>
+                {assess && (assess.done
+                  ? <span className="chip chip-leaf"><CheckCircle2 className="size-4" />دیدار میدانی تأیید شد</span>
+                  : <span className="flex items-center gap-2">
+                      <input className="input h-9 w-44" placeholder="یادداشت کوتاه (اختیاری)" value={note[key] ?? ''} onChange={(e) => setNote({ ...note, [key]: e.target.value })} />
+                      <button className="btn btn-primary btn-sm" disabled={m.isPending} onClick={() => m.mutate({ pathId: p.id, stepId: st.id, note: note[key] })}><ClipboardCheck className="size-4" />تأیید گام رشد</button>
+                    </span>)}
+              </li>
+            );
+          })}</ol>
+        </li>
+      ))}</ul>
+      <p className="hint mt-2">تأیید گام رشد یعنی در دیدار میدانی دیدی که تغییر در عمل اتفاق افتاده؛ با نمرهٔ آزمون فرق دارد.</p>
+    </section>
   );
 }

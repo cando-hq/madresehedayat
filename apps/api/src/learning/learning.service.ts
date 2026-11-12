@@ -10,7 +10,8 @@ import {
   accessGrants, certificates, sponsors, coreMemberships, cores, courseDependencies, courses, enrollments, lessonProgress,
   lessons, modules, networkMembers, pathAttempts, paths, pathItems, quizAttempts, roleGrants, users,
 } from '../db/schema';
-import { gradeQuiz, publicContent, QuizContent } from './lesson-content';
+import { gradeCheck, gradeQuiz, publicContent, QuizContent, skillStates } from './lesson-content';
+import { GrowthService } from '../growth/growth';
 
 const RETRY_FREE = 2; // دو تلاش اول بی‌فاصله؛ از تلاش سوم ۲۴ ساعت فاصله
 const RETRY_WAIT_MS = 24 * 3600_000;
@@ -20,7 +21,7 @@ type CourseRow = typeof courses.$inferSelect;
 
 @Injectable()
 export class LearningService {
-  constructor(@InjectDb() private readonly db: Db, private readonly business: Business, private readonly feedback: FeedbackService) {}
+  constructor(@InjectDb() private readonly db: Db, private readonly business: Business, private readonly feedback: FeedbackService, private readonly growth: GrowthService) {}
 
   // ───────── دسترسی ─────────
 
@@ -137,7 +138,7 @@ export class LearningService {
     }
     const mods = await this.db.query.modules.findMany({
       where: eq(modules.courseId, c.id), orderBy: asc(modules.order),
-      with: { lessons: { orderBy: asc(lessons.order), columns: { id: true, title: true, type: true, durationSec: true, required: true, isFinalQuiz: true, order: true } } },
+      with: { lessons: { orderBy: asc(lessons.order), columns: { id: true, title: true, type: true, durationSec: true, required: true, isFinalQuiz: true, order: true, skillIds: true } } },
     });
     const lessonIds = mods.flatMap((m) => m.lessons.map((l) => l.id));
     const prog = userId && lessonIds.length ? await this.db.select().from(lessonProgress)
@@ -155,6 +156,7 @@ export class LearningService {
       sponsor: c.sponsorId ? (await this.db.query.sponsors.findFirst({ where: eq(sponsors.id, c.sponsorId), columns: { name: true } }))?.name ?? null : null,
       dependencies: deps,
       locked: deps.some((d) => d.kind === 'PREREQUISITE' && !d.done),
+      skills: skillStates(c.skills, mods.flatMap((m) => m.lessons), doneSet),
       modules: mods.map((m) => ({ id: m.id, title: m.title, lessons: m.lessons.map((l) => ({
         ...l, done: doneSet.has(l.id), best: best.find((b) => b.lessonId === l.id)?.best ?? null,
       })) })),
@@ -272,6 +274,15 @@ export class LearningService {
     return { score, passed, passScore: c.passScore, results, completion, nextAllowedAt: passed ? null : this.nextAttemptAt(after) };
   }
 
+  /** یادگیری فعال: پاسخ یک پرسش کوتاه وسط درس؛ چیزی ذخیره نمی‌شود و نمره‌ای ندارد */
+  async checkAnswer(userId: string, lessonId: string, checkId: string, answer: string[]) {
+    const { l, c } = await this.lessonWithCourse(lessonId);
+    await this.requireEnrolled(userId, c.id, c);
+    const r = gradeCheck(l.content, checkId, answer);
+    if (!r) throw new NotFoundException({ code: 'no_check', message: 'این پرسش در درس نیست؛ صفحه را تازه کنید' });
+    return r;
+  }
+
   // ───────── تکمیل و گواهی ─────────
 
   /** اگر همهٔ درس‌های لازم تمام شده، دوره را تکمیل و گواهی صادر می‌کند */
@@ -289,6 +300,8 @@ export class LearningService {
     const deps = await this.dependencyState(courseId, userId);
     const coreqOpen = deps.filter((d) => d.kind === 'COREQUISITE' && !d.done);
     await this.db.update(enrollments).set({ completedAt: new Date() }).where(and(eq(enrollments.userId, userId), eq(enrollments.courseId, courseId)));
+    // مرور با فاصله: ۳ و ۱۰ روز بعد
+    await this.growth.scheduleReviews(userId, courseId);
     const c = (await this.db.query.courses.findFirst({ where: eq(courses.id, courseId) }))!;
     let cert: { code: string } | undefined;
     if (c.hasCertificate && !coreqOpen.length) cert = await this.issueCertificate(userId, c);

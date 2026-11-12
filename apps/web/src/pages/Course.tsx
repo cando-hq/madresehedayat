@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Award, Check, CircleCheck, Circle, Clock, Layers, Lock, Play, ShieldCheck } from 'lucide-react';
+import { Award, Check, CircleCheck, Circle, Clock, Flag, Layers, Lock, Play, ShieldCheck } from 'lucide-react';
+import { SkillList } from '../components/Growth';
 import { Link, useNavigate, useParams } from 'react-router';
 import { CourseIcon, ErrorBox, LESSON_ICON, Progress, Spinner, useToast } from '../components/ui';
 import { CourseRating, Stars, useFeedbackContext } from '../components/Feedback';
@@ -33,6 +34,8 @@ export default function Course() {
   const total = all.reduce((s, l) => s + l.durationSec, 0);
   const prereq = c.dependencies.filter((d) => d.kind === 'PREREQUISITE');
   const coreq = c.dependencies.filter((d) => d.kind === 'COREQUISITE');
+  const mission = all.find((l) => l.type === 'MISSION');
+  const skillName = new Map((c.skills ?? []).map((s) => [s.id, s.title]));
 
   let cta;
   if (c.me?.completedAt) cta = (
@@ -44,7 +47,8 @@ export default function Course() {
   else if (!next) cta = <p className="rounded-2xl bg-sunken p-4 text-muted">درس‌های این دوره هنوز آماده نشده است.</p>;
   else if (c.me) cta = (
     <div className="grid gap-3">
-      <Link className="btn btn-primary btn-lg w-fit" to={`/lessons/${c.me.lastLessonId ?? next.id}`}><Play className="size-5" />{c.me.percent ? 'ادامهٔ دوره' : 'شروع اولین درس'}</Link>
+      <Link className="btn btn-primary btn-lg w-fit" to={`/lessons/${c.me.percent ? next.id : c.me.lastLessonId ?? next.id}`}><Play className="size-5" />{c.me.percent ? 'ادامهٔ دوره' : 'شروع اولین درس'}</Link>
+      {c.me.percent > 0 && !next.done && <p className="text-sm text-muted">درس بعدی: <b className="font-bold text-ink">{next.title}</b></p>}
       <div className="max-w-sm"><Progress value={c.me.percent} /></div>
     </div>
   );
@@ -89,6 +93,20 @@ export default function Course() {
         </aside>
       </section>
 
+      {mission && (
+        <section className="flex flex-wrap items-center gap-4 rounded-3xl bg-flame-soft p-5 md:p-6" aria-labelledby="mis-h">
+          <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-flame text-[#262A4F]"><Flag className="size-6" /></span>
+          <div className="grid min-w-0 flex-1 gap-1">
+            <span className="text-[13px] font-bold text-flame-ink">از درس تا میدان</span>
+            <h2 id="mis-h" className="text-lg font-extrabold">{mission.title}</h2>
+          </div>
+          {c.me && (mission.done ? <span className="chip chip-leaf self-center"><CircleCheck className="size-4" />انجام دادید</span>
+            : <Link className="btn btn-secondary btn-sm self-center" to={`/lessons/${mission.id}`}>دیدن مأموریت</Link>)}
+        </section>
+      )}
+
+      {!!c.skills?.length && <SkillList skills={c.skills} />}
+
       <section>
         <div className="mb-4 flex items-end justify-between"><h2 className="text-lg font-extrabold">سرفصل‌ها</h2><span className="text-sm text-muted">{fa(all.filter((l) => l.done).length)} از {fa(all.length)} درس</span></div>
         <div className="grid gap-4">
@@ -103,7 +121,7 @@ export default function Course() {
                     <>
                       <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-sunken text-body"><I className="size-[18px]" /></span>
                       <span className="min-w-0 flex-1"><span className="block font-semibold text-ink">{l.title}</span>
-                        <span className="flex flex-wrap gap-x-3 text-xs text-muted"><span>{LESSON_LABEL[l.type]}</span>{l.durationSec > 0 && <span className="flex items-center gap-1"><Clock className="size-3" />{minutes(l.durationSec)}</span>}{!l.required && <span>اختیاری</span>}{l.isFinalQuiz && <span className="font-bold text-flame-ink">آزمون پایانی</span>}{l.best != null && <span>بهترین نمره: ٪{fa(l.best)}</span>}</span></span>
+                        <span className="flex flex-wrap gap-x-3 text-xs text-muted"><span>{LESSON_LABEL[l.type]}</span>{l.durationSec > 0 && <span className="flex items-center gap-1"><Clock className="size-3" />{minutes(l.durationSec)}</span>}{!l.required && <span>اختیاری</span>}{l.isFinalQuiz && <span className="font-bold text-flame-ink">آزمون پایانی</span>}{l.best != null && <span>بهترین نمره: ٪{fa(l.best)}</span>}{l.skillIds?.filter((k) => skillName.has(k)).map((k) => <span key={k} className="text-leaf-ink">{skillName.get(k)}</span>)}</span></span>
                       {l.done ? <CircleCheck className="size-5 text-leaf" aria-label="تمام شده" /> : <Circle className="size-5 text-line-strong" aria-label="تمام نشده" />}
                     </>
                   );

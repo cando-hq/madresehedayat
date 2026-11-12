@@ -115,7 +115,8 @@ export class RahyarController {
   private async requireRahyar(u: AuthUser) {
     const s = await this.rahyar.snapshot();
     const held = this.rahyar.held(s, u.id);
-    if (!held.length && !u.roles.includes('HQ_ADMIN')) throw new ForbiddenException({ code: 'not_rahyar', message: 'جایگاه راهیاری ندارید' });
+    const paths = await this.rahyar.pathsOf(u.id);
+    if (!held.length && !paths.length && !u.roles.includes('HQ_ADMIN')) throw new ForbiddenException({ code: 'not_rahyar', message: 'جایگاه راهیاری ندارید' });
     return { s, held };
   }
 
@@ -125,7 +126,7 @@ export class RahyarController {
     const learners = await this.rahyar.learnersInScope(u.id);
     const queue = await this.missions.queue(u.id, 'open');
     return {
-      positions: held.map((p) => ({ id: p.id, title: p.title, layer: p.layer, layerName: LAYER_FA[p.layer], gender: p.gender })),
+      positions: [...held.map((p) => ({ id: p.id, title: p.title, layer: p.layer, layerName: LAYER_FA[p.layer], gender: p.gender })), ...(await this.rahyar.pathsOf(u.id)).map((p) => ({ id: 'path:' + p.id, title: `راهیار مسیر «${p.title}»`, layer: 'PATH', layerName: 'مسیر', gender: null }))],
       learnerCount: learners.length, directCount: learners.filter((l) => l.direct).length, openReports: queue.length, overdue: queue.filter((q) => q.overdue).length,
     };
   }

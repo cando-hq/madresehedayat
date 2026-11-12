@@ -1,3 +1,4 @@
+import { AssessPanel } from './Imamat';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { AlarmClock, CheckCircle2, ChevronLeft, ClipboardCheck, Compass, Image, Inbox, MessageCircle, Search, Shuffle, UsersRound } from 'lucide-react';
 import { useState } from 'react';
@@ -40,24 +41,40 @@ export function RahyarHome() {
   if (me.isLoading) return <Spinner />;
   if (me.error) return <ErrorBox error={me.error} />;
   const m = me.data!;
+  // داشبورد برای تصمیم: اول کاری که منتظر شماست، بعد عددها
+  const oldest = [...(q.data ?? [])].sort((a, b) => b.waitingDays - a.waitingDays)[0];
   return (
     <div className="rise">
       <div className="mb-4"><h1 className="text-[clamp(22px,3vw,30px)] font-extrabold">راهیاری</h1><p className="mt-1 text-muted">{m.positions.map((p) => p.title).join('، ')}</p></div>
       <RNav extra={isProvincialUp(m)} />
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        {([[UsersRound, 'کنشگر در دامنه', m.learnerCount, ''], [Compass, 'مسئولیت مستقیم', m.directCount, ''], [Inbox, 'گزارش منتظر', m.openReports, m.openReports ? 'text-dome-ink' : ''], [AlarmClock, 'بیش از یک هفته', m.overdue, m.overdue ? 'text-rose' : '']] as const).map(([I, t, v, c]) => (
-          <div key={t} className="card p-4"><I className={`size-5 ${c || 'text-leaf'}`} /><b className={`tnum mt-2 block text-2xl ${c || 'text-ink'}`}>{fa(v)}</b><span className="text-sm text-muted">{t}</span></div>
-        ))}
-      </div>
-      <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+      {oldest ? (
+        <section className={`card mb-6 flex flex-wrap items-center gap-4 p-5 md:p-6 ${m.overdue ? 'border-rose/40' : ''}`} aria-labelledby="wait-h">
+          <Inbox className={`size-8 shrink-0 ${m.overdue ? 'text-rose' : 'text-dome-ink'}`} />
+          <div className="min-w-0 flex-1">
+            <h2 id="wait-h" className="text-lg font-extrabold">{fa(m.openReports)} گزارش منتظر بازخورد شماست</h2>
+            <p className="text-sm text-muted">{m.overdue ? `${fa(m.overdue)} گزارش بیش از یک هفته منتظر مانده؛ از قدیمی‌ترین شروع کنید.` : 'کنشگر با بازخورد شما قدم بعدی را برمی‌دارد. از قدیمی‌ترین شروع کنید.'}</p>
+          </div>
+          <Link className="btn btn-primary" to={`/rahyar/reports/${oldest.learnerId}/${oldest.lessonId}`}>خواندن گزارش {oldest.learner}</Link>
+        </section>
+      ) : !q.isLoading && (
+        <p className="mb-6 flex items-center gap-3 rounded-2xl bg-leaf-soft p-4 text-leaf-ink"><CheckCircle2 className="size-5 shrink-0" />گزارش بی‌پاسخی ندارید. گزارش تازهٔ کنشگران این‌جا و در اعلان‌ها می‌آید.</p>
+      )}
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
         <section>
-          <div className="mb-3 flex items-center justify-between"><h2 className="font-extrabold">گزارش‌های منتظر بازخورد</h2><Link to="/rahyar/reports" className="text-sm font-bold text-leaf-ink">همه</Link></div>
-          {q.isLoading ? <Spinner /> : q.data?.length ? <ReportList rows={q.data.slice(0, 6)} /> : <Empty icon={CheckCircle2} title="گزارش بی‌پاسخی ندارید">گزارش تازهٔ کنشگران اینجا و در اعلان‌ها می‌آید.</Empty>}
+          {(q.data?.length ?? 0) > 0 && <div className="mb-3 flex items-center justify-between"><h2 className="font-extrabold">صف گزارش‌ها</h2><Link to="/rahyar/reports" className="text-sm font-bold text-leaf-ink">همه</Link></div>}
+          {q.isLoading ? <Spinner /> : q.data?.length ? <ReportList rows={q.data.slice(0, 6)} /> : null}
+          <h2 className="mb-3 mt-6 font-extrabold">دامنهٔ شما</h2>
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+            {([[UsersRound, 'کنشگر در دامنه', m.learnerCount, ''], [Compass, 'مسئولیت مستقیم', m.directCount, ''], [Inbox, 'گزارش منتظر', m.openReports, m.openReports ? 'text-dome-ink' : ''], [AlarmClock, 'بیش از یک هفته', m.overdue, m.overdue ? 'text-rose' : '']] as const).map(([I, t, v, c]) => (
+              <div key={t} className="card p-4"><I className={`size-5 ${c || 'text-leaf'}`} /><b className={`tnum mt-2 block text-2xl ${c || 'text-ink'}`}>{fa(v)}</b><span className="text-sm text-muted">{t}</span></div>
+            ))}
+          </div>
         </section>
         <section>
-          <h2 className="mb-3 font-extrabold">تازه‌واردها</h2>
+          <h2 className="mb-1 font-extrabold">تازه‌واردها</h2>
+          <p className="mb-3 text-sm text-muted">یک پیام خوش‌آمد کوتاه، شروع را آسان می‌کند.</p>
           <ul className="card divide-y divide-line">{(recent.data ?? []).map((r) => <li key={r.id}><Link to={`/rahyar/learners/${r.id}`} className="flex items-center justify-between px-4 py-3 text-sm no-underline hover:bg-sunken"><b className="text-ink">{r.name}</b><span className="text-muted">{ago(r.createdAt)}</span></Link></li>)}
-            {!recent.data?.length && <li className="p-4 text-sm text-muted">هنوز کسی نیست.</li>}</ul>
+            {!recent.data?.length && <li className="p-4 text-sm text-muted">در این دو هفته کسی تازه نیامده است.</li>}</ul>
         </section>
       </div>
     </div>
@@ -208,6 +225,7 @@ export function RahyarLearner() {
         ))}{!p.courses.length && <li className="text-sm text-muted">هنوز در دوره‌ای ثبت‌نام نکرده.</li>}</ul>
       </section>
       <section><h2 className="mb-3 font-extrabold">مأموریت‌ها</h2>{p.missions.length ? <ReportList rows={p.missions} /> : <p className="text-sm text-muted">گزارشی نفرستاده.</p>}</section>
+      <AssessPanel learnerId={p.id} />
       <p className="hint">نمرهٔ آزمون‌ها و برگه‌های کار به راهیار نشان داده نمی‌شود.</p>
     </div>
   );

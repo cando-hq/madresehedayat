@@ -271,7 +271,7 @@ export function Certificates() {
               <td className="px-4 py-2.5">{has('HQ_ADMIN') && <button className="btn btn-ghost btn-sm" onClick={() => { if (c.revokedAt || window.confirm('این گواهی باطل شود؟')) api(`/admin/certificates/${c.code}/revoke`, { body: { revoke: !c.revokedAt } }).then(() => qc.invalidateQueries({ queryKey: ['admin-certs'] })); }}>{c.revokedAt ? 'بازگرداندن' : 'ابطال'}</button>}</td>
             </tr>
           ))}</tbody></table></div>
-      ) : <Empty icon={Award} title="گواهی‌ای پیدا نشد" />}
+      ) : <Empty icon={Award} title="این شناسه با هیچ گواهی‌ای جور نیست" />}
     </div>
   );
 }

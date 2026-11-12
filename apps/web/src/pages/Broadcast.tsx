@@ -37,7 +37,7 @@ export function BroadcastPage() {
   if (o.isLoading) return <Spinner />;
   const opts = o.data!;
   const hqKinds: [string, string][] = opts.hq ? [['PROVINCE', 'استان'], ['COUNTY', 'شهرستان'], ['NETWORK', 'شبکه یا سازمان'], ['ROLE', 'نقش'], ['COURSE', 'یادگیرندگان یک دوره']] : [];
-  if (!opts.options.length && !opts.hq) return <Empty icon={Megaphone} title="گروهی برای پیام دادن ندارید">پیام گروهی برای راهیار، امام محله و مسئول هسته است.</Empty>;
+  if (!opts.options.length && !opts.hq) return <Empty icon={Megaphone} title="هنوز گروهی ندارید">پیام گروهی برای راهیار، امام محله و مسئول هسته است.</Empty>;
   const pickSel = (kind: string, label: string, list: { id: string; name?: string; title?: string; label?: string }[]) => (
     <select className="input" value={aud?.kind === kind ? aud.ids?.[0] ?? '' : ''} onChange={(e) => { const x = list.find((i) => i.id === e.target.value); setAud(x ? { kind, ids: [x.id], label: `${label}: ${x.name ?? x.title ?? x.label}` } : null); }}>
       <option value="">انتخاب کنید</option>{list.map((i) => <option key={i.id} value={i.id}>{i.name ?? i.title ?? i.label}</option>)}

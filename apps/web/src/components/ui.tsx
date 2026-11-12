@@ -2,6 +2,7 @@ import {
   Award, BookOpen, Check, CircleAlert, ClipboardList, Flag, GraduationCap, Headphones, Landmark, ListChecks, LoaderCircle,
   CalendarCheck, CalendarHeart, Clock, Dice5, Flame, HandCoins, HandHeart, HandHelping, Image, Lock, Megaphone, MessageCircleQuestion, MessagesSquare, Mic, MicVocal, Network, PartyPopper, PenLine, Presentation, Puzzle, ScanFace, Smile, Tent, Tv, PlayCircle, Radio, Route, SearchX, Sparkles, Users, WifiOff, Wrench, X, type LucideIcon,
 } from 'lucide-react';
+import { useIsFetching } from '@tanstack/react-query';
 import { ApiError } from '../lib/api';
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { fa } from '../lib/fa';
@@ -22,8 +23,36 @@ export const LESSON_ICON: Record<string, LucideIcon> = {
   VIDEO: PlayCircle, AUDIO: Headphones, TEXT: BookOpen, QUIZ: ListChecks, PRACTICE: Sparkles, WORKSHEET: PenLine, MISSION: Flag, TOOL: Wrench, LIVE: Radio,
 };
 
+/** بارگذاری صفحه: اسکلتِ هم‌شکلِ محتوا، نه چرخنده. با تأخیر کوتاه دیده می‌شود تا در بارگذاری سریع چشمک نزند */
 export function Spinner({ label = 'در حال بارگذاری' }: { label?: string }) {
-  return <div className="flex items-center justify-center gap-2 py-16 text-muted" role="status"><LoaderCircle className="size-5 animate-spin" /><span>{label}…</span></div>;
+  return (
+    <div className="sk-page grid gap-6 py-2" role="status" aria-live="polite">
+      <span className="sr-only">{label}…</span>
+      <div className="grid gap-3"><span className="skeleton h-8 w-56" /><span className="skeleton h-4 w-80 max-w-full" /></div>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {[0, 1, 2].map((k) => <div key={k} className="card grid gap-3 p-5"><span className="skeleton h-24 rounded-2xl" /><span className="skeleton h-4 w-3/4" /><span className="skeleton h-3 w-1/2" /></div>)}
+      </div>
+    </div>
+  );
+}
+
+/** چرخندهٔ کوچک داخل دکمه */
+export const InlineSpinner = () => <LoaderCircle className="size-4 animate-spin" aria-hidden="true" />;
+
+/** نوار باریک بالای صفحه هنگام دریافت داده */
+export function TopLoader() {
+  const busy = useIsFetching() > 0;
+  const [state, setState] = useState<'idle' | 'run' | 'done'>('idle');
+  useEffect(() => {
+    if (busy) { const t = setTimeout(() => setState('run'), 120); return () => clearTimeout(t); }
+    setState((s) => (s === 'run' ? 'done' : 'idle'));
+  }, [busy]);
+  useEffect(() => {
+    if (state !== 'done') return;
+    const t = setTimeout(() => setState('idle'), 420);
+    return () => clearTimeout(t);
+  }, [state]);
+  return <span className={`top-loader ${state}`} aria-hidden="true" />;
 }
 
 /** چهرهٔ هر خطا: نماد و عنوان بر پایهٔ کد؛ متن اصلی همان پیام فارسی سرور است */

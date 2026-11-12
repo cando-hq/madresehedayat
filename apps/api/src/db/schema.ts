@@ -4,6 +4,7 @@
  */
 import { relations, sql } from 'drizzle-orm';
 import {
+  doublePrecision,
   bigint, boolean, index, integer, jsonb, pgEnum, pgTable, primaryKey, text, timestamp, unique, uniqueIndex,
 } from 'drizzle-orm/pg-core';
 import { createId } from './id';
@@ -34,6 +35,13 @@ export const users = pgTable('users', {
   notifyMessenger: boolean('notify_messenger').notNull().default(true), // اعلان‌ها در بله هم برسد
   totpSecret: text('totp_secret'), // رمز دوم کارکنان (رمزگذاری‌شده)
   totpEnabledAt: timestamp('totp_enabled_at', { withTimezone: true }),
+  /** منطق مسیر (نسخهٔ ۲): نقش کنشگر در مسجد، مسیر اصلی، مسجد روی نقشه، نخستین ورود */
+  actorRole: text('actor_role'), // IMAM | SHARIK | BAZU | HASTEH | OTHER
+  mainPathId: text('main_path_id'),
+  mosqueRelation: text('mosque_relation'),
+  lat: doublePrecision('lat'),
+  lng: doublePrecision('lng'),
+  onboardedAt: timestamp('onboarded_at', { withTimezone: true }),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
 });
@@ -91,6 +99,9 @@ export const mosques = pgTable('mosques', {
   verified: boolean('verified').notNull().default(false),
   imamId: text('imam_id'),
   inviteCode: text('invite_code').unique(), // پیوند دعوت امام محله برای اعضای آزاد
+  lat: doublePrecision('lat'),
+  lng: doublePrecision('lng'),
+  proposedBy: text('proposed_by'), // کنشگری که مسجد را با پین اضافه کرده (تا تأیید ستاد verified=false)
   createdAt: createdAt(),
 });
 
@@ -142,8 +153,17 @@ export const courses = pgTable('courses', {
   hasCertificate: boolean('has_certificate').notNull().default(true),
   sponsorId: text('sponsor_id').references((): any => sponsors.id, { onDelete: 'set null' }), // حامی دوره (مدل کسب‌وکار)؛ فقط یک خط «با حمایت …» در صفحهٔ دوره
   outcomes: text('outcomes').array().notNull().default(sql`'{}'::text[]`),
+  /** مهارت‌های دوره (تسلط به‌جای نمره): [{ id, title }]؛ هر درس با skillIds به مهارت‌ها وصل می‌شود */
+  skills: jsonb('skills').$type<{ id: string; title: string }[]>().notNull().default([]),
   version: integer('version').notNull().default(1),
   publishedAt: timestamp('published_at', { withTimezone: true }),
+  /** برگزارکنندهٔ سازنده و قواعد کتابخانهٔ مشترک */
+  publisherId: text('publisher_id'),
+  instructorId: text('instructor_id'), // استادی که دوره به استودیویش سپرده شده
+  libraryShare: text('library_share').notNull().default('all'), // all | approve | none
+  reviewStatus: text('review_status'), // IN_REVIEW | PUBLISHED | RETURNED
+  returnNote: text('return_note'),
+  submittedAt: timestamp('submitted_at', { withTimezone: true }),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
 });
@@ -174,6 +194,8 @@ export const lessons = pgTable('lessons', {
   durationSec: integer('duration_sec').notNull().default(0),
   required: boolean('required').notNull().default(true),
   isFinalQuiz: boolean('is_final_quiz').notNull().default(false),
+  /** مهارت‌هایی از دوره که این درس می‌سازد؛ مهارت وقتی «بلد» است که همهٔ درس‌هایش تمام شده باشد */
+  skillIds: text('skill_ids').array().notNull().default(sql`'{}'::text[]`),
   /** محتوای درس بسته به نوعش؛ شکل‌ها در src/learning/lesson-content.ts */
   content: jsonb('content').notNull().default({}),
   createdAt: createdAt(),
@@ -413,6 +435,12 @@ export const events = pgTable('events', {
   useBbb: boolean('use_bbb').notNull().default(false), // کلاس زنده روی سرور مدرسه (BigBlueButton) به‌جای پیوند بیرونی
   record: boolean('record').notNull().default(false), // ضبط (با اعلام در کلاس؛ فقط برای ثبت‌نامی‌ها؛ ۶ ماه)
   liveFinalizedAt: timestamp('live_finalized_at', { withTimezone: true }), // حضور ≥۵۰٪ حساب شد
+  isLive: boolean('is_live').notNull().default(false), // «پخش زنده»: واحد مستقل انتشار برگزارکننده
+  publisherId: text('publisher_id'),
+  instructorId: text('instructor_id'),
+  reviewStatus: text('review_status'),
+  returnNote: text('return_note'),
+  submittedAt: timestamp('submitted_at', { withTimezone: true }),
   status: eventStatus('status').notNull().default('DRAFT'),
   cancelReason: text('cancel_reason'),
   createdById: text('created_by_id').notNull().references(() => users.id),
@@ -791,3 +819,185 @@ export const liveRecordings = pgTable('live_recordings', {
   expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
   deletedAt: timestamp('deleted_at', { withTimezone: true }),
 });
+
+
+// ═══════════════════════ راهبردهای یادگیری ═══════════════════════
+
+/** ریتم هفتگی: هدفی که خود کنشگر برای هفته‌اش می‌گذارد (درس در هفته) */
+export const weeklyGoals = pgTable('weekly_goals', {
+  userId: text('user_id').primaryKey().references(() => users.id, { onDelete: 'cascade' }),
+  lessonsPerWeek: integer('lessons_per_week').notNull(),
+  updatedAt: updatedAt(),
+});
+
+/** مرور با فاصله: ۳ و ۱۰ روز پس از پایان هر دوره، چند پرسش کوتاه از آزمون‌های همان دوره */
+export const reviews = pgTable('reviews', {
+  id: id(),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  courseId: text('course_id').notNull().references(() => courses.id, { onDelete: 'cascade' }),
+  round: integer('round').notNull(),
+  dueAt: timestamp('due_at', { withTimezone: true }).notNull(),
+  questionIds: text('question_ids').array().notNull().default(sql`'{}'::text[]`),
+  score: integer('score'),
+  doneAt: timestamp('done_at', { withTimezone: true }),
+  notifiedAt: timestamp('notified_at', { withTimezone: true }),
+  createdAt: createdAt(),
+}, (t) => [unique('review_user_course_round').on(t.userId, t.courseId, t.round), index('review_due_idx').on(t.userId, t.dueAt)]);
+
+/** دورهٔ گروهی هم‌زمان: یک هسته یک مسیر را با هم و با تاریخ شروع مشترک می‌گذراند */
+export const cohorts = pgTable('cohorts', {
+  id: id(),
+  pathId: text('path_id').notNull().references(() => paths.id, { onDelete: 'cascade' }),
+  coreId: text('core_id').notNull().references(() => cores.id, { onDelete: 'cascade' }),
+  startsAt: timestamp('starts_at', { withTimezone: true }).notNull(),
+  weeksPerStation: integer('weeks_per_station').notNull().default(1),
+  note: text('note'),
+  notifiedStation: integer('notified_station').notNull().default(-1), // آخرین ایستگاهی که بازشدنش اعلان شده
+  createdById: text('created_by_id').notNull().references(() => users.id),
+  cancelledAt: timestamp('cancelled_at', { withTimezone: true }),
+  createdAt: createdAt(),
+}, (t) => [uniqueIndex('cohort_core_path_active').on(t.coreId, t.pathId).where(sql`${t.cancelledAt} is null`)]);
+
+export const cohortMembers = pgTable('cohort_members', {
+  cohortId: text('cohort_id').notNull().references(() => cohorts.id, { onDelete: 'cascade' }),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  joinedAt: timestamp('joined_at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [primaryKey({ columns: [t.cohortId, t.userId] })]);
+
+// ───────────── منطق مسیر، نسخهٔ ۲: برگزارکننده، مسیر در سه اندازه، ثبت‌نام مسیر، راهیار مسیر، دیدار راهیار ─────────────
+export const publishers = pgTable('publishers', {
+  id: id(),
+  name: text('name').notNull(),
+  color: text('color').notNull().default('#1E3A9E'),
+  status: text('status').notNull().default('PENDING'), // PENDING | ACTIVE | BLOCKED | REJECTED
+  kind: text('kind'),
+  referrer: text('referrer'),
+  note: text('note'),
+  createdAt: createdAt(),
+});
+export const publisherAdmins = pgTable('publisher_admins', {
+  publisherId: text('publisher_id').notNull().references(() => publishers.id, { onDelete: 'cascade' }),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+}, (t) => [primaryKey({ columns: [t.publisherId, t.userId] })]);
+
+export interface PathStep { id: string; title: string; rule: string | null; items: { kind: 'course' | 'path' | 'live' | 'assess'; refId: string; optional?: boolean; title?: string }[] }
+export const paths2 = pgTable('paths2', {
+  id: id(),
+  slug: text('slug').notNull().unique(),
+  title: text('title').notNull(),
+  size: text('size').notNull(), // micro | mid | macro
+  publisherId: text('publisher_id').notNull().references(() => publishers.id),
+  audience: text('audience').array().notNull().default(sql`'{}'::text[]`), // IMAM | SHARIK | BAZU | HASTEH
+  mainFor: text('main_for').array().notNull().default(sql`'{}'::text[]`),
+  description: text('description'),
+  color: text('color').notNull().default('#1E3A9E'),
+  hasRahyar: boolean('has_rahyar').notNull().default(true),
+  status: text('status').notNull().default('DRAFT'), // DRAFT | IN_REVIEW | PUBLISHED | RETURNED | ARCHIVED
+  steps: jsonb('steps').$type<PathStep[]>().notNull().default([]),
+  returnNote: text('return_note'),
+  submittedAt: timestamp('submitted_at', { withTimezone: true }),
+  reviewedAt: timestamp('reviewed_at', { withTimezone: true }),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+export const pathEnrollments = pgTable('path_enrollments', {
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  pathId: text('path_id').notNull().references(() => paths2.id, { onDelete: 'cascade' }),
+  enrolledAt: timestamp('enrolled_at', { withTimezone: true }).notNull().defaultNow(),
+  completedAt: timestamp('completed_at', { withTimezone: true }),
+}, (t) => [primaryKey({ columns: [t.userId, t.pathId] })]);
+export const pathRahyars = pgTable('path_rahyars', {
+  pathId: text('path_id').notNull().references(() => paths2.id, { onDelete: 'cascade' }),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+}, (t) => [primaryKey({ columns: [t.pathId, t.userId] })]);
+/** دیدار میدانی راهیار برای پلهٔ یک مسیر کلان: آیتم «assess» با این تأیید می‌شود */
+export const pathAssessments = pgTable('path_assessments', {
+  id: id(),
+  pathId: text('path_id').notNull().references(() => paths2.id, { onDelete: 'cascade' }),
+  stepId: text('step_id').notNull(),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  byId: text('by_id').notNull().references(() => users.id),
+  note: text('note'),
+  createdAt: createdAt(),
+}, (t) => [index('path_assess_user_idx').on(t.userId, t.pathId)]);
+
+// ───────────── همتایان: گعده، پرسش از همتا، نظر همتا، فرایند تعیّن امامت ─────────────
+export const gaade = pgTable('gaade', {
+  id: id(),
+  title: text('title').notNull(),
+  kind: text('kind').notNull().default('CUSTOM'), // IMAMS | CUSTOM
+  hostId: text('host_id').notNull().references(() => users.id),
+  rhythm: text('rhythm'),
+  place: text('place'),
+  next: jsonb('next').$type<{ at: string; where: string; topic: string } | null>(),
+  pathId: text('path_id'), // گعدهٔ یک مسیر (اختیاری)
+  createdAt: createdAt(),
+});
+export const gaadeMembers = pgTable('gaade_members', {
+  gaadeId: text('gaade_id').notNull().references(() => gaade.id, { onDelete: 'cascade' }),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  rsvp: text('rsvp'), // YES | NO | null
+}, (t) => [primaryKey({ columns: [t.gaadeId, t.userId] })]);
+export const gaadeNotes = pgTable('gaade_notes', {
+  id: id(),
+  gaadeId: text('gaade_id').notNull().references(() => gaade.id, { onDelete: 'cascade' }),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  topic: text('topic'),
+  experience: text('experience').notNull(),
+  knot: text('knot'),
+  promise: text('promise').notNull(),
+  createdAt: createdAt(),
+});
+export const questions = pgTable('questions', {
+  id: id(),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  courseId: text('course_id'),
+  lessonId: text('lesson_id'),
+  title: text('title').notNull(),
+  body: text('body').notNull().default(''),
+  createdAt: createdAt(),
+}, (t) => [index('questions_lesson_idx').on(t.lessonId)]);
+export const answers = pgTable('answers', {
+  id: id(),
+  questionId: text('question_id').notNull().references(() => questions.id, { onDelete: 'cascade' }),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  body: text('body').notNull(),
+  best: boolean('best').notNull().default(false),
+  createdAt: createdAt(),
+});
+export const votes = pgTable('votes', {
+  kind: text('kind').notNull(), // Q | A
+  targetId: text('target_id').notNull(),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+}, (t) => [primaryKey({ columns: [t.kind, t.targetId, t.userId] })]);
+export const peerRequests = pgTable('peer_requests', {
+  id: id(),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  gaadeId: text('gaade_id').notNull().references(() => gaade.id, { onDelete: 'cascade' }),
+  title: text('title').notNull(),
+  body: text('body').notNull(),
+  createdAt: createdAt(),
+});
+export const peerReplies = pgTable('peer_replies', {
+  id: id(),
+  requestId: text('request_id').notNull().references(() => peerRequests.id, { onDelete: 'cascade' }),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  body: text('body').notNull(),
+  createdAt: createdAt(),
+});
+export const imamat = pgTable('imamat', {
+  userId: text('user_id').primaryKey().references(() => users.id, { onDelete: 'cascade' }),
+  level: integer('level').notNull().default(1),
+  spiral: integer('spiral').notNull().default(1),
+  petals: jsonb('petals').$type<Record<string, number>>().notNull().default({}),
+  updatedAt: updatedAt(),
+});
+export const imamatAssessments = pgTable('imamat_assessments', {
+  id: id(),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  byId: text('by_id').notNull().references(() => users.id),
+  level: integer('level').notNull(),
+  spiral: integer('spiral').notNull(),
+  note: text('note').notNull(),
+  createdAt: createdAt(),
+}, (t) => [index('imamat_assess_user_idx').on(t.userId)]);

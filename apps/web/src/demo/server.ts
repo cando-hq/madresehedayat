@@ -6,6 +6,9 @@
 import seed from './seed.json';
 import full from './catalog-full.json';
 import { registerPhase3, seedPhase3 } from './phase3';
+import { registerGrowth, seedGrowth } from './growth';
+import { registerPeers, seedPeers } from './peers';
+import { registerPaths2, registerStudio, seedPaths2, seedStudio } from './paths2';
 
 type Any = any;
 export class DemoError extends Error {
@@ -13,7 +16,7 @@ export class DemoError extends Error {
 }
 const E = (status: number, code: string, message: string, data: Any = {}) => new DemoError(status, code, message, data);
 
-const KEY = 'mh-demo-v6';
+const KEY = 'mh-demo-v9';
 const DEMO_CODE = '12345';
 export const DEMO_ADMIN = '09120000000';
 const now = () => new Date().toISOString();
@@ -64,15 +67,23 @@ function fresh(): DB {
   });
   seedPhase2(db, kashan, mosque, nj1);
   seedPhase3(db);
+  seedGrowth(db);
+  seedPeers(db);
+  seedPaths2(db);
+  seedStudio(db);
   return db;
 }
 
 /** نقش‌های آماده برای گشتن در نسخهٔ نمایشی */
 export const PERSONAS = [
-  { mobile: '09124444444', label: 'کنشگر (زینب)', hint: 'مأموریت، برنامه، هسته' },
+  { mobile: '09124444444', label: 'کنشگر: عضو هسته (زینب)', hint: 'مسیر اصلی «از عضو تا مربی هسته»، تیم، گعده' },
+  { mobile: '09131001371', label: 'کنشگر: شریکة‌الامام (فاطمه)', hint: 'مسیر اصلی «شریکة‌الامام»، حلقهٔ خانگی' },
+  { mobile: '09127777777', label: 'برگزارکننده (بنیاد هدایت)', hint: 'مسیرساز، دوره‌ساز، پخش زنده، گزارش اثر' },
+  { mobile: '09128888888', label: 'استاد (حجت‌الاسلام قاسمی)', hint: 'استودیو: دوره‌های من، پرسش‌ها، پخش زنده، تحلیل' },
   { mobile: '09121111111', label: 'راهیار شهرستان', hint: 'گزارش‌ها، پیام، برگزاری برنامه' },
   { mobile: '09122222222', label: 'راهیار استان + مدیر سازمان', hint: 'دامنهٔ استان، پنل برکت' },
-  { mobile: '09123333333', label: 'امام محله', hint: 'مسجد من، هسته‌ها' },
+  { mobile: '09123333333', label: 'کنشگر: امام محله', hint: 'مسیر اصلی «تعیّن امامت»، میدان، گعده' },
+  { mobile: '09125555555', label: 'راهیار برادران', hint: 'ارزیابی میدانی امام، گزارش‌ها' },
   { mobile: DEMO_ADMIN, label: 'ستاد', hint: 'ساختار راهیاری، دوره‌ها' },
 ];
 const ago_ = (d: number, h = 0) => new Date(Date.now() - d * 86400_000 - h * 3600_000).toISOString();
@@ -149,7 +160,9 @@ export function demoLoginAs(mobile: string) { const u = DBV.users.find((x) => x.
 const me = () => { const u = DBV.users.find((x) => x.id === DBV.session); if (!u) throw E(401, 'unauthenticated', 'اول وارد شوید'); return u; };
 const maybeMe = () => DBV.users.find((x) => x.id === DBV.session);
 const rolesOf = (id: string) => [...new Set(DBV.roles.filter((r) => r.userId === id).map((r) => r.role))];
-const staff = () => { const u = me(); const r = rolesOf(u.id); if (!r.includes('HQ_ADMIN') && !r.includes('HQ_OPERATOR')) throw E(403, 'forbidden', 'به این بخش دسترسی ندارید'); return u; };
+let CUR_PATH = '';
+/** ستاد؛ برگزارکننده هم فقط برای ویرایش دوره‌ها (همان ویرایشگر) */
+const staff = () => { const u = me(); const r = rolesOf(u.id); if ((r.includes('ORG_ADMIN') || r.includes('INSTRUCTOR')) && /^\/admin\/(courses|lessons|modules|uploads)/.test(CUR_PATH)) return u; if (!r.includes('HQ_ADMIN') && !r.includes('HQ_OPERATOR')) throw E(403, 'forbidden', 'به این بخش دسترسی ندارید'); return u; };
 const audit = (action: string, target?: string) => DBV.audit.unshift({ id: rid(), actorId: DBV.session, action, target: target ?? null, createdAt: now() });
 const C = (key: string) => { const c = DBV.courses.find((x) => x.slug === key || x.id === key); if (!c) throw E(404, 'no_course', 'این دوره پیدا نشد'); return c; };
 const modsOf = (cid: string) => DBV.modules.filter((m) => m.courseId === cid).sort((a, b) => a.order - b.order);
@@ -202,6 +215,7 @@ function checkCompletion(uid: string, cid: string) {
   const req = allLessons(cid).filter((l) => l.required);
   if (!req.length || req.some((l) => !prog(uid, l.id)?.completedAt)) return { completed: false };
   e.completedAt = now();
+  HOOK.onCourseComplete?.(uid, cid);
   const c = DBV.courses.find((x) => x.id === cid);
   const open = depState(cid, uid).filter((d) => d.kind === 'COREQUISITE' && !d.done);
   let certificate;
@@ -742,10 +756,21 @@ registerPhase3(Object.assign(HOOK, {
   get db() { return DBV; }, on, onFirst, wrap, E, me, maybeMe, rolesOf, staff, rid, now, notify, nm, U, C, enr, prog, isHQ, provOf, normMobile, card, allLessons, resolve,
 }));
 
+/* ───────── راهبردهای یادگیری ───────── */
+registerGrowth(HOOK);
+
+/* ───────── یادگیری از همتا و تعیّن امامت ───────── */
+registerPeers(HOOK);
+
+/* ───────── منطق مسیر، نسخهٔ ۲ ───────── */
+registerPaths2(HOOK);
+registerStudio(HOOK);
+
 export async function demoApi(path: string, method: string, body: Any): Promise<Any> {
   await new Promise((r) => setTimeout(r, 120)); // حس شبکه
   HOOK.beforeRequest?.();
   const [p, qs] = path.split('?');
+  CUR_PATH = p;
   for (const [mt, re, h] of R) {
     if (mt !== method) continue;
     const m = p.match(re);

@@ -12,7 +12,11 @@
 @font-face { font-family: 'Ravagh'; src: url('/fonts/RavaghFaNum-Bold.woff') format('woff'); font-weight: 700; font-display: swap; }
 @font-face { font-family: 'Ravagh'; src: url('/fonts/RavaghFaNum-ExtraBold.woff') format('woff'); font-weight: 800; font-display: swap; }
 
-@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+/* تیره: انتخاب کاربر، یا تنظیم دستگاه وقتی کاربر «روشن» را انتخاب نکرده */
+@custom-variant dark {
+  &:where([data-theme="dark"], [data-theme="dark"] *) { @slot; }
+  @media (prefers-color-scheme: dark) { &:where(:root:not([data-theme="light"]) *) { @slot; } }
+}
 
 :root {
   /* برند */
@@ -23,23 +27,28 @@
   --dome: #3FB4C8;        /* فیروزه‌ای گنبد */
   --dome-ink: #1D7F92;
   --dome-soft: #E1F3F6;
-  --deep: #1F6FA8;        /* آبی گنبد */
-  --deep-soft: #E4EEF7;
+  --deep: #1E3A9E;        /* آبی گنبد؛ رنگ ناوبری و پیوندها در طراحی نو */
+  --deep-soft: #EAEFFC;
   --flame: #F2B705;       /* زرد شعله */
   --flame-ink: #8A6500;
   --flame-soft: #FFF4D1;
   --rose: #D64A6A;
   --rose-soft: #FBE6EB;
   /* خنثی‌ها با ته‌رنگ سرمه‌ای نوشتهٔ لوگو */
-  --ink: #262A4F;
+  --ink: #1B2150;
   --body: #3E4462;
   --muted: #6C7290;
-  --line: #E3E6EE;
+  --line: #E4E7EF;
   --line-strong: #CDD2DF;
-  --bg: #F6F8F7;
+  --bg: #F4F5F9;
   --card: #FFFFFF;
-  --sunken: #EEF1F2;
-  --focus: 0 0 0 3px color-mix(in srgb, var(--leaf) 35%, transparent);
+  --sunken: #EEF0F5;
+  --action: #0A8449; --on-action: #FFFFFF; --danger: #C23A5B; --on-danger: #FFFFFF;
+  --rose-ink: #A8314F; --focus-ring: #0A7A45;
+  --focus: 0 0 0 2px var(--bg), 0 0 0 4px var(--focus-ring);
+  --space-0\.5: 2px; --space-1: 4px; --space-1\.5: 6px; --space-2: 8px; --space-2\.5: 10px; --space-3: 12px; --space-4: 16px; --space-5: 20px; --space-6: 24px; --space-8: 32px; --space-10: 40px; --space-12: 48px; --radius-sm: 8px; --radius-md: 10px; --radius-lg: 12px; --radius-xl: 14px; --radius-2xl: 24px; --radius-3xl: 32px; --radius-full: 999px;
+  --dur-fast: 150ms; --dur-base: 260ms; --dur-slow: 480ms;
+  --ease-out: cubic-bezier(.22, 1, .36, 1); --ease-in-out: cubic-bezier(.65, 0, .35, 1); --stagger: 45ms;
   --shadow-sm: 0 1px 2px rgb(38 42 79 / .06), 0 2px 8px rgb(38 42 79 / .04);
   --shadow-md: 0 4px 12px rgb(38 42 79 / .08), 0 12px 32px rgb(38 42 79 / .06);
   color-scheme: light;
@@ -52,6 +61,7 @@
     --rose: #EF7A94; --rose-soft: #3B1A23;
     --ink: #ECEEF6; --body: #C8CCDD; --muted: #8E93AD; --line: #2A2F45; --line-strong: #3A405A;
     --bg: #12141F; --card: #1A1D2B; --sunken: #161926;
+    --action: #34C47F; --on-action: #062915; --danger: #EF7A94; --on-danger: #2A0C14; --rose-ink: #EF7A94; --focus-ring: #7FE0AE;
     color-scheme: dark;
   }
 }
@@ -62,6 +72,7 @@
   --rose: #EF7A94; --rose-soft: #3B1A23;
   --ink: #ECEEF6; --body: #C8CCDD; --muted: #8E93AD; --line: #2A2F45; --line-strong: #3A405A;
   --bg: #12141F; --card: #1A1D2B; --sunken: #161926;
+  --action: #34C47F; --on-action: #062915; --danger: #EF7A94; --on-danger: #2A0C14; --rose-ink: #EF7A94; --focus-ring: #7FE0AE;
   color-scheme: dark;
 }
 
@@ -72,11 +83,12 @@
   --color-dome: var(--dome); --color-dome-ink: var(--dome-ink); --color-dome-soft: var(--dome-soft);
   --color-deep: var(--deep); --color-deep-soft: var(--deep-soft);
   --color-flame: var(--flame); --color-flame-ink: var(--flame-ink); --color-flame-soft: var(--flame-soft);
-  --color-rose: var(--rose); --color-rose-soft: var(--rose-soft);
+  --color-rose: var(--rose); --color-rose-soft: var(--rose-soft); --color-rose-ink: var(--rose-ink);
+  --color-action: var(--action); --color-on-action: var(--on-action);
   --color-ink: var(--ink); --color-body: var(--body); --color-muted: var(--muted);
   --color-line: var(--line); --color-line-strong: var(--line-strong);
   --color-bg: var(--bg); --color-card: var(--card); --color-sunken: var(--sunken);
-  --radius-xl: 14px; --radius-2xl: 20px; --radius-3xl: 28px;
+  --radius-xl: 14px; --radius-2xl: 24px; --radius-3xl: 32px;
   --shadow-soft: var(--shadow-sm); --shadow-lift: var(--shadow-md);
 }
 
@@ -84,66 +96,144 @@ html { -webkit-text-size-adjust: 100%; }
 body {
   margin: 0; background: var(--bg); color: var(--body);
   font-family: var(--font-sans); font-size: 16px; line-height: 1.85;
-  font-feature-settings: 'ss01';
+  font-feature-settings: normal; letter-spacing: 0;
+  -webkit-font-smoothing: antialiased;
   overflow-x: clip;
 }
-h1, h2, h3, h4 { color: var(--ink); line-height: 1.5; text-wrap: balance; margin: 0; }
-p { margin: 0; }
-:focus-visible { outline: none; box-shadow: var(--focus); border-radius: 8px; }
+@layer base {
+  h1, h2, h3, h4 { color: var(--ink); line-height: 1.5; text-wrap: balance; margin: 0; }
+  p { margin: 0; }
+  a { text-underline-offset: .35em; text-decoration-thickness: 1px; }
+}
+/* آیکون‌ها به سبک Iconly: خط ۱٫۵ */
+.lucide { stroke-width: 1.5; }
+:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; border-radius: 8px; }
 .wrap { width: 100%; max-width: 1180px; margin-inline: auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
 .tnum { font-variant-numeric: tabular-nums; }
 .ltr { direction: ltr; unicode-bidi: plaintext; }
 
-/* اجزا */
-.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; padding-inline: 20px; border-radius: 12px; font: inherit; font-weight: 700; font-size: 15px; cursor: pointer; border: 1px solid transparent; transition: background-color .15s, border-color .15s, transform .2s, box-shadow .2s; white-space: nowrap; text-decoration: none; }
-.btn:active { transform: translateY(1px); }
-.btn[disabled] { opacity: .55; cursor: not-allowed; }
-.btn-primary { background: var(--leaf); color: #fff; box-shadow: 0 6px 16px -6px color-mix(in srgb, var(--leaf) 70%, transparent); }
+/* اجزا — از دیزاین‌سیستم مدرسهٔ هدایت */
+/* دکمه: بی‌سایه، بی‌درخشش؛ وزنش از رنگ و اندازه می‌آید */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); height: 44px; padding-inline: var(--space-5); border-radius: var(--radius-lg); font: inherit; font-weight: 700; font-size: 15px; line-height: 1; cursor: pointer; border: 1px solid transparent; transition: background-color .15s, border-color .15s, color .15s; white-space: nowrap; text-decoration: none; }
+.btn[disabled] { opacity: .5; cursor: not-allowed; }
+.btn svg { width: 18px; height: 18px; flex: none; }
+.btn-primary { background: var(--action); color: var(--on-action); }
 .btn-primary:hover:not([disabled]) { background: var(--leaf-ink); }
-.btn-secondary { background: var(--card); color: var(--ink); border-color: var(--line-strong); }
-.btn-secondary:hover:not([disabled]) { border-color: var(--muted); }
+[data-theme="dark"] .btn-primary:hover:not([disabled]) { background: var(--leaf); filter: brightness(1.06); }
+.btn-secondary { background: transparent; color: var(--ink); border-color: var(--line-strong); }
+.btn-secondary:hover:not([disabled]) { background: var(--sunken); }
 .btn-ghost { background: transparent; color: var(--body); }
-.btn-ghost:hover:not([disabled]) { background: var(--sunken); }
-.btn-danger { background: var(--rose); color: #fff; }
-.btn-sm { height: 36px; padding-inline: 14px; font-size: 14px; border-radius: 10px; }
-.btn-lg { height: 52px; padding-inline: 26px; font-size: 16px; }
+.btn-ghost:hover:not([disabled]) { background: var(--sunken); color: var(--ink); }
+.btn-danger { background: transparent; color: var(--rose-ink); border-color: color-mix(in srgb, var(--rose) 45%, transparent); }
+.btn-danger:hover:not([disabled]) { background: var(--rose-soft); }
+.btn-danger.btn-solid { background: var(--danger); color: var(--on-danger); border-color: transparent; }
+.btn-sm { height: 36px; padding-inline: var(--space-4); font-size: 14px; border-radius: var(--radius-md); }
+.btn-lg { height: 52px; padding-inline: var(--space-6); font-size: 16px; }
 .btn-icon { width: 40px; padding: 0; }
 
-.card { background: var(--card); border: 1px solid var(--line); border-radius: 20px; box-shadow: var(--shadow-sm); }
-.field { display: grid; gap: 6px; }
-.field > label { font-size: 14px; font-weight: 700; color: var(--ink); }
-.input { width: 100%; height: 46px; border-radius: 12px; border: 1px solid var(--line-strong); background: var(--card); color: var(--ink); padding-inline: 14px; font: inherit; font-size: 16px; transition: border-color .15s, box-shadow .15s; }
-.input:focus { outline: none; border-color: var(--leaf); box-shadow: var(--focus); }
-textarea.input { height: auto; min-height: 96px; padding-block: 10px; resize: vertical; line-height: 1.8; }
-select.input { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236C7290' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-position: 14px 50%; background-repeat: no-repeat; padding-left: 36px; }
-.hint { font-size: 13px; color: var(--muted); }
-.err { font-size: 13px; color: var(--rose); display: flex; gap: 6px; align-items: center; }
-.chip { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding-inline: 10px; border-radius: 999px; font-size: 13px; font-weight: 600; background: var(--sunken); color: var(--body); white-space: nowrap; }
+/* کارت: مرز نازک، بی‌سایه. سایه فقط برای چیز شناور */
+.card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-2xl); }
+.card-float { box-shadow: var(--shadow-md); border-color: transparent; }
+
+/* فیلد */
+.field { display: grid; gap: var(--space-2); }
+.field > label { font-size: 14px; font-weight: 700; color: var(--ink); line-height: 1.5; }
+.input { box-sizing: border-box; width: 100%; height: 48px; border-radius: var(--radius-lg); border: 1px solid var(--line-strong); background: var(--card); color: var(--ink); padding-inline: var(--space-4); font: inherit; font-size: 16px; line-height: 1.5; transition: border-color .15s, box-shadow .15s; }
+.input::placeholder { color: var(--muted); }
+.input:focus { outline: none; border-color: var(--leaf-ink); box-shadow: 0 0 0 1px var(--leaf-ink); }
+.input[aria-invalid="true"] { border-color: var(--rose); }
+.input[aria-invalid="true"]:focus { box-shadow: 0 0 0 1px var(--rose); }
+textarea.input { height: auto; min-height: 112px; padding-block: var(--space-3); resize: vertical; line-height: 1.8; }
+.hint { font-size: 13px; color: var(--muted); line-height: 1.7; }
+.err { font-size: 13px; font-weight: 600; color: var(--rose-ink); display: flex; gap: var(--space-1\.5); align-items: center; line-height: 1.7; }
+
+/* چیپ: کوتاه و کم‌رنگ؛ معنا از متن می‌آید، رنگ فقط کمکش می‌کند */
+.chip { display: inline-flex; align-items: center; gap: var(--space-1\.5); height: 26px; padding-inline: var(--space-2\.5); border-radius: var(--radius-full); font-size: 13px; font-weight: 600; line-height: 1; background: var(--sunken); color: var(--body); white-space: nowrap; }
+.chip svg { width: 14px; height: 14px; }
 .chip-leaf { background: var(--leaf-soft); color: var(--leaf-ink); }
 .chip-flame { background: var(--flame-soft); color: var(--flame-ink); }
-.chip-dome { background: var(--dome-soft); color: var(--dome-ink); }
-.chip-rose { background: var(--rose-soft); color: var(--rose); }
-.bar { height: 8px; border-radius: 8px; background: var(--line); overflow: hidden; }
-.bar > span { display: block; height: 100%; border-radius: 8px; background: linear-gradient(90deg, var(--sprout), var(--leaf)); transition: width .5s; }
-.seg { display: inline-flex; gap: 4px; padding: 4px; border-radius: 12px; background: var(--sunken); max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+.chip-dome { background: var(--dome-soft); color: var(--dome-ink); font-weight: 700; }
+.chip-rose { background: var(--rose-soft); color: var(--rose-ink); }
+.chip-live { background: transparent; color: var(--flame-ink); padding-inline-start: 0; font-weight: 700; }
+.chip-live::before { content: ""; flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--flame); margin-inline-end: var(--space-1); }
+.chip-dot::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+/* نوار پیشرفت: باریک، تک‌رنگ */
+.bar { height: 6px; border-radius: var(--radius-full); background: var(--line); overflow: hidden; }
+.bar > span { display: block; height: 100%; border-radius: var(--radius-full); background: var(--leaf); transition: width .5s; }
+.bar-soft { height: 4px; }
+
+/* زبانه‌ها: خط زیرین، نه قرص */
+.seg { display: inline-flex; gap: var(--space-5); border-bottom: 1px solid var(--line); max-width: 100%; overflow-x: auto; scrollbar-width: none; }
 .seg::-webkit-scrollbar { display: none; }
-.seg > button { flex: none; white-space: nowrap; height: 34px; padding-inline: 14px; border: 0; border-radius: 9px; background: transparent; font: inherit; font-size: 14px; font-weight: 600; color: var(--body); cursor: pointer; }
-.seg > button[aria-pressed="true"] { background: var(--card); color: var(--ink); box-shadow: var(--shadow-sm); }
+.seg > button { flex: none; white-space: nowrap; height: 40px; padding: 0 var(--space-1); margin-bottom: -1px; border: 0; border-bottom: 2px solid transparent; background: transparent; font: inherit; font-size: 14px; font-weight: 600; color: var(--muted); cursor: pointer; transition: color .15s, border-color .15s; }
+.seg > button:hover { color: var(--ink); }
+.seg > button[aria-pressed="true"] { color: var(--ink); border-bottom-color: var(--leaf); }
+/* نسخهٔ قرصی برای فیلتر داخل کارت */
+.seg-pill { display: inline-flex; gap: var(--space-1); padding: var(--space-1); border-radius: var(--radius-lg); background: var(--sunken); border: 0; }
+.seg-pill > button { height: 32px; padding-inline: var(--space-3); margin: 0; border: 0; border-radius: 9px; }
+.seg-pill > button[aria-pressed="true"] { background: var(--card); color: var(--ink); border: 0; }
+
+/* کاشی آمار */
+.stat { display: grid; gap: var(--space-1); padding: var(--space-5); }
+.stat .n { font-size: 30px; font-weight: 800; line-height: 1.2; color: var(--ink); }
+.stat .l { font-size: 13px; color: var(--muted); }
+
+select.input { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236C7290' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-position: 14px 50%; background-repeat: no-repeat; padding-left: 36px; }
 .prose-fa { font-size: 17px; line-height: 2.05; color: var(--body); max-width: 68ch; }
 .prose-fa p + p { margin-top: 1em; }
 
-/* حرکت */
+/* ───────── حرکت ─────────
+   سه مدت و یک منحنی. هر چیز وارد می‌شود، نمی‌پرد. */
 @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-.rise { animation: rise .45s cubic-bezier(.2, .8, .2, 1) both; }
-@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; } }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes grow-x { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes pulse-dot { 0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--flame) 55%, transparent); } 70% { box-shadow: 0 0 0 6px transparent; } }
+@keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+/* ورود: به هر فرزند --i بدهید تا پشت سر هم بیایند */
+.rise { animation: rise var(--dur-slow) var(--ease-out) both; animation-delay: calc(var(--i, 0) * var(--stagger)); }
+.fade { animation: fade var(--dur-base) var(--ease-out) both; animation-delay: calc(var(--i, 0) * var(--stagger)); }
+.stagger > * { animation: rise var(--dur-slow) var(--ease-out) both; }
+.stagger > :nth-child(1) { animation-delay: 0ms } .stagger > :nth-child(2) { animation-delay: calc(var(--stagger) * 1) }
+.stagger > :nth-child(3) { animation-delay: calc(var(--stagger) * 2) } .stagger > :nth-child(4) { animation-delay: calc(var(--stagger) * 3) }
+.stagger > :nth-child(5) { animation-delay: calc(var(--stagger) * 4) } .stagger > :nth-child(6) { animation-delay: calc(var(--stagger) * 5) }
+.stagger > :nth-child(n+7) { animation-delay: calc(var(--stagger) * 6) }
+
+/* پاسخ به دست: کم و دقیق */
+.btn { transition: background-color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out); }
+.btn:active:not([disabled]) { transform: scale(.985); }
+.card { transition: border-color var(--dur-fast) var(--ease-out), transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out); }
+a.card:hover, .card.is-link:hover { border-color: var(--line-strong); transform: translateY(-2px); box-shadow: var(--shadow-sm); }
+.input { transition: border-color var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out); }
+.seg > button { transition: color var(--dur-fast) var(--ease-out), border-color var(--dur-base) var(--ease-out); }
+
+/* نوار پیشرفت از راست پر می‌شود */
+.bar > span { transform-origin: right center; transition: width var(--dur-slow) var(--ease-out); }
+.bar.animate > span { animation: grow-x var(--dur-slow) var(--ease-out) both; animation-delay: 120ms; }
+
+/* نقطهٔ «زنده» نفس می‌کشد */
+.chip-live::before { animation: pulse-dot 2s var(--ease-in-out) infinite; }
+
+/* اسکلت بارگذاری */
+.skeleton { position: relative; overflow: hidden; border-radius: var(--radius-md); background: var(--sunken); color: transparent; }
+.skeleton::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--card) 70%, transparent) 50%, transparent 100%); background-size: 200% 100%; animation: shimmer 1.6s linear infinite; }
+
+/* باز شدن جزئیات (details) و منو */
+.reveal { animation: rise var(--dur-base) var(--ease-out) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
+  .chip-live::before { animation: none; }
+}
 
 /* رنگ دوره‌ها */
 .tint-green { --t: var(--leaf); --t-soft: var(--leaf-soft); --t-ink: var(--leaf-ink); }
 .tint-peri, .tint-deep { --t: var(--deep); --t-soft: var(--deep-soft); --t-ink: var(--deep); }
 .tint-amber, .tint-flame { --t: var(--flame); --t-soft: var(--flame-soft); --t-ink: var(--flame-ink); }
 .tint-sky, .tint-dome { --t: var(--dome); --t-soft: var(--dome-soft); --t-ink: var(--dome-ink); }
-.tint-rose { --t: var(--rose); --t-soft: var(--rose-soft); --t-ink: var(--rose); }
-.cover { background: radial-gradient(120% 120% at 100% 0%, color-mix(in srgb, var(--t) 22%, var(--t-soft)) 0%, var(--t-soft) 60%); color: var(--t-ink); }
+.tint-rose { --t: var(--rose); --t-soft: var(--rose-soft); --t-ink: var(--rose-ink); }
+.cover { background: var(--t-soft); color: var(--t-ink); }
 
 /* فرزندان grid از پهنای ستون بیرون نزنند (جدول‌ها و پیوندهای بلند داخل ظرف اسکرول خودشان می‌مانند) */
 :where(.grid) > * { min-width: 0; }
@@ -209,3 +299,184 @@ select.input { appearance: none; background-image: url("data:image/svg+xml,%3Csv
   .bchain .link + .link { margin-inline-start: 0; }
 }
 @keyframes float-up { from { opacity: 1; transform: translateY(0) scale(1); } to { opacity: 0; transform: translateY(-160px) scale(1.3); } }
+
+/* ═══════════ تجربه: انتقال صفحه، بارگذاری، پاسخ به دست ═══════════ */
+@keyframes page-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes pop-in { from { opacity: 0; transform: translateY(-4px) scale(.97); } to { opacity: 1; transform: none; } }
+@keyframes bump { 0% { transform: scale(1); } 40% { transform: scale(1.18) translateY(-1px); } 100% { transform: scale(1); } }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+@keyframes ring-pulse { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--leaf) 40%, transparent); } 80%, 100% { box-shadow: 0 0 0 10px transparent; } }
+@keyframes load { from { transform: scaleX(0); } to { transform: scaleX(.86); } }
+@keyframes leaf-up { 0% { opacity: 0; transform: translateY(0) rotate(var(--r)) scale(.6); } 15% { opacity: .9; } 100% { opacity: 0; transform: translateY(-220px) rotate(calc(var(--r) * -1)) scale(1); } }
+
+.page { animation: page-in 360ms var(--ease-out) both; }
+.pop { animation: pop-in var(--dur-base) var(--ease-out) both; transform-origin: top left; }
+.skip-link { position: fixed; inset-inline-start: 12px; top: -60px; z-index: 60; padding: 10px 16px; border-radius: var(--radius-lg); background: var(--ink); color: var(--bg); font-weight: 700; text-decoration: none; transition: top var(--dur-base) var(--ease-out); }
+.skip-link:focus { top: 12px; }
+
+/* نوار بارگذاری بالای صفحه */
+.top-loader { position: fixed; inset-inline: 0; top: 0; z-index: 70; height: 2px; background: var(--leaf); transform: scaleX(0); transform-origin: right center; opacity: 0; pointer-events: none; }
+.top-loader.run { opacity: 1; animation: load 6s cubic-bezier(.1, .7, .2, 1) forwards; }
+.top-loader.done { opacity: 0; transform: scaleX(1); transition: transform var(--dur-base) var(--ease-out), opacity 300ms 160ms ease; }
+
+/* اسکلت با کمی تأخیر تا بارگذاری سریع چشمک نزند */
+.sk-page { animation: fade var(--dur-base) 150ms var(--ease-out) both; }
+
+/* ناوبری */
+.nav-item { transition: background-color var(--dur-base) var(--ease-out), color var(--dur-fast) var(--ease-out); }
+.nav-item[aria-current="page"] svg, .tab-item[aria-current="page"] svg { animation: bump 420ms var(--ease-out); }
+.tab-item { position: relative; transition: color var(--dur-fast) var(--ease-out); }
+.tab-item::before { content: ""; position: absolute; top: 0; inset-inline: 30%; height: 2px; border-radius: 0 0 2px 2px; background: var(--leaf); transform: scaleX(0); transition: transform var(--dur-base) var(--ease-out); }
+.tab-item[aria-current="page"]::before { transform: scaleX(1); }
+
+/* دکمه و گزینه */
+.btn-icon:active:not([disabled]) { transform: scale(.94); }
+.btn-primary { position: relative; overflow: hidden; }
+.btn-primary::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgb(255 255 255 / .18), transparent); transform: translateX(110%); transition: transform 600ms var(--ease-out); pointer-events: none; }
+.btn-primary:hover:not([disabled])::after { transform: translateX(-110%); }
+.opt { transition: border-color var(--dur-fast) var(--ease-out), background-color var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out); }
+.opt:active { transform: scale(.99); }
+.opt[aria-pressed="true"] { animation: bump 300ms var(--ease-out); }
+
+/* پنجره‌ها */
+dialog[open] { animation: pop-in var(--dur-base) var(--ease-out); }
+dialog[open]::backdrop { animation: fade var(--dur-base) var(--ease-out); }
+
+/* ═══════════ مسیر آموزشی ═══════════ */
+.ring-arc { transition: stroke-dashoffset 1.1s var(--ease-out) 120ms; }
+
+/* ایستگاه‌های کوچک روی کارت مسیر */
+.stops { gap: 0; }
+.stop .dot { flex: none; width: 18px; height: 20px; border-radius: 999px 999px 5px 5px; border: 2px solid var(--line-strong); background: var(--card); color: #fff; transition: transform var(--dur-base) var(--ease-out); }
+.stop .link { flex: 1; height: 2px; margin-inline: 3px; border-radius: 2px; background: var(--line); transform-origin: right center; }
+.stop-done .dot { border-color: var(--t, var(--leaf)); background: var(--t, var(--leaf)); }
+.stop-done .link { background: var(--t, var(--leaf)); animation: grow-x var(--dur-slow) var(--ease-out) both; animation-delay: calc(var(--i, 0) * 90ms + 200ms); }
+.stop-current .dot { border-color: var(--t, var(--leaf)); background: var(--card); box-shadow: 0 0 0 3px color-mix(in srgb, var(--t, var(--leaf)) 22%, transparent); }
+.stop-exam .dot { width: 22px; height: 24px; color: var(--flame-ink); }
+.stop-exam.stop-current .dot { border-color: var(--flame); background: var(--flame-soft); }
+.path-tile:hover .stop-current .dot { transform: translateY(-2px); }
+
+/* نقشهٔ مسیر */
+.journey { --node: 48px; position: relative; padding: 0; margin: 0; list-style: none; }
+.journey .spine { position: absolute; inset-inline-start: calc(var(--node) / 2 - 1px); top: 24px; bottom: 40px; width: 2px; border-radius: 2px; background: var(--line); overflow: hidden; }
+.journey .spine > span { position: absolute; inset-inline: 0; top: 0; height: 0; background: var(--leaf); border-radius: 2px; transition: height 1.4s var(--ease-out) 200ms; }
+.journey.in .spine > span { height: calc(var(--fill) * 100%); }
+.station { position: relative; display: grid; grid-template-columns: var(--node) minmax(0, 1fr); gap: var(--space-4); align-items: start; opacity: 0; }
+.journey.in .station { animation: rise var(--dur-slow) var(--ease-out) both; animation-delay: calc(var(--i, 0) * 80ms + 80ms); }
+.station .node { position: relative; z-index: 1; display: grid; place-items: center; width: var(--node); height: calc(var(--node) + 4px); margin-top: 14px; border-radius: 999px 999px 12px 12px; border: 2px solid var(--line-strong); background: var(--bg); color: var(--muted); font-weight: 800; font-size: 15px; }
+.station .tick { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 24; stroke-dashoffset: 24; }
+.journey.in .station .tick { animation: draw 500ms var(--ease-out) forwards; animation-delay: calc(var(--i, 0) * 80ms + 420ms); }
+.st-done .node { border-color: var(--leaf); background: var(--leaf); color: #fff; }
+[data-theme="dark"] .st-done .node { color: var(--on-action); }
+.st-current .node { border-color: var(--leaf); color: var(--leaf-ink); background: var(--card); animation: ring-pulse 2.4s var(--ease-in-out) infinite 1.2s; }
+.st-next .node { border-color: var(--line-strong); color: var(--ink); }
+.st-current .stop-card { border-color: color-mix(in srgb, var(--leaf) 55%, var(--line)); box-shadow: var(--shadow-sm); }
+.st-later .stop-card { background: transparent; }
+.st-later .stop-card .cover { opacity: .7; }
+.state-tag { font-size: 12px; font-weight: 700; line-height: 1.5; color: var(--muted); }
+.st-tag-done { color: var(--leaf-ink); }
+.st-tag-current { color: var(--leaf-ink); display: inline-flex; align-items: center; gap: 6px; }
+.st-tag-current::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--flame); animation: pulse-dot 2s var(--ease-in-out) infinite; }
+.st-tag-exam { color: var(--flame-ink); }
+.st-exam .node { color: var(--flame-ink); }
+.st-exam.st-current .node { border-color: var(--flame); background: var(--flame-soft); animation: none; }
+.exam-card.is-open { border-color: color-mix(in srgb, var(--flame) 60%, var(--line)); background: color-mix(in srgb, var(--flame-soft) 45%, var(--card)); }
+
+/* سرصفحهٔ مسیر و جشن پایان */
+.path-hero { background: var(--t-soft); }
+.path-hero h1 { color: var(--ink); }
+.celebrate i { position: absolute; bottom: -24px; left: var(--x); width: 12px; height: 18px; border-radius: 0 100% 0 100%; background: var(--t, var(--leaf)); opacity: 0; animation: leaf-up 2.6s var(--ease-out) var(--d) forwards; }
+.celebrate i:nth-child(3n) { background: var(--flame); width: 8px; height: 13px; }
+
+@media (max-width: 640px) {
+  .journey { --node: 40px; }
+  .station { gap: var(--space-3); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .station { opacity: 1; }
+  .st-current .node, .st-tag-current::before { animation: none; }
+  .station .tick { stroke-dashoffset: 0; }
+  .btn-primary::after { display: none; }
+}
+
+/* ───────── راهبردهای یادگیری ───────── */
+/* حالت تمرکز در درس */
+html.focus-mode .shell-header, html.focus-mode .shell-tabs, html.focus-mode .shell-feedback { display: none; }
+html.focus-mode .shell-root { padding-bottom: 0; }
+html.focus-mode main { padding-top: var(--space-6); }
+.lesson-focus { animation: page-in var(--dur-base, .24s) var(--ease-out, ease-out) both; }
+
+/* مراحل رشد */
+.stage-track { position: relative; }
+.stage-track::before { content: ""; position: absolute; inset-inline: 12.5%; top: 20px; height: 2px; background: var(--line); }
+.stage { position: relative; color: var(--muted); }
+.stage-dot { background: var(--card); border: 2px solid var(--line); color: var(--muted); transition: transform .3s var(--ease-out, ease-out); }
+.stage-done .stage-dot { background: var(--leaf-soft); border-color: var(--leaf); color: var(--leaf-ink); }
+.stage-done { color: var(--leaf-ink); }
+.stage-now { color: var(--ink); }
+.stage-now .stage-dot { background: var(--leaf); border-color: var(--leaf); color: var(--on-action); animation: ring-pulse 2.4s ease-out 1s 2; }
+
+/* ریتم هفته */
+.rday.is-today > span:first-child { outline: 2px solid var(--leaf); outline-offset: 2px; }
+.rday.is-today > span:last-child { color: var(--ink); font-weight: 700; }
+.rday.is-ahead > span:first-child { opacity: .55; }
+.rbar { transform-origin: bottom; animation: grow-y .6s var(--ease-out, ease-out) both; animation-delay: calc(var(--i, 0) * 50ms); }
+@keyframes grow-y { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+
+/* قدم بعدی */
+.next-hero .cover { background: var(--t-soft); color: var(--t-ink); }
+.next-card { animation: rise .4s var(--ease-out, ease-out) both; }
+
+/* پرسش کوتاه وسط درس */
+.check { animation: rise .35s var(--ease-out, ease-out) both; }
+.check .opt.border-rose { animation: shake .3s ease-in-out; }
+@keyframes shake { 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } }
+.skill.is-mastered > span:first-child { animation: bump .4s ease-out both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .rbar, .next-card, .check, .lesson-focus, .check .opt.border-rose, .skill.is-mastered > span:first-child, .stage-now .stage-dot { animation: none; }
+}
+
+/* ───────── ظاهر تازه: کم‌متن، تصویری ───────── */
+.widget { min-height: 196px; }
+.widget-icon { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 12px; flex: none; }
+.widget.is-met { background: linear-gradient(160deg, var(--leaf-soft), var(--card) 60%); }
+
+.stage-chip { display: inline-flex; align-items: center; gap: 8px; height: 36px; padding-inline: 6px 14px; border-radius: 999px; background: var(--leaf-soft); color: var(--leaf-ink); font-weight: 800; font-size: 14px; }
+.stage-chip > span { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--leaf); color: var(--on-action); }
+
+.growth-hero { background: radial-gradient(120% 90% at 50% 0%, var(--leaf-soft), transparent 70%); }
+.growth-mark { position: absolute; inset-inline-end: -28px; top: -24px; width: 160px; opacity: .07; pointer-events: none; }
+.growth-icon { background: var(--leaf); color: var(--on-action); box-shadow: 0 0 0 8px color-mix(in srgb, var(--leaf) 18%, transparent); animation: bump .6s var(--ease-out, ease-out) .2s both; }
+
+.next-hero { background: linear-gradient(135deg, var(--t-soft) 0%, color-mix(in srgb, var(--t-soft) 40%, var(--card)) 100%); border: 1px solid color-mix(in srgb, var(--t) 22%, transparent); }
+.next-mark { position: absolute; inset-inline-start: -40px; bottom: -60px; width: 300px; opacity: .08; pointer-events: none; }
+.next-kicker { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding-inline: 12px; border-radius: 999px; background: var(--card); color: var(--t-ink); font-size: 13px; font-weight: 800; }
+.next-kicker::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--t); }
+.next-meta { font-size: 13px; font-weight: 600; color: var(--body); padding: 4px 10px; border-radius: 999px; background: color-mix(in srgb, var(--card) 70%, transparent); }
+.next-art { background: var(--card); box-shadow: 0 0 0 14px color-mix(in srgb, var(--card) 45%, transparent); }
+
+.skill-pill { --p: 0%; display: inline-flex; align-items: center; gap: 8px; height: 42px; padding-inline: 6px 14px; border-radius: 999px; border: 1px solid var(--line); background: linear-gradient(to left, var(--leaf-soft) var(--p), var(--card) var(--p)); font-size: 14px; color: var(--ink); }
+.skill-pill .skill-dot { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--sunken); border: 2px dashed var(--line-strong); }
+.skill-pill.is-mastered { background: var(--leaf-soft); border-color: color-mix(in srgb, var(--leaf) 40%, transparent); }
+.skill-pill.is-mastered .skill-dot { background: var(--leaf); border: 0; color: var(--on-action); animation: bump .4s ease-out both; }
+
+.story-row { display: grid; gap: 12px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 900px) { .story-row { grid-auto-flow: column; grid-template-columns: none; grid-auto-columns: 82%; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 4px; } .story-row > * { scroll-snap-align: start; } }
+.story { min-height: 250px; }
+.story-1 { background: linear-gradient(180deg, var(--flame-soft), var(--card) 55%); }
+.story-2 { background: linear-gradient(180deg, var(--dome-soft), var(--card) 55%); }
+
+.bubbles i { width: 22px; height: 22px; border-radius: 50%; background: var(--sunken); border: 2px solid var(--card); margin-inline-start: -6px; }
+.bubbles i:first-child { margin-inline-start: 0; }
+.bubbles i.on { background: var(--t, var(--leaf)); }
+
+@media (prefers-reduced-motion: reduce) { .growth-icon { animation: none; } }
+
+/* ───────── طراحی نو: فرایند تعیّن امامت، ترنج و رواق ───────── */
+body { font-feature-settings: 'ss01' 0, 'ss02' 0, 'ss03' 0, 'swsh' 0, 'dlig' 0; }
+.card { box-shadow: 0 1px 2px rgb(27 33 80 / .04), 0 8px 24px rgb(27 33 80 / .05); }
+.hero-blue { background: var(--deep); color: #fff; }
+.hero-blue h2, .hero-blue h1 { color: #fff; }
+.seg > button[aria-pressed="true"] { border-bottom-color: var(--deep); }
+.bar > span { background: var(--deep); }

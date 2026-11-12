@@ -39,7 +39,7 @@ const ALLOWED = /^(audio\/(mpeg|mp4|ogg|webm|x-m4a|aac)|video\/(mp4|webm)|applic
 export class FilesController {
   constructor(private readonly store: FileStore, @InjectDb() private readonly db: Db, private readonly rahyar: RahyarService) {}
 
-  @Post('admin/uploads') @Roles('HQ_ADMIN', 'HQ_OPERATOR')
+  @Post('admin/uploads') @Roles('HQ_ADMIN', 'HQ_OPERATOR', 'ORG_ADMIN', 'INSTRUCTOR')
   @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 500 * 1024 * 1024 } }))
   async upload(@UploadedFile() file: { originalname: string; mimetype: string; size: number; buffer: Buffer }) {
     if (!this.store.ready) throw new BadRequestException({ code: 'storage_off', message: 'ذخیره‌ساز فایل در دسترس نیست' });

@@ -39,7 +39,7 @@ export function ManageEventList() {
             </div>
           </Link></li>
         ))}</ul>
-      ) : <Empty icon={Megaphone} title="هنوز برنامه‌ای نساخته‌اید" />}
+      ) : <Empty icon={Megaphone} title="اولین برنامه‌تان را بچینید" />}
     </div>
   );
 }

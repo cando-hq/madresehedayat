@@ -10,7 +10,7 @@ import { AuthUser, CurrentUser, MaybeUser, Public } from '../common/auth.decorat
 import { ACCESS_COOKIE } from '../common/auth.guard';
 import { normalizeMobile, toEnDigits } from '../common/mobile';
 import { Db, InjectDb } from '../db/db.module';
-import { coreMemberships, cores, counties, messengerLinks, mosques, networks, provinces, roleGrants, users } from '../db/schema';
+import { coreMemberships, cores, counties, messengerLinks, mosques, networks, provinces, roleGrants, users, publisherAdmins, publishers } from '../db/schema';
 import { AuthService } from './auth.service';
 import { JwtService } from '@nestjs/jwt';
 import { contactPhone, eitaaEnabled, eitaaUser, eitaaVerifyOnce, verifyEitaa } from '../eitaa/eitaa';
@@ -222,7 +222,11 @@ export class AuthController {
     const imamOf = await this.db.select({ id: mosques.id, name: mosques.name }).from(mosques).where(eq(mosques.imamId, userId));
     const orgs = await this.db.select({ id: networks.id, name: networks.name }).from(roleGrants).innerJoin(networks, eq(networks.id, roleGrants.networkId))
       .where(and(eq(roleGrants.userId, userId), eq(roleGrants.role, 'ORG_ADMIN')));
+    const pubRow = await this.db.select({ id: publishers.id, name: publishers.name, color: publishers.color }).from(publisherAdmins).innerJoin(publishers, eq(publishers.id, publisherAdmins.publisherId))
+      .where(and(eq(publisherAdmins.userId, userId), eq(publishers.status, 'ACTIVE'))).then((r) => r[0] ?? null);
     return {
+      // منطق مسیر (نسخهٔ ۲)
+      actorRole: u.actorRole ?? null, mainPathId: u.mainPathId ?? null, onboarded: !!u.onboardedAt, publisher: pubRow, location: u.lat != null && u.lng != null ? { lat: u.lat, lng: u.lng } : null,
       imamOf, orgs, allowRahyarMessages: u.allowRahyarMessages, notifyMessenger: u.notifyMessenger, mfaEnrolled: !!u.totpEnabledAt,
       id: u.id, mobile: dec(u.mobileEnc) ?? '', firstName: u.firstName, lastName: u.lastName, gender: u.gender,
       hasNationalId: !!u.nationalId, county, mosque, nearMosque: u.nearMosque, roles,

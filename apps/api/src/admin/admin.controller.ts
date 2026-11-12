@@ -2,15 +2,21 @@ import { AccessLog } from '../security/security';
 import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Put, Query } from '@nestjs/common';
 import { Type } from 'class-transformer';
 import {
-  ArrayMaxSize, IsArray, IsBoolean, IsIn, IsInt, IsObject, IsOptional, IsString, Length, Max, MaxLength, Min, ValidateNested,
+  ArrayMaxSize, IsArray, IsBoolean, IsIn, IsInt, IsObject, IsOptional, IsString, Length, Matches, Max, MaxLength, Min, ValidateNested,
 } from 'class-validator';
 import { AuthUser, CurrentUser, Roles } from '../common/auth.decorators';
 import { AdminService } from './admin.service';
+import { Paths2Service } from '../paths2/paths2';
+import { ForbiddenException } from '@nestjs/common';
+import { Db, InjectDb } from '../db/db.module';
+import { lessons, modules } from '../db/schema';
+import { eq } from 'drizzle-orm';
 
 const LESSON_TYPES = ['VIDEO', 'AUDIO', 'TEXT', 'QUIZ', 'PRACTICE', 'WORKSHEET', 'MISSION', 'TOOL', 'LIVE'] as const;
 const ROLE_NAMES = ['HQ_ADMIN', 'HQ_OPERATOR', 'INSTRUCTOR', 'RAHYAR', 'IMAM', 'ORG_ADMIN'] as const;
 
 class CreateCourseDto { @IsString() @Length(3, 120) title: string; }
+class SkillDto { @IsString() @Matches(/^[a-z0-9]{4,24}$/) id: string; @IsString() @Length(2, 80) title: string; }
 class UpdateCourseDto {
   @IsOptional() @IsString() @Length(3, 120) title?: string;
   @IsOptional() @IsString() @MaxLength(200) subtitle?: string;
@@ -25,6 +31,7 @@ class UpdateCourseDto {
   @IsOptional() @IsIn(['ON_SUBMIT', 'ON_APPROVAL']) missionRule?: 'ON_SUBMIT' | 'ON_APPROVAL';
   @IsOptional() @IsBoolean() hasCertificate?: boolean;
   @IsOptional() @IsArray() @ArrayMaxSize(10) @IsString({ each: true }) outcomes?: string[];
+  @IsOptional() @IsArray() @ArrayMaxSize(8) @ValidateNested({ each: true }) @Type(() => SkillDto) skills?: SkillDto[];
   @IsOptional() @IsBoolean() bumpVersion?: boolean;
 }
 class DepDto { @IsString() requiresId: string; @IsIn(['PREREQUISITE', 'COREQUISITE']) kind: 'PREREQUISITE' | 'COREQUISITE'; }
@@ -39,6 +46,7 @@ class UpdateLessonDto {
   @IsOptional() @IsBoolean() required?: boolean;
   @IsOptional() @IsBoolean() isFinalQuiz?: boolean;
   @IsOptional() @IsObject() content?: Record<string, unknown>;
+  @IsOptional() @IsArray() @ArrayMaxSize(8) @IsString({ each: true }) skillIds?: string[];
 }
 class PathDto { @IsString() @Length(2, 120) title: string; @IsOptional() @IsString() @MaxLength(1000) description?: string; }
 class UpdatePathDto {
@@ -67,24 +75,28 @@ class MosqueDto { @IsString() @Length(2, 120) name: string; @IsString() countyId
 @Controller('admin')
 @Roles('HQ_ADMIN', 'HQ_OPERATOR')
 export class AdminController {
-  constructor(private readonly admin: AdminService, private readonly access: AccessLog) {}
+  constructor(private readonly admin: AdminService, private readonly access: AccessLog, private readonly p2: Paths2Service, @InjectDb() private readonly db: Db) {}
+  /** سازندهٔ دوره (مدیر برگزارکننده یا استاد) فقط دورهٔ خودش را در ویرایشگر می‌بیند */
+  private async own(u: AuthUser, courseId: string) { if (!(await this.p2.canEditCourse(u, courseId))) throw new ForbiddenException({ code: 'forbidden', message: 'این دوره مال شما نیست' }); }
+  private async ownModule(u: AuthUser, moduleId: string) { const m = await this.db.query.modules.findFirst({ where: eq(modules.id, moduleId), columns: { courseId: true } }); await this.own(u, m?.courseId ?? ''); }
+  private async ownLesson(u: AuthUser, lessonId: string) { const l = await this.db.query.lessons.findFirst({ where: eq(lessons.id, lessonId), columns: { moduleId: true } }); await this.ownModule(u, l?.moduleId ?? ''); }
 
   @Get('stats') stats() { return this.admin.stats(); }
 
   @Get('courses') courses() { return this.admin.listCourses(); }
   @Post('courses') createCourse(@CurrentUser() u: AuthUser, @Body() d: CreateCourseDto) { return this.admin.createCourse(u.id, d); }
-  @Get('courses/:id') course(@Param('id') id: string) { return this.admin.getCourse(id); }
-  @Get('courses/:id/problems') problems(@Param('id') id: string) { return this.admin.publishProblems(id); }
-  @Patch('courses/:id') updateCourse(@CurrentUser() u: AuthUser, @Param('id') id: string, @Body() d: UpdateCourseDto) { return this.admin.updateCourse(u.id, id, d); }
+  @Get('courses/:id') @Roles('HQ_ADMIN', 'HQ_OPERATOR', 'ORG_ADMIN', 'INSTRUCTOR') async course(@CurrentUser() u: AuthUser, @Param('id') id: string) { await this.own(u, id); return this.admin.getCourse(id); }
+  @Get('courses/:id/problems') @Roles('HQ_ADMIN', 'HQ_OPERATOR', 'ORG_ADMIN', 'INSTRUCTOR') async problems(@CurrentUser() u: AuthUser, @Param('id') id: string) { await this.own(u, id); return this.admin.publishProblems(id); }
+  @Patch('courses/:id') @Roles('HQ_ADMIN', 'HQ_OPERATOR', 'ORG_ADMIN', 'INSTRUCTOR') async updateCourse(@CurrentUser() u: AuthUser, @Param('id') id: string, @Body() d: UpdateCourseDto) { await this.own(u, id); if (!u.roles.includes('HQ_ADMIN') && !u.roles.includes('HQ_OPERATOR')) delete (d as any).status; return this.admin.updateCourse(u.id, id, d); }
   @Delete('courses/:id') @Roles('HQ_ADMIN') deleteCourse(@CurrentUser() u: AuthUser, @Param('id') id: string) { return this.admin.deleteCourse(u.id, id); }
   @Put('courses/:id/dependencies') deps(@CurrentUser() u: AuthUser, @Param('id') id: string, @Body() d: DepsDto) { return this.admin.setDependencies(u.id, id, d.deps); }
-  @Post('courses/:id/modules') addModule(@Param('id') id: string, @Body() d: TitleDto) { return this.admin.addModule(id, d.title); }
-  @Put('courses/:id/order') reorder(@Param('id') id: string, @Body() d: ReorderDto) { return this.admin.reorder(id, d.modules); }
-  @Patch('modules/:id') updateModule(@Param('id') id: string, @Body() d: TitleDto) { return this.admin.updateModule(id, d.title); }
-  @Delete('modules/:id') deleteModule(@Param('id') id: string) { return this.admin.deleteModule(id); }
-  @Post('modules/:id/lessons') addLesson(@Param('id') id: string, @Body() d: AddLessonDto) { return this.admin.addLesson(id, d); }
-  @Patch('lessons/:id') updateLesson(@CurrentUser() u: AuthUser, @Param('id') id: string, @Body() d: UpdateLessonDto) { return this.admin.updateLesson(u.id, id, d); }
-  @Delete('lessons/:id') deleteLesson(@CurrentUser() u: AuthUser, @Param('id') id: string) { return this.admin.deleteLesson(u.id, id); }
+  @Post('courses/:id/modules') @Roles('HQ_ADMIN', 'HQ_OPERATOR', 'ORG_ADMIN', 'INSTRUCTOR') async addModule(@CurrentUser() u: AuthUser, @Param('id') id: string, @Body() d: TitleDto) { await this.own(u, id); return this.admin.addModule(id, d.title); }
+  @Put('courses/:id/order') @Roles('HQ_ADMIN', 'HQ_OPERATOR', 'ORG_ADMIN', 'INSTRUCTOR') async reorder(@CurrentUser() u: AuthUser, @Param('id') id: string, @Body() d: ReorderDto) { await this.own(u, id); return this.admin.reorder(id, d.modules); }
+  @Patch('modules/:id') @Roles('HQ_ADMIN', 'HQ_OPERATOR', 'ORG_ADMIN', 'INSTRUCTOR') async updateModule(@CurrentUser() u: AuthUser, @Param('id') id: string, @Body() d: TitleDto) { await this.ownModule(u, id); return this.admin.updateModule(id, d.title); }
+  @Delete('modules/:id') @Roles('HQ_ADMIN', 'HQ_OPERATOR', 'ORG_ADMIN', 'INSTRUCTOR') async deleteModule(@CurrentUser() u: AuthUser, @Param('id') id: string) { await this.ownModule(u, id); return this.admin.deleteModule(id); }
+  @Post('modules/:id/lessons') @Roles('HQ_ADMIN', 'HQ_OPERATOR', 'ORG_ADMIN', 'INSTRUCTOR') async addLesson(@CurrentUser() u: AuthUser, @Param('id') id: string, @Body() d: AddLessonDto) { await this.ownModule(u, id); return this.admin.addLesson(id, d); }
+  @Patch('lessons/:id') @Roles('HQ_ADMIN', 'HQ_OPERATOR', 'ORG_ADMIN', 'INSTRUCTOR') async updateLesson(@CurrentUser() u: AuthUser, @Param('id') id: string, @Body() d: UpdateLessonDto) { await this.ownLesson(u, id); return this.admin.updateLesson(u.id, id, d); }
+  @Delete('lessons/:id') @Roles('HQ_ADMIN', 'HQ_OPERATOR', 'ORG_ADMIN', 'INSTRUCTOR') async deleteLesson(@CurrentUser() u: AuthUser, @Param('id') id: string) { await this.ownLesson(u, id); return this.admin.deleteLesson(u.id, id); }
 
   @Get('paths') paths() { return this.admin.listPaths(); }
   @Post('paths') createPath(@CurrentUser() u: AuthUser, @Body() d: PathDto) { return this.admin.createPath(u.id, d); }

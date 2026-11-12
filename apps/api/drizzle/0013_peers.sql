@@ -1,0 +1,31 @@
+-- همتایان و استودیو: گعده، پرسش از همتا، نظر همتا، فرایند تعیّن امامت؛ استاد روی دوره و پخش زنده
+ALTER TABLE "courses" ADD COLUMN "instructor_id" text;--> statement-breakpoint
+ALTER TABLE "events" ADD COLUMN "instructor_id" text;--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS "gaade" ("id" text PRIMARY KEY NOT NULL, "title" text NOT NULL, "kind" text DEFAULT 'CUSTOM' NOT NULL, "host_id" text NOT NULL, "rhythm" text, "place" text, "next" jsonb, "path_id" text, "created_at" timestamp with time zone DEFAULT now() NOT NULL);--> statement-breakpoint
+ALTER TABLE "gaade" ADD CONSTRAINT "gaade_host_id_users_id_fk" FOREIGN KEY ("host_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS "gaade_members" ("gaade_id" text NOT NULL, "user_id" text NOT NULL, "rsvp" text, CONSTRAINT "gaade_members_gaade_id_user_id_pk" PRIMARY KEY("gaade_id","user_id"));--> statement-breakpoint
+ALTER TABLE "gaade_members" ADD CONSTRAINT "gaade_members_gaade_id_gaade_id_fk" FOREIGN KEY ("gaade_id") REFERENCES "public"."gaade"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "gaade_members" ADD CONSTRAINT "gaade_members_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS "gaade_notes" ("id" text PRIMARY KEY NOT NULL, "gaade_id" text NOT NULL, "user_id" text NOT NULL, "topic" text, "experience" text NOT NULL, "knot" text, "promise" text NOT NULL, "created_at" timestamp with time zone DEFAULT now() NOT NULL);--> statement-breakpoint
+ALTER TABLE "gaade_notes" ADD CONSTRAINT "gaade_notes_gaade_id_gaade_id_fk" FOREIGN KEY ("gaade_id") REFERENCES "public"."gaade"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "gaade_notes" ADD CONSTRAINT "gaade_notes_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS "questions" ("id" text PRIMARY KEY NOT NULL, "user_id" text NOT NULL, "course_id" text, "lesson_id" text, "title" text NOT NULL, "body" text DEFAULT '' NOT NULL, "created_at" timestamp with time zone DEFAULT now() NOT NULL);--> statement-breakpoint
+ALTER TABLE "questions" ADD CONSTRAINT "questions_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "questions_lesson_idx" ON "questions" USING btree ("lesson_id");--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS "answers" ("id" text PRIMARY KEY NOT NULL, "question_id" text NOT NULL, "user_id" text NOT NULL, "body" text NOT NULL, "best" boolean DEFAULT false NOT NULL, "created_at" timestamp with time zone DEFAULT now() NOT NULL);--> statement-breakpoint
+ALTER TABLE "answers" ADD CONSTRAINT "answers_question_id_questions_id_fk" FOREIGN KEY ("question_id") REFERENCES "public"."questions"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "answers" ADD CONSTRAINT "answers_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS "votes" ("kind" text NOT NULL, "target_id" text NOT NULL, "user_id" text NOT NULL, CONSTRAINT "votes_kind_target_id_user_id_pk" PRIMARY KEY("kind","target_id","user_id"));--> statement-breakpoint
+ALTER TABLE "votes" ADD CONSTRAINT "votes_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS "peer_requests" ("id" text PRIMARY KEY NOT NULL, "user_id" text NOT NULL, "gaade_id" text NOT NULL, "title" text NOT NULL, "body" text NOT NULL, "created_at" timestamp with time zone DEFAULT now() NOT NULL);--> statement-breakpoint
+ALTER TABLE "peer_requests" ADD CONSTRAINT "peer_requests_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "peer_requests" ADD CONSTRAINT "peer_requests_gaade_id_gaade_id_fk" FOREIGN KEY ("gaade_id") REFERENCES "public"."gaade"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS "peer_replies" ("id" text PRIMARY KEY NOT NULL, "request_id" text NOT NULL, "user_id" text NOT NULL, "body" text NOT NULL, "created_at" timestamp with time zone DEFAULT now() NOT NULL);--> statement-breakpoint
+ALTER TABLE "peer_replies" ADD CONSTRAINT "peer_replies_request_id_peer_requests_id_fk" FOREIGN KEY ("request_id") REFERENCES "public"."peer_requests"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "peer_replies" ADD CONSTRAINT "peer_replies_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS "imamat" ("user_id" text PRIMARY KEY NOT NULL, "level" integer DEFAULT 1 NOT NULL, "spiral" integer DEFAULT 1 NOT NULL, "petals" jsonb DEFAULT '{}'::jsonb NOT NULL, "updated_at" timestamp with time zone DEFAULT now() NOT NULL);--> statement-breakpoint
+ALTER TABLE "imamat" ADD CONSTRAINT "imamat_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS "imamat_assessments" ("id" text PRIMARY KEY NOT NULL, "user_id" text NOT NULL, "by_id" text NOT NULL, "level" integer NOT NULL, "spiral" integer NOT NULL, "note" text NOT NULL, "created_at" timestamp with time zone DEFAULT now() NOT NULL);--> statement-breakpoint
+ALTER TABLE "imamat_assessments" ADD CONSTRAINT "imamat_assessments_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "imamat_assessments" ADD CONSTRAINT "imamat_assessments_by_id_users_id_fk" FOREIGN KEY ("by_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "imamat_assess_user_idx" ON "imamat_assessments" USING btree ("user_id");

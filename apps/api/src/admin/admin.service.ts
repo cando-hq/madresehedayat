@@ -12,8 +12,24 @@ import {
 type LessonTypeName = typeof lessons.$inferSelect['type'];
 
 /** بررسی کمینهٔ محتوای هر نوع درس پیش از ذخیره */
+/** پرسش‌های کوتاه وسط درس (اختیاری) */
+function validateChecks(c: any): string | null {
+  if (c.checks === undefined) return null;
+  if (!Array.isArray(c.checks)) return 'پرسش‌های وسط درس درست ذخیره نشده‌اند';
+  if (c.checks.length > 5) return 'هر درس حداکثر ۵ پرسش کوتاه دارد';
+  for (const [i, q] of c.checks.entries()) {
+    if (!q.text?.trim()) return `متن پرسش کوتاه ${i + 1} خالی است`;
+    if (!Array.isArray(q.options) || q.options.length < 2) return `پرسش کوتاه ${i + 1} دست‌کم دو گزینه لازم دارد`;
+    if (q.options.some((o: any) => !o.text?.trim())) return `یکی از گزینه‌های پرسش کوتاه ${i + 1} خالی است`;
+    if (!Array.isArray(q.correct) || !q.correct.length) return `پاسخ درست پرسش کوتاه ${i + 1} را مشخص کنید`;
+    if (q.correct.some((id: string) => !q.options.some((o: any) => o.id === id))) return `پاسخ درست پرسش کوتاه ${i + 1} در گزینه‌ها نیست`;
+  }
+  return null;
+}
+
 export function validateContent(type: LessonTypeName, c: any): string | null {
   if (!c || typeof c !== 'object') return 'محتوای درس خالی است';
+  if (['TEXT', 'VIDEO', 'AUDIO'].includes(type)) { const e = validateChecks(c); if (e) return e; }
   switch (type) {
     case 'VIDEO':
       if (c.provider === 'aparat' && !/^[A-Za-z0-9]{3,20}$/.test(c.aparatHash ?? '')) return 'شناسهٔ ویدیوی آپارات درست نیست';
@@ -124,6 +140,19 @@ export class AdminService {
       if (c.status !== 'PUBLISHED') set.publishedAt = new Date();
     }
     if (bumpVersion) set.version = c.version + 1;
+    if (rest.skills) {
+      const ids = rest.skills.map((x) => x.id);
+      if (new Set(ids).size !== ids.length) throw new BadRequestException({ code: 'dup_skill', message: 'دو مهارت شناسهٔ یکسان دارند؛ صفحه را تازه کنید' });
+      // مهارتی که برداشته شده از درس‌ها هم برداشته می‌شود
+      const removed = ((c.skills ?? []) as { id: string }[]).map((x) => x.id).filter((x) => !ids.includes(x));
+      if (removed.length) {
+        const mods = await this.db.select({ id: modules.id }).from(modules).where(eq(modules.courseId, id));
+        if (mods.length) {
+          const ls = await this.db.select({ id: lessons.id, skillIds: lessons.skillIds }).from(lessons).where(inArray(lessons.moduleId, mods.map((m) => m.id)));
+          for (const l of ls) if (l.skillIds.some((x) => removed.includes(x))) await this.db.update(lessons).set({ skillIds: l.skillIds.filter((x) => !removed.includes(x)) }).where(eq(lessons.id, l.id));
+        }
+      }
+    }
     const [u] = await this.db.update(courses).set(set).where(eq(courses.id, id)).returning();
     await this.audit(actor, 'course.update', id, Object.keys(set));
     return u;
@@ -138,6 +167,9 @@ export class AdminService {
     if (!all.length) p.push('دوره هنوز درسی ندارد');
     for (const l of all) { const e = validateContent(l.type, l.content); if (e) p.push(`درس «${l.title}»: ${e}`); }
     if (c.hasCertificate && !all.some((l) => l.type === 'QUIZ' && l.isFinalQuiz)) p.push('دورهٔ گواهی‌دار آزمون پایانی لازم دارد');
+    // تسلط: هر مهارت دست‌کم به یک درس وصل باشد
+    const skills = (c.skills ?? []) as { id: string; title: string }[];
+    for (const sk of skills) if (!all.some((l) => (l.skillIds ?? []).includes(sk.id))) p.push(`مهارت «${sk.title}» به هیچ درسی وصل نیست`);
     return p;
   }
 
@@ -204,6 +236,12 @@ export class AdminService {
     const l = await this.db.query.lessons.findFirst({ where: eq(lessons.id, id) });
     if (!l) throw new NotFoundException({ code: 'no_lesson', message: 'درس پیدا نشد' });
     if (patch.isFinalQuiz && (patch.type ?? l.type) !== 'QUIZ') throw new BadRequestException({ code: 'final_not_quiz', message: 'فقط آزمون می‌تواند آزمون پایانی باشد' });
+    if (patch.skillIds) {
+      const m = await this.db.query.modules.findFirst({ where: eq(modules.id, l.moduleId) });
+      const c = m && await this.db.query.courses.findFirst({ where: eq(courses.id, m.courseId) });
+      const known = new Set(((c?.skills ?? []) as { id: string }[]).map((x) => x.id));
+      if (patch.skillIds.some((x) => !known.has(x))) throw new BadRequestException({ code: 'bad_skill', message: 'این مهارت در دوره تعریف نشده است؛ صفحه را تازه کنید' });
+    }
     const [u] = await this.db.update(lessons).set(patch).where(eq(lessons.id, id)).returning();
     await this.audit(actor, 'lesson.update', id);
     return { ...u, problem: validateContent(u.type, u.content) };

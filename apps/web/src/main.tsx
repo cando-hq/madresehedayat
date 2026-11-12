@@ -15,6 +15,8 @@ import Course from './pages/Course';
 import Home from './pages/Home';
 import Learn, { PathPage } from './pages/Learn';
 import Lesson from './pages/Lesson';
+import Review from './pages/Review';
+import CohortPage from './pages/Cohort';
 import Login from './pages/Login';
 import Me from './pages/Me';
 import { NotFound, RouteError, TermsPage, VerifyPage } from './pages/Public';
@@ -32,6 +34,13 @@ import FeedbackAdmin from './pages/admin/Feedback';
 import CampaignList, { CampaignEditor, CampaignPage, ManageCampaign, ManageCampaigns } from './pages/Campaigns';
 import Toolbox, { BoardPage, PublicBoard, ToolPage } from './pages/Tools';
 import { PathExam } from './pages/Learn';
+import PeersPage, { GaadePage, QuestionPage } from './pages/Peers';
+import Field from './pages/Field';
+import Onboard from './pages/Onboard';
+import { PubHome, PubImpact, PubLibrary, PubPathBuilder, PubRahyars, PubShell } from './pages/Pub';
+import { Publishers, ReviewQueue } from './pages/admin/Review';
+import { StudioAnalytics, StudioCourses, StudioLives, StudioQuestions, StudioShell } from './pages/Studio';
+import ImamatPage from './pages/Imamat';
 import './styles/app.css';
 import { DemoBar } from './demo/DemoBar';
 
@@ -60,6 +69,15 @@ function RequireAuth({ children }: { children: ReactNode }) {
   if (!me) return <Navigate to={`/login?next=${encodeURIComponent(loc.pathname + loc.search)}`} replace />;
   return <>{children}</>;
 }
+/** کاربر تازه، پیش از هر چیز نقش و مسجدش را می‌گوید (نخستین ورود) */
+function RequireOnboard({ children }: { children: ReactNode }) {
+  const { me } = useAuth();
+  const loc = useLocation();
+  // بخش‌های نقشی (راهیار، برگزارکننده، استاد، ستاد) بدون آشنایی اولیه هم باز می‌شوند؛ آشنایی فقط برای نمای کنشگر لازم است
+  const roleArea = ['/rahyar', '/pub', '/studio', '/admin', '/settings', '/manage'].some((p) => loc.pathname.startsWith(p));
+  if (me && me.onboarded === false && loc.pathname !== '/onboard' && !roleArea) return <Navigate to="/onboard" replace />;
+  return <>{children}</>;
+}
 function RequireStaff({ children }: { children: ReactNode }) {
   const { isStaff } = useAuth();
   return isStaff ? <>{children}</> : <NotFound />;
@@ -70,24 +88,59 @@ const router = (import.meta.env.VITE_DEMO ? createHashRouter : createBrowserRout
   { path: '/verify', element: <VerifyPage /> },
   { path: '/verify/:code', element: <VerifyPage /> },
   { path: '/terms', element: <TermsPage /> },
+  { path: '/onboard', element: <RequireAuth><Onboard /></RequireAuth> },
+  {
+    path: '/studio',
+    element: <RequireAuth><StudioShell /></RequireAuth>,
+    errorElement: <RouteError />,
+    children: [
+      { index: true, element: <StudioCourses /> },
+      { path: 'questions', element: <StudioQuestions /> },
+      { path: 'lives', element: <StudioLives /> },
+      { path: 'analytics', element: <StudioAnalytics /> },
+      { path: 'courses/:id', element: <CourseEditor /> },
+      { path: '*', element: <NotFound /> },
+    ],
+  },
+  {
+    path: '/pub',
+    element: <RequireAuth><PubShell /></RequireAuth>,
+    errorElement: <RouteError />,
+    children: [
+      { index: true, element: <PubHome /> },
+      { path: 'paths/:id', element: <PubPathBuilder /> },
+      { path: 'library', element: <PubLibrary /> },
+      { path: 'rahyars', element: <PubRahyars /> },
+      { path: 'impact', element: <PubImpact /> },
+      { path: 'courses/:id', element: <CourseEditor /> },
+      { path: '*', element: <NotFound /> },
+    ],
+  },
   { path: '/b/:token', element: <PublicBoard /> },
   ...(DemoLiveRoom ? [{ path: '/live/:id', element: <RequireAuth><Suspense fallback={<Spinner />}><DemoLiveRoom /></Suspense></RequireAuth> }] : []),
   {
-    element: <RequireAuth><Shell /></RequireAuth>,
+    element: <RequireAuth><RequireOnboard><Shell /></RequireOnboard></RequireAuth>,
     errorElement: <RouteError />,
     children: [
       { path: '/', element: <Home /> },
       { path: '/learn', element: <Learn /> },
+      { path: '/field', element: <Field /> },
       { path: '/paths/:slug', element: <PathPage /> },
       { path: '/paths/:slug/exam', element: <PathExam /> },
       { path: '/help', element: <Help /> },
       { path: '/tools', element: <Toolbox /> },
+      { path: '/peers', element: <PeersPage /> },
+      { path: '/gaade/:id', element: <GaadePage /> },
+      { path: '/questions/:id', element: <QuestionPage /> },
+      { path: '/imamat', element: <ImamatPage /> },
       { path: '/tools/t/:toolId', element: <ToolPage /> },
       { path: '/tools/boards/:id', element: <BoardPage /> },
       { path: '/support/:id', element: <TicketPage /> },
       { path: '/broadcast', element: <BroadcastPage /> },
       { path: '/courses/:slug', element: <Course /> },
       { path: '/lessons/:id', element: <Lesson /> },
+      { path: '/review/:id', element: <Review /> },
+      { path: '/cohorts/:id', element: <CohortPage /> },
       { path: '/me', element: <Me /> },
       { path: '/settings', element: <Settings /> },
       { path: '/events', element: <Events /> },
@@ -129,6 +182,8 @@ const router = (import.meta.env.VITE_DEMO ? createHashRouter : createBrowserRout
     errorElement: <RouteError />,
     children: [
       { index: true, element: <Dashboard /> },
+      { path: 'review', element: <ReviewQueue /> },
+      { path: 'publishers', element: <Publishers /> },
       { path: 'courses', element: <Courses /> },
       { path: 'business', element: <AdminBusiness /> },
       { path: 'feedback', element: <FeedbackAdmin /> },

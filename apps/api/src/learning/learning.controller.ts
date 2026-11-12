@@ -1,5 +1,5 @@
 import { Body, Controller, Get, HttpCode, Param, Post } from '@nestjs/common';
-import { IsBoolean, IsInt, IsObject, IsOptional, Max, Min } from 'class-validator';
+import { ArrayMaxSize, IsArray, IsBoolean, IsInt, IsObject, IsOptional, IsString, Length, Max, Min } from 'class-validator';
 import { AuthUser, CurrentUser, MaybeUser, Public } from '../common/auth.decorators';
 import { LearningService } from './learning.service';
 
@@ -10,6 +10,7 @@ class ProgressDto {
 }
 class QuizDto { @IsObject() answers: Record<string, string[]>; }
 class ArchiveDto { @IsBoolean() archived: boolean; }
+class CheckDto { @IsString() @Length(1, 40) checkId: string; @IsArray() @ArrayMaxSize(10) @IsString({ each: true }) answer: string[]; }
 
 @Controller()
 export class LearningController {
@@ -38,6 +39,9 @@ export class LearningController {
 
   @Post('lessons/:id/quiz') @HttpCode(200)
   quiz(@CurrentUser() u: AuthUser, @Param('id') id: string, @Body() dto: QuizDto) { return this.learning.submitQuiz(u.id, id, dto.answers); }
+
+  @Post('lessons/:id/check') @HttpCode(200)
+  check(@CurrentUser() u: AuthUser, @Param('id') id: string, @Body() dto: CheckDto) { return this.learning.checkAnswer(u.id, id, dto.checkId, dto.answer); }
 
   @Get('paths/:slug/exam')
   pathExam(@CurrentUser() u: AuthUser, @Param('slug') slug: string) { return this.learning.pathExam(u.id, slug); }

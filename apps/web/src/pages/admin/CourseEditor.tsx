@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowDown, ArrowUp, CircleAlert, ExternalLink, Pencil, Plus, Trash2, Upload, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router';
+import { Link, useLocation, useNavigate, useParams } from 'react-router';
 import { CourseIcon, Dialog, ErrorBox, ICONS, LESSON_ICON, Spinner, useToast } from '../../components/ui';
 import { api, ApiError } from '../../lib/api';
 import { useTools } from '../Tools';
@@ -10,10 +10,11 @@ import type { LessonType } from '../../lib/types';
 import type { AdminCourse } from './Courses';
 import { STATUS_CHIP } from './Courses';
 
-interface ALesson { id: string; title: string; type: LessonType; order: number; durationSec: number; required: boolean; isFinalQuiz: boolean; content: any }
+interface ALesson { id: string; title: string; type: LessonType; order: number; durationSec: number; required: boolean; isFinalQuiz: boolean; content: any; skillIds?: string[] }
+interface ASkill { id: string; title: string }
 interface FullCourse extends AdminCourse {
   about: string | null; level: string | null; instructor: string | null; passScore: number; missionRule: 'ON_SUBMIT' | 'ON_APPROVAL';
-  hasCertificate: boolean; outcomes: string[];
+  hasCertificate: boolean; outcomes: string[]; skills?: ASkill[];
   modules: { id: string; title: string; order: number; lessons: ALesson[] }[];
   dependencies: { requiresId: string; kind: 'PREREQUISITE' | 'COREQUISITE'; title: string }[];
 }
@@ -26,6 +27,7 @@ export default function CourseEditor() {
   const qc = useQueryClient();
   const toast = useToast();
   const nav = useNavigate();
+  const base = useLocation().pathname.startsWith('/pub') ? '/pub' : useLocation().pathname.startsWith('/studio') ? '/studio' : '/admin/courses';
   const q = useQuery({ queryKey: ['admin-course', id], queryFn: () => api<FullCourse>(`/admin/courses/${id}`) });
   const [editLesson, setEditLesson] = useState<ALesson | null>(null);
   const [problems, setProblems] = useState<string[]>([]);
@@ -37,7 +39,13 @@ export default function CourseEditor() {
   });
   const del = useMutation({
     mutationFn: () => api(`/admin/courses/${id}`, { method: 'DELETE' }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-courses'] }); toast('دوره حذف شد'); nav('/admin/courses'); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-courses'] }); toast('دوره حذف شد'); nav(base); },
+    onError: (e) => toast((e as Error).message, 'err'),
+  });
+  const creator = !base.startsWith('/admin');
+  const submit = useMutation({
+    mutationFn: () => api(`/v2${base}/courses/${id}/submit`, { method: 'POST' }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-course', id] }); toast('برای بازبینی ستاد فرستاده شد؛ نتیجه را پیام می‌دهیم'); },
     onError: (e) => toast((e as Error).message, 'err'),
   });
   if (q.isLoading) return <Spinner />;
@@ -46,17 +54,18 @@ export default function CourseEditor() {
 
   return (
     <div className="rise grid gap-6">
-      <nav className="text-sm text-muted"><Link to="/admin/courses" className="text-leaf-ink">دوره‌ها</Link> / {c.title}</nav>
+      <nav className="text-sm text-muted"><Link to={base} className="text-leaf-ink">{base === '/pub' ? 'محتوای ما' : base === '/studio' ? 'دوره‌های من' : 'دوره‌ها'}</Link> / {c.title}</nav>
       <header className="flex flex-wrap items-center gap-3">
         <h1 className="me-auto text-[clamp(22px,2.6vw,28px)] font-extrabold">{c.title}</h1>
         <span className={STATUS_CHIP[c.status]}>{STATUS_LABEL[c.status]}</span>
         {c.status === 'PUBLISHED' && <Link to={`/courses/${c.slug}`} className="btn btn-ghost btn-sm" target="_blank"><ExternalLink className="size-4" />دیدن در مدرسه</Link>}
+        {creator ? (c.status !== 'PUBLISHED' && <button className="btn btn-primary btn-sm" disabled={submit.isPending} onClick={() => submit.mutate()}>{(c as any).reviewStatus === 'IN_REVIEW' ? 'در بازبینی ستاد' : 'فرستادن برای بازبینی'}</button>) : <>
         {c.status === 'DRAFT' && <button className="btn btn-secondary btn-sm" onClick={() => patch.mutate({ status: 'REVIEW' })}>فرستادن برای بازبینی</button>}
         {(c.status === 'DRAFT' || c.status === 'REVIEW') && <button className="btn btn-primary btn-sm" onClick={() => patch.mutate({ status: 'PUBLISHED' })}>انتشار</button>}
         {c.status === 'REVIEW' && <button className="btn btn-ghost btn-sm" onClick={() => patch.mutate({ status: 'DRAFT' })}>برگرداندن به پیش‌نویس</button>}
         {c.status === 'PUBLISHED' && <button className="btn btn-secondary btn-sm" onClick={() => patch.mutate({ status: 'PUBLISHED', bumpVersion: true })}>انتشار نسخهٔ تازه</button>}
         {c.status === 'PUBLISHED' && <button className="btn btn-ghost btn-sm" onClick={() => patch.mutate({ status: 'ARCHIVED' })}>بایگانی</button>}
-        {c.status === 'ARCHIVED' && <button className="btn btn-secondary btn-sm" onClick={() => patch.mutate({ status: 'PUBLISHED' })}>انتشار دوباره</button>}
+        {c.status === 'ARCHIVED' && <button className="btn btn-secondary btn-sm" onClick={() => patch.mutate({ status: 'PUBLISHED' })}>انتشار دوباره</button>}</>}
       </header>
       {problems.length > 0 && (
         <div className="rounded-2xl bg-rose-soft p-4 text-sm text-rose"><b className="flex items-center gap-2"><CircleAlert className="size-4" />پیش از انتشار این‌ها را درست کنید:</b>
@@ -68,12 +77,13 @@ export default function CourseEditor() {
         <Outline c={c} onEdit={setEditLesson} inval={inval} />
         <div className="grid content-start gap-6">
           <MetaForm c={c} save={(b) => patch.mutate(b)} saving={patch.isPending} />
+          <SkillsEditor c={c} save={(skills) => patch.mutate({ skills })} saving={patch.isPending} />
           <Dependencies c={c} inval={inval} />
           <button className="btn btn-ghost btn-sm w-fit text-rose" onClick={() => { if (window.confirm('این دوره حذف شود؟')) del.mutate(); }}><Trash2 className="size-4" />حذف دوره</button>
         </div>
       </div>
       <Dialog open={!!editLesson} onClose={() => setEditLesson(null)} title={editLesson ? `${LESSON_LABEL[editLesson.type]}: ${editLesson.title}` : ''} wide>
-        {editLesson && <LessonEditor key={editLesson.id} l={editLesson} onSaved={() => { inval(); setEditLesson(null); }} />}
+        {editLesson && <LessonEditor key={editLesson.id} l={editLesson} skills={c.skills ?? []} onSaved={() => { inval(); setEditLesson(null); }} />}
       </Dialog>
     </div>
   );
@@ -193,18 +203,19 @@ function Outline({ c, onEdit, inval }: { c: FullCourse; onEdit: (l: ALesson) => 
 /* ───────── ویرایشگر درس ───────── */
 
 const aparatHash = (v: string) => { const m = v.trim().match(/aparat\.com\/v\/([A-Za-z0-9]+)/) ?? v.trim().match(/videohash\/([A-Za-z0-9]+)/); return m ? m[1] : v.trim(); };
-const rid = () => Math.random().toString(36).slice(2, 8);
+const rid = () => Math.random().toString(36).slice(2, 8).padEnd(6, '0');
 
-function LessonEditor({ l, onSaved }: { l: ALesson; onSaved: () => void }) {
+function LessonEditor({ l, skills, onSaved }: { l: ALesson; skills: ASkill[]; onSaved: () => void }) {
   const toast = useToast();
   const [title, setTitle] = useState(l.title);
   const [mins, setMins] = useState(Math.round(l.durationSec / 60));
   const [required, setRequired] = useState(l.required);
   const [isFinal, setIsFinal] = useState(l.isFinalQuiz);
   const [content, setContent] = useState<any>(l.content ?? {});
+  const [skillIds, setSkillIds] = useState<string[]>((l.skillIds ?? []).filter((x) => skills.some((k) => k.id === x)));
   const [problem, setProblem] = useState<string | null>(null);
   const save = useMutation({
-    mutationFn: () => api<{ problem: string | null }>(`/admin/lessons/${l.id}`, { method: 'PATCH', body: { title, durationSec: mins * 60, required, isFinalQuiz: isFinal, content } }),
+    mutationFn: () => api<{ problem: string | null }>(`/admin/lessons/${l.id}`, { method: 'PATCH', body: { title, durationSec: mins * 60, required, isFinalQuiz: isFinal, content, ...(skills.length ? { skillIds } : {}) } }),
     onSuccess: (r) => { if (r.problem) { setProblem(r.problem); toast('ذخیره شد، ولی هنوز کامل نیست', 'err'); } else { toast('درس ذخیره شد'); onSaved(); } },
     onError: (e) => toast((e as Error).message, 'err'),
   });
@@ -219,6 +230,15 @@ function LessonEditor({ l, onSaved }: { l: ALesson; onSaved: () => void }) {
         {l.type === 'QUIZ' && <label className="flex items-center gap-2"><input type="checkbox" className="size-5" checked={isFinal} onChange={(e) => setIsFinal(e.target.checked)} />آزمون پایانی دوره</label>}
       </div>
       <ContentEditor type={l.type} c={content} set={setContent} />
+      {['TEXT', 'VIDEO', 'AUDIO'].includes(l.type) && <ChecksBuilder c={content} set={setContent} />}
+      {skills.length > 0 && (
+        <fieldset className="grid gap-2 rounded-2xl border border-line p-4">
+          <legend className="px-1 text-sm font-bold text-ink">این درس کدام مهارت را می‌سازد؟</legend>
+          <div className="flex flex-wrap gap-2">{skills.map((k) => { const on = skillIds.includes(k.id); return (
+            <button key={k.id} type="button" aria-pressed={on} onClick={() => setSkillIds(on ? skillIds.filter((x) => x !== k.id) : [...skillIds, k.id])} className={`chip h-9 cursor-pointer px-3.5 ${on ? 'chip-leaf' : ''}`}>{on && '✓ '}{k.title}</button>); })}</div>
+          <p className="hint">مهارت وقتی برای کنشگر «بلد» می‌شود که همهٔ درس‌های وصل‌شده به آن را تمام کند.</p>
+        </fieldset>
+      )}
       {problem && <p className="err"><CircleAlert className="size-4" />{problem}</p>}
       <div className="sticky bottom-0 -mx-6 -mb-6 flex gap-2 border-t border-line bg-card px-6 py-4"><button className="btn btn-primary" onClick={() => save.mutate()} disabled={save.isPending}>{save.isPending ? 'در حال ذخیره…' : 'ذخیرهٔ درس'}</button></div>
     </div>
@@ -384,5 +404,63 @@ export function QuizBuilder({ c, set }: { c: any; set: (c: any) => void }) {
         <button type="button" className="btn btn-ghost btn-sm" onClick={() => { const t = rid(), f = rid(); set({ ...c, questions: [...qs, { id: rid(), kind: 'tf', text: '', options: [{ id: t, text: 'درست' }, { id: f, text: 'نادرست' }], correct: [], explain: '' }] }); }}><Plus className="size-4" />درست / نادرست</button>
       </div>
     </div>
+  );
+}
+
+/** مهارت‌های دوره: تسلط به‌جای نمره. هر مهارت به چند درس وصل می‌شود. */
+function SkillsEditor({ c, save, saving }: { c: FullCourse; save: (s: ASkill[]) => void; saving: boolean }) {
+  const [list, setList] = useState<ASkill[]>(c.skills ?? []);
+  const [t, setT] = useState('');
+  useEffect(() => setList(c.skills ?? []), [c.skills]);
+  const count = (id: string) => c.modules.flatMap((m) => m.lessons).filter((l) => (l.skillIds ?? []).includes(id)).length;
+  const dirty = JSON.stringify(list) !== JSON.stringify(c.skills ?? []);
+  const add = () => { const v = t.trim(); if (v.length < 2) return; setList([...list, { id: rid(), title: v.slice(0, 80) }]); setT(''); };
+  return (
+    <section className="card grid gap-4 p-5">
+      <div><h2 className="text-base font-extrabold">مهارت‌ها</h2><p className="mt-1 text-sm text-muted">کنشگر به‌جای نمره، مهارت‌هایی را می‌بیند که بلد شده. هر مهارت را در ویرایش درس‌ها به درس‌هایش وصل کنید.</p></div>
+      {list.length > 0 && <ul className="grid gap-2">{list.map((k, i) => (
+        <li key={k.id} className="flex items-center gap-2">
+          <input className="input h-10 flex-1" value={k.title} maxLength={80} aria-label={`نام مهارت ${fa(i + 1)}`} onChange={(e) => setList(list.map((x) => (x.id === k.id ? { ...x, title: e.target.value } : x)))} />
+          <span className={`shrink-0 text-xs ${count(k.id) ? 'text-muted' : 'text-rose-ink'}`}>{count(k.id) ? `${fa(count(k.id))} درس` : 'بی‌درس'}</span>
+          <button type="button" className="btn btn-ghost btn-icon btn-sm text-rose" aria-label={`حذف مهارت ${k.title}`} onClick={() => setList(list.filter((x) => x.id !== k.id))}><Trash2 className="size-4" /></button>
+        </li>))}</ul>}
+      <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); add(); }}>
+        <input className="input h-10 flex-1" placeholder="مثلاً: شروع گفت‌وگو با نوجوان" value={t} maxLength={80} onChange={(e) => setT(e.target.value)} aria-label="نام مهارت تازه" />
+        <button className="btn btn-secondary btn-sm h-10" disabled={t.trim().length < 2}><Plus className="size-4" />افزودن</button>
+      </form>
+      {dirty && <div className="flex flex-wrap items-center gap-2"><button className="btn btn-primary btn-sm" disabled={saving || list.some((k) => k.title.trim().length < 2)} onClick={() => save(list.map((k) => ({ ...k, title: k.title.trim() })))}>ذخیرهٔ مهارت‌ها</button>
+        <button className="btn btn-ghost btn-sm" onClick={() => setList(c.skills ?? [])}>برگرداندن</button>
+        {list.length < (c.skills ?? []).length && <span className="hint">مهارت حذف‌شده از درس‌ها هم برداشته می‌شود.</span>}</div>}
+    </section>
+  );
+}
+
+/** پرسش‌های کوتاه وسط درس (یادگیری فعال): تک‌پاسخی، حداکثر ۵، بی‌نمره */
+function ChecksBuilder({ c, set }: { c: any; set: (c: any) => void }) {
+  const qs: any[] = c.checks ?? [];
+  const put = (next: any[]) => set({ ...c, checks: next.length ? next : undefined });
+  const up = (i: number, q: any) => put(qs.map((x, j) => (j === i ? q : x)));
+  return (
+    <fieldset className="grid gap-3 rounded-2xl border border-line p-4">
+      <legend className="px-1 text-sm font-bold text-ink">پرسش کوتاه وسط درس <span className="font-normal text-muted">(اختیاری)</span></legend>
+      <p className="hint -mt-1">یک یا دو پرسش ساده که کنشگر را به فکر کردن وادارد. نمره ندارد و پاسخ فوری می‌گیرد.</p>
+      {qs.map((q, i) => (
+        <div key={q.id} className="grid gap-2 rounded-xl bg-sunken p-3">
+          <div className="flex items-center gap-2"><b className="text-sm text-ink">پرسش {fa(i + 1)}</b>
+            <button type="button" className="btn btn-ghost btn-icon btn-sm ms-auto text-rose" aria-label="حذف پرسش" onClick={() => put(qs.filter((_, j) => j !== i))}><Trash2 className="size-4" /></button></div>
+          <input className="input h-10" placeholder="متن پرسش" value={q.text} onChange={(e) => up(i, { ...q, text: e.target.value })} />
+          {q.options.map((o: any, oi: number) => { const right = q.correct.includes(o.id); return (
+            <div key={o.id} className="flex items-center gap-2">
+              <button type="button" aria-pressed={right} title="گزینهٔ درست" onClick={() => up(i, { ...q, correct: [o.id] })}
+                className={`grid size-8 shrink-0 place-items-center rounded-full border-2 text-xs font-bold ${right ? 'border-leaf bg-leaf text-white' : 'border-line-strong text-muted'}`}>{right ? '✓' : fa(oi + 1)}</button>
+              <input className="input h-10" value={o.text} placeholder={`گزینهٔ ${fa(oi + 1)}`} onChange={(e) => up(i, { ...q, options: q.options.map((x: any) => (x.id === o.id ? { ...x, text: e.target.value } : x)) })} />
+              {q.options.length > 2 && <button type="button" className="btn btn-ghost btn-icon btn-sm" aria-label="حذف گزینه" onClick={() => up(i, { ...q, options: q.options.filter((x: any) => x.id !== o.id), correct: q.correct.filter((x: string) => x !== o.id) })}><X className="size-4" /></button>}
+            </div>); })}
+          {q.options.length < 4 && <button type="button" className="btn btn-ghost btn-sm w-fit" onClick={() => up(i, { ...q, options: [...q.options, { id: rid(), text: '' }] })}><Plus className="size-4" />گزینهٔ تازه</button>}
+          <input className="input h-10" placeholder="توضیح کوتاه پس از پاسخ" value={q.explain ?? ''} onChange={(e) => up(i, { ...q, explain: e.target.value })} />
+        </div>
+      ))}
+      {qs.length < 5 && <button type="button" className="btn btn-secondary btn-sm w-fit" onClick={() => put([...qs, { id: rid(), text: '', options: [{ id: rid(), text: '' }, { id: rid(), text: '' }], correct: [], explain: '' }])}><Plus className="size-4" />پرسش کوتاه</button>}
+    </fieldset>
   );
 }

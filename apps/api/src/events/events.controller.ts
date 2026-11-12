@@ -12,6 +12,8 @@ import { MissionsService } from '../rahyar/missions.service';
 import { Messenger } from '../messenger/messenger';
 import { Business } from '../business/business';
 import { bbbEnabled, LiveService } from '../live/live';
+import { GrowthService } from '../growth/growth';
+import { CohortsService } from '../cohorts/cohorts';
 import { EventInput, EventsService } from './events.service';
 
 class GroupDto { @IsString() coreId: string; @IsArray() @ArrayMaxSize(200) @IsString({ each: true }) userIds: string[]; }
@@ -75,7 +77,7 @@ export class Scheduler implements OnModuleInit, OnModuleDestroy {
   private readonly log = new Logger('Scheduler');
   private timers: NodeJS.Timeout[] = [];
   constructor(private readonly events: EventsService, private readonly missions: MissionsService, private readonly store: FileStore, @InjectDb() private readonly db: Db,
-    private readonly messenger: Messenger, private readonly access: AccessLog, private readonly business: Business, private readonly live: LiveService) {}
+    private readonly messenger: Messenger, private readonly access: AccessLog, private readonly business: Business, private readonly live: LiveService, private readonly growth: GrowthService, private readonly cohorts: CohortsService) {}
 
   onModuleInit() {
     if (process.env.SCHEDULER === 'off') return;
@@ -86,12 +88,15 @@ export class Scheduler implements OnModuleInit, OnModuleDestroy {
     this.timers.push(setInterval(safe('live-final', () => this.live.finalize()), 5 * 60_000));
     this.timers.push(setInterval(safe('escalate', () => this.missions.escalate()), 3600_000));
     this.timers.push(setInterval(safe('expire', () => this.expire()), 3600_000));
+    // مرور با فاصله: هر ساعت یادآوری مرورهایی که وقتشان رسیده
+    this.timers.push(setInterval(safe('reviews', () => this.growth.notifyDueReviews()), 3600_000));
+    this.timers.push(setInterval(safe('cohorts', () => this.cohorts.notifyStations()), 3600_000));
     this.timers.push(setInterval(safe('purge', () => this.access.purge()), 24 * 3600_000));
     this.timers.push(setInterval(safe('subscriptions', () => this.business.remindExpiry()), 6 * 3600_000));
     // کد اتصال بله؛ اگر بات تنظیم نشده باشد کاری نمی‌کند
     let polling = false;
     this.timers.push(setInterval(() => { if (polling || !this.messenger.baleEnabled) return; polling = true; this.messenger.poll().catch((e) => this.log.warn(`بله: ${e?.message ?? e}`)).finally(() => (polling = false)); }, 4000));
-    setTimeout(safe('first', async () => { await this.events.sendReminders(); await this.missions.escalate(); await this.expire(); await this.business.remindExpiry(); }), 5_000);
+    setTimeout(safe('first', async () => { await this.events.sendReminders(); await this.missions.escalate(); await this.expire(); await this.business.remindExpiry(); await this.growth.notifyDueReviews(); await this.cohorts.notifyStations(); }), 5_000);
   }
   onModuleDestroy() { this.timers.forEach(clearInterval); }
 

@@ -1,5 +1,9 @@
+import { LessonQuestions } from './Peers';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Award, BookOpen, Camera, CheckCircle2, ChevronLeft, ChevronRight, CircleAlert, CircleCheck, Clock, Flag, Lightbulb, RotateCcw, Wrench, XCircle } from 'lucide-react';
+import { Award, BookOpen, Camera, CheckCircle2, ChevronLeft, ChevronRight, CircleAlert, CircleCheck, Clock, Flag, Lightbulb, Maximize2, Minimize2, RotateCcw, Route, Wrench, XCircle } from 'lucide-react';
+import { LessonChecks } from '../components/Growth';
+import { GROWTH_KEYS } from '../lib/growth';
+import type { PathCard } from '../lib/types';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { Dialog, ErrorBox, LESSON_ICON, Spinner, useToast } from '../components/ui';
@@ -19,6 +23,8 @@ export default function Lesson() {
   const lesson = useQuery({ queryKey: ['lesson', id], queryFn: () => api<LessonDetail>(`/lessons/${id}`) });
   const course = useQuery({ queryKey: ['course', lesson.data?.course.slug], enabled: !!lesson.data, queryFn: () => api<CourseDetail>(`/courses/${lesson.data!.course.slug}`) });
   const [done, setDone] = useState<Completion | null>(null);
+  const [focus, setFocus] = useFocusMode();
+  const paths = useQuery({ queryKey: ['paths'], queryFn: () => api<PathCard[]>('/paths'), enabled: !!lesson.data });
   useFeedbackContext(lesson.data ? { courseId: lesson.data.course.id, lessonId: lesson.data.id } : null);
 
   if (lesson.isLoading) return <Spinner />;
@@ -28,7 +34,7 @@ export default function Lesson() {
       <div className="card mx-auto my-10 grid max-w-md justify-items-center gap-3 p-6 text-center">
         <BookOpen className="size-8 text-leaf" aria-hidden="true" />
         <p className="font-bold text-ink">این درس از دورهٔ «{e.data.course.title}» است</p>
-        <p className="text-sm text-muted">برای دیدن درس‌ها، اول در دوره ثبت‌نام کنید. ثبت‌نام رایگان است و پیشرفتتان ذخیره می‌شود.</p>
+        <p className="text-sm text-muted">ثبت‌نام رایگان است و درس‌ها همین حالا باز می‌شوند. هر جا بمانید، از همان‌جا ادامه می‌دهید.</p>
         <Link className="btn btn-primary" to={`/courses/${e.data.course.slug}`}>رفتن به صفحهٔ دوره</Link>
       </div>
     );
@@ -45,27 +51,45 @@ export default function Lesson() {
     qc.invalidateQueries({ queryKey: ['lesson', id] });
     qc.invalidateQueries({ queryKey: ['course', l.course.slug] });
     qc.invalidateQueries({ queryKey: ['my-courses'] });
-    if (c?.completed) { qc.invalidateQueries({ queryKey: ['certs'] }); setDone(c); }
+    GROWTH_KEYS.forEach((k) => qc.invalidateQueries({ queryKey: [...k] }));
+    if (c?.completed) { qc.invalidateQueries({ queryKey: ['certs'] }); qc.invalidateQueries({ queryKey: ['paths'] }); setDone(c); }
   };
+  const finished = !!(l.progress?.completedAt || done);
+  // ایستگاه بعدی مسیر، وقتی این دوره تمام شده و درس بعدی ندارد
+  const inPath = paths.data?.find((p) => p.courses.some((x) => x.slug === l.course.slug));
+  const pi = inPath ? inPath.courses.findIndex((x) => x.slug === l.course.slug) : -1;
+  const nextCourse = inPath && pi >= 0 ? inPath.courses.slice(pi + 1).find((x) => !x.me?.completedAt) : undefined;
+  const courseDone = !!(course.data?.me?.completedAt || done?.completed);
+  const upNext = flat.slice(idx + 1).find((x) => !x.done) ?? flat.find((x) => !x.done && x.id !== l.id) ?? null;
 
   return (
-    <div className="rise grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
+    <div className={`rise grid gap-6 ${focus ? 'lesson-focus mx-auto max-w-[720px]' : 'lg:grid-cols-[minmax(0,1fr)_300px]'}`}>
       <article className="grid min-w-0 content-start gap-5">
-        <nav className="text-sm text-muted"><Link to={`/courses/${l.course.slug}`} className="text-leaf-ink">{l.course.title}</Link></nav>
+        <nav className="flex items-center justify-between gap-3 text-sm text-muted">
+          <Link to={`/courses/${l.course.slug}`} className="truncate text-leaf-ink">{l.course.title}</Link>
+          <span className="flex shrink-0 items-center gap-3">
+            {focus && flat.length > 0 && idx >= 0 && <span className="tnum">درس {fa(idx + 1)} از {fa(flat.length)}</span>}
+            <button className="btn btn-ghost btn-sm" onClick={() => setFocus(!focus)} aria-pressed={focus} title={focus ? 'برگشت به نمای کامل (Esc)' : 'پنهان کردن منو و فهرست درس‌ها'}>
+              {focus ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}{focus ? 'خروج از تمرکز' : 'حالت تمرکز'}
+            </button>
+          </span>
+        </nav>
         <header className="flex items-start gap-3">
           <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-leaf-soft text-leaf-ink"><I className="size-5" /></span>
           <div><span className="text-sm text-muted">{LESSON_LABEL[l.type]}{l.isFinalQuiz ? ' · آزمون پایانی' : ''}{!l.required ? ' · اختیاری' : ''}</span>
             <h1 className="text-[clamp(22px,3vw,30px)] font-extrabold">{l.title}</h1></div>
         </header>
         <LessonBody l={l} onChange={refresh} />
-        {(l.progress?.completedAt || done) && <LessonRating lessonId={l.id} />}
+        {finished && <NextCard next={upNext} courseSlug={l.course.slug} courseDone={courseDone} path={inPath} nextCourse={nextCourse} />}
+        {finished && <LessonRating lessonId={l.id} />}
         <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-5">
           {prev ? <Link to={`/lessons/${prev.id}`} className="btn btn-ghost"><ChevronRight className="size-4" />درس قبل</Link> : <span />}
           {next ? <Link to={`/lessons/${next.id}`} className="btn btn-secondary">درس بعد<ChevronLeft className="size-4" /></Link>
             : <Link to={`/courses/${l.course.slug}`} className="btn btn-secondary">بازگشت به دوره</Link>}
         </footer>
+        {!focus && <LessonQuestions lessonId={l.id} />}
       </article>
-      <aside className="hidden lg:block">
+      <aside className={focus ? 'hidden' : 'hidden lg:block'}>
         <div className="card sticky top-24 overflow-hidden">
           <div className="border-b border-line p-4"><b className="text-ink">{l.course.title}</b>
             {course.data?.me && <div className="mt-2 bar"><span style={{ width: `${course.data.me.percent}%` }} /></div>}</div>
@@ -88,9 +112,42 @@ export default function Lesson() {
           </>) : done?.waitingFor?.length ? (
             <p>گواهی پس از تمام کردن دورهٔ هم‌نیاز «{done.waitingFor.join('، ')}» صادر می‌شود.</p>
           ) : <p>همهٔ درس‌های لازم این دوره را گذراندید.</p>}
+          <p className="text-sm text-muted">سه روز دیگر یک مرور کوتاه از همین دوره برایتان باز می‌شود تا آموخته‌ها بمانند.</p>
+          {nextCourse && inPath && <Link className="btn btn-secondary" to={`/courses/${nextCourse.slug}`} onClick={() => setDone(null)}>ایستگاه بعدی مسیر: {nextCourse.title}</Link>}
+          {!nextCourse && inPath?.hasExam && inPath.courses.every((x) => x.me?.completedAt || x.slug === l.course.slug) && <Link className="btn btn-secondary" to={`/paths/${inPath.slug}/exam`} onClick={() => setDone(null)}>آزمون جامع مسیر «{inPath.title}»</Link>}
         </div>
       </Dialog>
     </div>
+  );
+}
+
+/** حالت تمرکز: منو، نوار پایین و فهرست درس‌ها پنهان می‌شوند. انتخاب کاربر به خاطر سپرده می‌شود. */
+function useFocusMode() {
+  const [on, set] = useState(() => { try { return localStorage.getItem('mh-focus') === '1'; } catch { return false; } });
+  useEffect(() => {
+    document.documentElement.classList.toggle('focus-mode', on);
+    try { localStorage.setItem('mh-focus', on ? '1' : '0'); } catch { /* حافظهٔ مرورگر در دسترس نیست */ }
+    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape' && on && !document.querySelector('dialog[open]')) set(false); };
+    window.addEventListener('keydown', esc);
+    return () => { window.removeEventListener('keydown', esc); document.documentElement.classList.remove('focus-mode'); };
+  }, [on]);
+  return [on, set] as const;
+}
+
+/** بعد از تمام کردن درس: یک قدم بعدی روشن */
+function NextCard({ next, courseSlug, courseDone, path, nextCourse }: { next: { id: string; title: string } | null; courseSlug: string; courseDone: boolean; path?: PathCard; nextCourse?: { slug: string; title: string } }) {
+  let kicker = '', title = '', to = '', cta = '';
+  if (next && !courseDone) { kicker = 'قدم بعد'; title = next.title; to = `/lessons/${next.id}`; cta = 'برو به درس بعد'; }
+  else if (!courseDone) { kicker = 'چیزی نمانده'; title = 'وضعیت دوره را در صفحهٔ دوره ببینید'; to = `/courses/${courseSlug}`; cta = 'صفحهٔ دوره'; }
+  else if (path && nextCourse) { kicker = `ایستگاه بعدی مسیر «${path.title}»`; title = nextCourse.title; to = `/courses/${nextCourse.slug}`; cta = 'رفتن به ایستگاه بعد'; }
+  else if (path?.hasExam) { kicker = `پایان مسیر «${path.title}»`; title = 'آزمون جامع و گواهی مسیر'; to = `/paths/${path.slug}/exam`; cta = 'رفتن به آزمون'; }
+  else { kicker = 'دوره تمام شد'; title = 'دورهٔ بعدی را انتخاب کنید'; to = '/learn'; cta = 'دیدن مسیرها'; }
+  return (
+    <Link to={to} className="next-card card is-link flex flex-wrap items-center gap-4 p-5 no-underline">
+      <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-leaf-soft text-leaf-ink">{path && courseDone ? <Route className="size-5" /> : <ChevronLeft className="size-5" />}</span>
+      <span className="min-w-0 flex-1"><span className="block text-[13px] font-bold text-leaf-ink">{kicker}</span><b className="block text-ink">{title}</b></span>
+      <span className="btn btn-primary btn-sm">{cta}</span>
+    </Link>
   );
 }
 
@@ -119,6 +176,7 @@ function LessonBody({ l, onChange }: { l: LessonDetail; onChange: (c?: Completio
           <div className="rounded-2xl bg-flame-soft p-5"><b className="flex items-center gap-2 text-flame-ink"><Lightbulb className="size-5" />نکته‌های کلیدی</b>
             <ul className="mt-2 grid gap-1.5 text-ink">{c.keyPoints.map((k: string) => <li key={k}>• {k}</li>)}</ul></div>
         )}
+        <LessonChecks lessonId={l.id} checks={c.checks} />
         <DoneBar l={l} onChange={onChange} label="خواندم" />
       </div>
     );
@@ -146,6 +204,7 @@ function VideoLesson({ l, onChange }: { l: LessonDetail; onChange: (c?: Completi
           : <p className="absolute inset-0 grid place-items-center px-6 text-center text-white/70">{import.meta.env.VITE_DEMO ? 'در نسخهٔ نمایشی ویدیو پخش نمی‌شود؛ در سامانه از آپارات یا سرور مدرسه پخش می‌شود' : 'ویدیو هنوز اضافه نشده است'}</p>}
       </div>
       {c.summary && <p className="prose-fa">{c.summary}</p>}
+      <LessonChecks lessonId={l.id} checks={c.checks} />
       <p className="hint">ویدیو از آپارات پخش می‌شود؛ وقتی تا آخر دیدید، «دیدم» را بزنید.</p>
       <DoneBar l={l} onChange={onChange} label="دیدم" />
     </div>
@@ -169,6 +228,7 @@ function MediaFile({ l, kind, onChange }: { l: LessonDetail; kind: 'audio' | 'vi
     <div className="grid gap-4">
       <p className="rounded-2xl bg-sunken p-5 text-muted">در نسخهٔ نمایشی فایل {kind === 'audio' ? 'صوتی' : 'ویدیو'} پخش نمی‌شود. در سامانه، با شنیدن ۹۰٪ درس خودکار تمام می‌شود.</p>
       {l.content.summary && <p className="prose-fa">{l.content.summary}</p>}
+      <LessonChecks lessonId={l.id} checks={l.content.checks} />
       <DoneBar l={l} onChange={onChange} label={kind === 'audio' ? 'شنیدم' : 'دیدم'} />
     </div>
   );
@@ -179,6 +239,7 @@ function MediaFile({ l, kind, onChange }: { l: LessonDetail; kind: 'audio' | 'vi
         ? <video ref={(e) => { ref.current = e; }} src={src} controls preload="metadata" className="aspect-video w-full rounded-2xl bg-ink" onTimeUpdate={onTime} />
         : <audio ref={(e) => { ref.current = e; }} src={src} controls preload="metadata" className="w-full" onTimeUpdate={onTime} />}
       {l.content.summary && <p className="prose-fa">{l.content.summary}</p>}
+      <LessonChecks lessonId={l.id} checks={l.content.checks} />
       {l.progress?.completedAt ? <p className="flex items-center gap-2 font-bold text-leaf-ink"><CheckCircle2 className="size-5" />این درس را تمام کردید</p>
         : <p className="hint">وقتی تا آخر گوش دادید، درس خودکار تمام می‌شود.</p>}
     </div>
@@ -330,7 +391,7 @@ function Worksheet({ l, onChange }: { l: LessonDetail; onChange: (c?: Completion
         {l.progress?.completedAt ? <span className="chip chip-leaf"><CircleCheck className="size-4" />ثبت شده</span>
           : <button className="btn btn-primary" disabled={!filled || p.isPending} onClick={() => p.mutate({ data: v, completed: true })}>ثبت برگه</button>}
       </div>
-      {!filled && !l.progress?.completedAt && <p className="hint">برای ثبت، همهٔ خانه‌ها را دست‌کم چند کلمه پر کنید.</p>}
+      {!filled && !l.progress?.completedAt && <p className="hint">هر خانه چند کلمه کافی است. کامل‌تر شد، بعداً هم می‌شود ویرایشش کرد.</p>}
     </div>
   );
 }
@@ -457,7 +518,7 @@ function Mission({ l, onChange }: { l: LessonDetail; onChange: (c?: Completion |
   return (
     <div className="grid gap-5">
       <div className="rounded-2xl bg-flame-soft p-5"><b className="flex items-center gap-2 text-flame-ink"><Flag className="size-5" />مأموریت</b><p className="mt-1 text-ink">{l.content.goal}</p>
-        {t.data?.course.missionRule === 'ON_APPROVAL' && <p className="mt-2 text-sm text-body">این مأموریت با تأیید راهیار تمام می‌شود.</p>}</div>
+        {t.data?.course.missionRule === 'ON_APPROVAL' && <p className="mt-2 text-sm text-body">گزارشتان که برسد، راهیارتان می‌خواند و پاسخ می‌دهد.</p>}</div>
       {status && <div className="flex flex-wrap items-center gap-2"><span className={`chip ${chip}`}>{MISSION_LABEL[status]}</span>{(d.round ?? 0) > 1 && <span className="hint">نوبت {fa(d.round!)}</span>}</div>}
       {status === 'needs_revision' && <p className="flex gap-2 rounded-xl bg-flame-soft p-3 text-sm text-ink"><CircleAlert className="size-4 shrink-0 text-flame-ink" />راهیارتان خواسته گزارش را کامل‌تر کنید. پیامش را پایین ببینید، گزارش را اصلاح کنید و دوباره بفرستید.</p>}
 

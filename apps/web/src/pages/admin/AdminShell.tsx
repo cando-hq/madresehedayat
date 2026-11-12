@@ -1,5 +1,6 @@
 import { Flag, Award, BadgeDollarSign, MessageSquarePlus, BookOpen, BookOpenCheck, CalendarDays, Compass, House, KeyRound, LayoutDashboard, Landmark, LifeBuoy, Megaphone, Route, ScrollText, ShieldCheck, Users, Wrench } from 'lucide-react';
-import { Link, NavLink, Outlet } from 'react-router';
+import { Link, NavLink, Outlet, useLocation } from 'react-router';
+import { TopLoader } from '../../components/ui';
 import { Brand } from '../../components/Shell';
 import { MfaGate } from './MfaGate';
 import { useAuth } from '../../lib/auth';
@@ -7,6 +8,8 @@ import { ROLE_LABEL } from '../../lib/fa';
 
 const SECS = [
   { to: '/admin', label: 'پیشخوان', icon: LayoutDashboard, end: true },
+  { to: '/admin/review', label: 'صف بازبینی', icon: BookOpenCheck },
+  { to: '/admin/publishers', label: 'برگزارکنندگان', icon: Users },
   { to: '/admin/courses', label: 'دوره‌ها', icon: BookOpen },
   { to: '/admin/paths', label: 'مسیرها', icon: Route },
   { to: '/admin/tools', label: 'جعبه‌ابزار', icon: Wrench },
@@ -27,6 +30,7 @@ const SECS = [
 ];
 
 export default function AdminShell() {
+  const loc = useLocation();
   const { me, has } = useAuth();
   const secs = SECS.filter((s) => !s.admin || has('HQ_ADMIN'));
   return (
@@ -48,7 +52,7 @@ export default function AdminShell() {
           </div>
         </div>
       </aside>
-      <main className="min-w-0 px-4 py-6 md:px-8 md:py-8"><div className="mx-auto max-w-6xl"><MfaGate><Outlet /></MfaGate></div></main>
+      <main className="min-w-0 px-4 py-6 md:px-8 md:py-8"><TopLoader /><div className="mx-auto max-w-6xl"><MfaGate><div key={loc.pathname} className="page"><Outlet /></div></MfaGate></div></main>
     </div>
   );
 }

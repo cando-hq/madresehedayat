@@ -4,7 +4,7 @@ import { normalizeMobile } from '../common/mobile';
 import { Db, InjectDb } from '../db/db.module';
 import { dec, mobileKey } from '../common/crypto';
 import {
-  coreMemberships, cores, counties, networkMembers, networks, provinces, rahyarAssignments, rahyarPositions, regionProvinces, roleGrants, users,
+  coreMemberships, cores, counties, networkMembers, networks, pathEnrollments, pathRahyars, paths2, provinces, rahyarAssignments, rahyarPositions, regionProvinces, roleGrants, users,
 } from '../db/schema';
 
 export type Position = typeof rahyarPositions.$inferSelect;
@@ -85,21 +85,38 @@ export class RahyarService {
   /** جایگاه‌هایی که این نفر دارد */
   held(s: Snapshot, userId: string) { return s.positions.filter((p) => p.holderId === userId); }
 
+  /** مسیرهایی (نسخهٔ ۲) که این نفر راهیار آن‌هاست */
+  async pathsOf(userId: string) {
+    return this.db.select({ id: paths2.id, title: paths2.title }).from(pathRahyars).innerJoin(paths2, eq(paths2.id, pathRahyars.pathId)).where(eq(pathRahyars.userId, userId));
+  }
+  /** کنشگرانی که در مسیرهای زیر راهیاریِ این نفر ثبت‌نام کرده‌اند */
+  async pathLearnerIds(userId: string) {
+    const rows = await this.db.select({ userId: pathEnrollments.userId }).from(pathEnrollments).innerJoin(pathRahyars, and(eq(pathRahyars.pathId, pathEnrollments.pathId), eq(pathRahyars.userId, userId)));
+    return new Set(rows.map((r) => r.userId).filter((id) => id !== userId));
+  }
+  /** آیا این نفر به هر شکلی راهیار است: جایگاه شبکه‌ای یا راهیار یک مسیر */
+  async isRahyar(userId: string, s?: Snapshot) {
+    s ??= await this.snapshot();
+    return this.held(s, userId).length > 0 || (await this.pathsOf(userId)).length > 0;
+  }
+
   /** همهٔ کنشگرانی که در دامنهٔ این راهیارند، با راهیار مسئول هر کدام */
   async learnersInScope(userId: string, s?: Snapshot) {
     s ??= await this.snapshot();
     const mine = new Set(this.held(s, userId).map((p) => p.id));
-    if (!mine.size) return [];
+    const viaPath = await this.pathLearnerIds(userId);
+    if (!mine.size && !viaPath.size) return [];
     const all = await this.db.select({ id: users.id, firstName: users.firstName, lastName: users.lastName, gender: users.gender, countyId: users.countyId, mosqueId: users.mosqueId, nearMosque: users.nearMosque, allowRahyarMessages: users.allowRahyarMessages, createdAt: users.createdAt })
       .from(users).where(and(eq(users.isActive, true), isNotNull(users.gender)));
     const holderIds = new Set(s.positions.map((p) => p.holderId).filter(Boolean));
     return all.filter((u) => !holderIds.has(u.id) || true).map((u) => ({ u, r: this.resolve(s!, u) }))
-      .filter(({ u, r }) => u.id !== userId && r.chain.some((p) => mine.has(p.id)))
-      .map(({ u, r }) => ({ ...u, responsible: r.responsible, chain: r.chain, direct: r.responsible?.holderId === userId }));
+      .filter(({ u, r }) => u.id !== userId && (viaPath.has(u.id) || r.chain.some((p) => mine.has(p.id))))
+      .map(({ u, r }) => ({ ...u, responsible: r.responsible, chain: r.chain, direct: r.responsible?.holderId === userId || viaPath.has(u.id) }));
   }
 
   async canSeeLearner(viewerId: string, learnerId: string, roles: string[]) {
     if (roles.includes('HQ_ADMIN') || roles.includes('HQ_OPERATOR')) return true;
+    if ((await this.pathLearnerIds(viewerId)).has(learnerId)) return true;
     const s = await this.snapshot();
     const mine = new Set(this.held(s, viewerId).map((p) => p.id));
     if (!mine.size) return false;

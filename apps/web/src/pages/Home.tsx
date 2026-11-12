@@ -1,123 +1,88 @@
+/*
+ * خانهٔ کنشگر: «بعدی برای تو» (یک کار، نه ده کارت)، این هفته (گعده، پخش زنده، تیم، برنامه)، مسیرهای من.
+ * قدم بعدی را سرور با قاعده‌های روشن می‌دهد: روایت برگشته → روایت منتظر → درس بعدی پلهٔ جاری → برداشتن مسیر اصلی.
+ */
 import { useQuery } from '@tanstack/react-query';
-import { Award, ChevronLeft, Play, Radio, Route } from 'lucide-react';
+import { ChevronLeft, MessageCircle, Play, Radio, Users } from 'lucide-react';
 import { Link } from 'react-router';
-import { CourseCard } from '../components/CourseCard';
-import { CourseIcon, Empty, ErrorBox, Spinner } from '../components/ui';
-import { CampaignCard, useCampaigns } from './Campaigns';
+import { PathCard, Section, useLearning } from '../components/Path2';
+import { ErrorBox, Spinner } from '../components/ui';
 import { api } from '../lib/api';
 import { useAuth } from '../lib/auth';
-import { fa } from '../lib/fa';
-import type { CourseCard as C, EventCard, PathCard } from '../lib/types';
-import { EventRow } from './Events';
+import { jShort } from '../lib/fa';
+import { useReviews } from '../lib/growth';
+import type { EventCard } from '../lib/types';
+import { PeersCard } from './Peers';
 
 function greet() {
   const h = new Date().getHours();
   return h < 5 ? 'شب بخیر' : h < 12 ? 'صبح بخیر' : h < 17 ? 'ظهر بخیر' : 'عصر بخیر';
 }
+const when = (iso: string) => { const d = new Date(iso); const day = new Intl.DateTimeFormat('fa-IR', { weekday: 'long' }).format(d); const t = new Intl.DateTimeFormat('fa-IR', { hour: '2-digit', minute: '2-digit' }).format(d); return `${day} ${t}`; };
 
 export default function Home() {
   const { me } = useAuth();
-  const mine = useQuery({ queryKey: ['my-courses'], queryFn: () => api<C[]>('/me/courses') });
-  const paths = useQuery({ queryKey: ['paths'], queryFn: () => api<PathCard[]>('/paths') });
-  const catalog = useQuery({ queryKey: ['catalog'], queryFn: () => api<C[]>('/courses') });
+  const L = useLearning();
   const events = useQuery({ queryKey: ['events', 'upcoming'], queryFn: () => api<EventCard[]>('/events?scope=upcoming') });
-  const camps = useCampaigns();
-  const live = (camps.data ?? []).filter((c) => c.phase === 'ACTIVE' || c.phase === 'UPCOMING');
-  if (mine.isLoading) return <Spinner />;
-  if (mine.error) return <ErrorBox error={mine.error} onRetry={() => mine.refetch()} />;
-  const active = (mine.data ?? []).filter((c) => !c.me?.completedAt && !c.me?.archived);
-  const current = active[0];
-  const doneCount = (mine.data ?? []).filter((c) => c.me?.completedAt).length;
-  const fresh = (catalog.data ?? []).filter((c) => !c.me).slice(0, 3);
-
-  // کلاس آنلاینی که در آن ثبت‌نام کرده‌ام و همین حالا در جریان است
-  const liveNow = (events.data ?? []).find((e) => e.kind === 'ONLINE' && e.my?.status === 'REGISTERED' && e.status === 'PUBLISHED'
-    && new Date(e.startsAt).getTime() - 15 * 60_000 <= Date.now() && Date.now() <= new Date(e.endsAt).getTime());
+  const reviews = useReviews();
+  if (L.isLoading) return <Spinner />;
+  if (L.error) return <ErrorBox error={L.error} onRetry={() => L.refetch()} />;
+  const d = L.data!;
+  const due = reviews.data?.due[0];
+  const step = due ? { kicker: 'وقت مرور، دو دقیقه', title: due.course.title, cta: 'شروع مرور', to: `/review/${due.id}`, color: d.next.color } : d.next;
+  const live = (events.data ?? []).filter((e) => e.kind === 'ONLINE' && e.status === 'PUBLISHED');
+  const liveNow = live.find((e) => e.my?.status === 'REGISTERED' && new Date(e.startsAt).getTime() - 15 * 60_000 <= Date.now() && Date.now() <= new Date(e.endsAt).getTime());
+  const team = me?.cores?.[0];
+  const week: { k: string; t: string; sub: string; to: string; color: string; icon: typeof Users }[] = [];
+  if (d.gaade) week.push({ k: 'گعده', t: d.gaade.topic || d.gaade.title, sub: `${when(d.gaade.at)}، ${d.gaade.where}`, to: `/gaade/${d.gaade.id}`, color: 'var(--flame)', icon: Users });
+  for (const e of live.slice(0, 1)) week.push({ k: 'پخش زنده', t: e.title, sub: `${when(e.startsAt)}${e.my ? '، یادآوری فعال' : ''}`, to: `/events/${e.id}`, color: 'var(--rose)', icon: Radio });
+  if (team) week.push({ k: 'تیم من', t: team.name, sub: team.isLeader ? 'تو مسئول تیمی' : 'عضو', to: `/cores/${team.id}`, color: 'var(--leaf)', icon: Users });
+  const inPerson = (events.data ?? []).find((e) => e.kind === 'IN_PERSON');
+  if (inPerson && week.length < 3) week.push({ k: 'برنامه', t: inPerson.title, sub: `${jShort(inPerson.startsAt)}${inPerson.location ? `، ${inPerson.location}` : ''}`, to: `/events/${inPerson.id}`, color: 'var(--deep)', icon: Radio });
+  const mine = [...d.mine].sort((a, b) => (a.isMain ? -1 : b.isMain ? 1 : 0)).filter((p) => p.percent < 100).slice(0, 3);
   return (
-    <div className="rise grid gap-10">
+    <div className="grid gap-10">
       {liveNow && (
-        <Link to={`/events/${liveNow.id}`} className="flex flex-wrap items-center gap-3 rounded-2xl bg-ink p-4 text-bg no-underline shadow-lift">
-          <span className="flex items-center gap-1.5 rounded-full bg-rose px-3 py-1 text-xs font-bold text-white"><span className="size-2 animate-pulse rounded-full bg-white" />{new Date(liveNow.startsAt) <= new Date() ? 'الان زنده' : 'به‌زودی'}</span>
-          <span className="min-w-0 flex-1"><b className="block">{liveNow.title}</b><span className="text-sm opacity-75">{liveNow.hostName ?? ''}</span></span>
-          <span className="btn btn-primary btn-sm"><Radio className="size-4" />ورود به کلاس</span>
+        <Link to={`/events/${liveNow.id}`} className="live-strip flex items-center gap-3 rounded-2xl bg-[#262A4F] px-4 py-3 text-white no-underline">
+          <span className="chip chip-live !text-flame">{new Date(liveNow.startsAt) <= new Date() ? 'زنده' : 'به‌زودی'}</span>
+          <b className="min-w-0 flex-1 truncate">{liveNow.title}</b>
+          <span className="flex items-center gap-1.5 text-sm font-bold text-flame"><Radio className="size-4" />ورود</span>
         </Link>
       )}
-      <section>
-        <h1 className="text-[clamp(24px,3vw,32px)] font-extrabold">{greet()}، {me?.firstName}</h1>
-        <p className="mt-1 text-muted">{me?.mosque?.name ?? me?.nearMosque ?? ''}{me?.county ? ` · ${me.county.name}` : ''}</p>
+
+      <section className="hero-blue grid overflow-hidden rounded-[32px] md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]" aria-labelledby="hi-h">
+        <div className="grid content-center gap-5 p-6 md:p-10">
+          <h1 id="hi-h" className="text-[clamp(26px,3.4vw,40px)] font-extrabold !text-white">{greet()}، {me?.firstName}</h1>
+          <div className="grid max-w-[540px] gap-3 rounded-[22px] bg-card p-5 text-body">
+            <div className="flex items-center justify-between gap-2 text-sm"><b style={{ color: step.color }}>{step.kicker}</b><span className="text-muted">بعدی برای تو</span></div>
+            <b className="text-xl font-extrabold leading-relaxed text-ink">{step.title}</b>
+            {'pct' in step && step.pct != null && step.pct > 0 && <div className="bar"><span style={{ width: `${step.pct}%`, background: step.color }} /></div>}
+            <Link className="btn btn-primary btn-lg w-fit" to={step.to}>{d.next.kind === 'lesson' ? <Play className="size-5" /> : null}{step.cta}<ChevronLeft className="size-5" /></Link>
+          </div>
+          {d.main && <span className="text-sm text-white/75">مسیر اصلی تو: {d.main.title}{d.main.rahyar ? `، با ${d.main.rahyar.name}` : ''}</span>}
+        </div>
+        <img src="/brand/poster.jpg" alt="گنبد مسجد با ترنج‌هایی از عرصه‌های زندگی و کبوترها در غروب" className="h-full max-h-[420px] min-h-[220px] w-full object-cover" style={{ objectPosition: '50% 38%' }} />
       </section>
 
-      {current ? (
-        <section className={`tint-${current.color} card grid overflow-hidden md:grid-cols-[220px_minmax(0,1fr)]`}>
-          <div className="cover grid min-h-32 place-items-center"><CourseIcon name={current.icon} className="size-14" /></div>
-          <div className="grid gap-3 p-5 md:p-7">
-            <span className="text-sm font-bold text-leaf-ink">ادامهٔ یادگیری</span>
-            <h2 className="text-xl font-extrabold">{current.title}</h2>
-            <div className="max-w-md"><div className="bar"><span style={{ width: `${current.me!.percent}%` }} /></div><p className="mt-1.5 text-sm text-muted">٪{fa(current.me!.percent)} از دوره را گذرانده‌اید</p></div>
-            <div className="flex flex-wrap gap-2">
-              <Link className="btn btn-primary" to={current.me!.lastLessonId ? `/lessons/${current.me!.lastLessonId}` : `/courses/${current.slug}`}><Play className="size-4" />ادامه</Link>
-              <Link className="btn btn-ghost" to={`/courses/${current.slug}`}>صفحهٔ دوره</Link>
-            </div>
+      {!!week.length && (
+        <Section title="این هفته">
+          <div className="grid gap-3 md:grid-cols-3">
+            {week.map((w) => <Link key={w.k + w.t} to={w.to} className="card is-link flex items-center gap-3 p-4 no-underline" style={{ borderInlineStartWidth: 6, borderInlineStartColor: w.color }}><span className="min-w-0 flex-1"><span className="block text-[12px] font-bold text-muted">{w.k}</span><b className="block truncate text-ink">{w.t}</b><span className="block truncate text-sm text-muted">{w.sub}</span></span><ChevronLeft className="size-4 shrink-0 text-muted" /></Link>)}
           </div>
-        </section>
-      ) : (
-        <section className="card grid gap-3 p-6 md:p-8">
-          <h2 className="text-xl font-extrabold">{doneCount ? 'دورهٔ بعدی‌تان را انتخاب کنید' : 'از کجا شروع کنم؟'}</h2>
-          <p className="max-w-xl text-muted">{doneCount ? `تا امروز ${fa(doneCount)} دوره را تمام کرده‌اید. یک مسیر را ادامه دهید یا دورهٔ تازه‌ای بردارید.` : 'یک مسیر را باز کنید و اولین دوره‌اش را شروع کنید. هر دوره چند درس کوتاه دارد و آخرش گواهی می‌گیرید.'}</p>
-          <div><Link to="/learn" className="btn btn-primary">دیدن دوره‌ها<ChevronLeft className="size-4" /></Link></div>
-        </section>
+        </Section>
       )}
 
-      {live.length > 0 && (
-        <section>
-          <div className="mb-4 flex items-center justify-between"><h2 className="text-lg font-extrabold">پویش‌های جاری</h2><Link to="/campaigns" className="text-sm font-bold text-leaf-ink">همه</Link></div>
-          <div className="grid gap-3 lg:grid-cols-2">{live.slice(0, 2).map((c) => <CampaignCard key={c.id} c={c} />)}</div>
-        </section>
-      )}
+      <Section title="مسیرهای من" link={d.mine.length ? 'همه' : 'کاوش'} to={d.mine.length ? '/learn' : '/learn?tab=explore'}>
+        {mine.length ? <div className="stagger grid gap-4 lg:grid-cols-3">{mine.map((p, i) => <PathCard key={p.id} p={p} i={i} />)}</div>
+          : <div className="rounded-2xl bg-sunken p-5 text-body">هنوز مسیری برنداشته‌ای. {d.main ? <Link to={`/paths/${d.main.slug}`} className="font-bold text-leaf-ink">مسیر اصلی‌ات را ببین</Link> : <Link to="/learn?tab=explore" className="font-bold text-leaf-ink">یک مسیر خرد بردار</Link>}.</div>}
+      </Section>
 
-      {(events.data?.length ?? 0) > 0 && (
-        <section>
-          <div className="mb-4 flex items-center justify-between"><h2 className="text-lg font-extrabold">برنامه‌های پیش رو</h2><Link to="/events" className="text-sm font-bold text-leaf-ink">همه</Link></div>
-          <div className="grid gap-3 lg:grid-cols-2">{events.data!.slice(0, 2).map((e) => <EventRow key={e.id} e={e} />)}</div>
-        </section>
-      )}
-
-      {active.length > 1 && (
-        <section>
-          <h2 className="mb-4 text-lg font-extrabold">دوره‌های در حال گذراندن</h2>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{active.slice(1).map((c) => <CourseCard key={c.id} c={c} />)}</div>
-        </section>
-      )}
-
-      <section>
-        <div className="mb-4 flex items-end justify-between gap-3"><h2 className="text-lg font-extrabold">مسیرها</h2><Link to="/learn" className="text-sm font-bold text-leaf-ink">همهٔ دوره‌ها</Link></div>
-        {paths.data?.length ? (
-          <div className="grid gap-4 md:grid-cols-2">
-            {paths.data.map((p) => (
-              <Link key={p.id} to={`/paths/${p.slug}`} className={`tint-${p.color} card flex items-center gap-4 p-4 no-underline transition hover:shadow-lift`}>
-                <span className="cover grid size-14 shrink-0 place-items-center rounded-2xl"><Route className="size-6" /></span>
-                <span className="min-w-0 flex-1"><b className="block text-ink">{p.title}</b><span className="text-sm text-muted">{fa(p.courseCount)} دوره · {fa(p.completedCount)} تمام‌شده</span></span>
-                <ChevronLeft className="size-5 text-muted" />
-              </Link>
-            ))}
-          </div>
-        ) : <Empty icon={Route} title="هنوز مسیری منتشر نشده" />}
+      <section className="grid gap-4 lg:grid-cols-2" aria-label="همتایان و راهیار">
+        <PeersCard />
+        {d.main?.rahyar && (
+          <div className="card flex items-center gap-4 p-5"><span className="grid size-14 shrink-0 place-items-center rounded-full bg-dome-soft text-xl font-extrabold text-dome-ink">{d.main.rahyar.name[0]}</span><span className="min-w-0 flex-1"><b className="block text-ink">{d.main.rahyar.name}</b><span className="text-sm text-muted">راهیار مسیر «{d.main.title}»</span></span><Link to="/messages" className="btn btn-secondary btn-sm"><MessageCircle className="size-4" />پیام</Link></div>
+        )}
       </section>
-
-      {fresh.length > 0 && (
-        <section>
-          <h2 className="mb-4 text-lg font-extrabold">دوره‌هایی که هنوز شروع نکرده‌اید</h2>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{fresh.map((c) => <CourseCard key={c.id} c={c} />)}</div>
-        </section>
-      )}
-
-      {doneCount > 0 && (
-        <Link to="/me" className="card flex items-center gap-4 p-4 no-underline">
-          <Award className="size-10 shrink-0 rounded-xl bg-flame-soft p-2 text-flame-ink" />
-          <span className="flex-1"><b className="block text-ink">{fa(doneCount)} گواهی گرفته‌اید</b><span className="text-sm text-muted">گواهی‌ها و شناسهٔ استعلامشان</span></span>
-          <ChevronLeft className="size-5 text-muted" />
-        </Link>
-      )}
     </div>
   );
 }

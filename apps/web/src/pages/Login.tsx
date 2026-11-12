@@ -99,9 +99,9 @@ export default function Login() {
           <img src="/brand/logo-full.png" alt="مدرسهٔ هدایت" className="mb-6 h-20 w-auto" />
           {step === 'mobile' && (
             <form onSubmit={sendCode} noValidate className="rise">
-              <h1 className="text-[clamp(24px,3vw,30px)] font-extrabold">ورود یا ثبت‌نام</h1>
+              <h1 className="text-[clamp(24px,3vw,30px)] font-extrabold">به مدرسه خوش آمدید</h1>
               {expired && <p className="mt-3 rounded-xl bg-flame-soft px-3 py-2 text-sm text-flame-ink" role="status">نشست شما تمام شده بود؛ برای امنیت حساب، دوباره وارد شوید. بعد از ورود به همان صفحه برمی‌گردید.</p>}
-              <p className="mt-1.5 text-muted">با شمارهٔ موبایلتان وارد شوید؛ اگر بار اول است، همین‌جا ثبت‌نام می‌کنید. اگر بله یا ایتا را در تنظیمات وصل کرده باشید، کد همان‌جا می‌آید.</p>
+              <p className="mt-1.5 text-muted">شمارهٔ موبایلتان را بنویسید. اگر بار اول است، حسابتان همین‌جا ساخته می‌شود.</p>
               <div className="field mt-6">
                 <label htmlFor="mobile">شمارهٔ موبایل</label>
                 <div className="relative">
@@ -166,13 +166,12 @@ function SsoButton() {
 
 function Register({ regToken, mobile, invite, onDone }: { regToken: string; mobile: string; invite: string; onDone: (u: Me) => void }) {
   const geo = useQuery({ queryKey: ['provinces'], queryFn: () => api<Province[]>('/geo/provinces'), staleTime: Infinity });
-  const [f, setF] = useState({ firstName: '', lastName: '', gender: '', provinceId: '', countyId: '', mosqueId: '', mosqueMode: 'list' as 'list' | 'other' | 'none', nearMosque: '', inviteCode: invite });
+  const [f, setF] = useState({ firstName: '', lastName: '', gender: '', provinceId: '', countyId: '', mosqueId: '', mosqueMode: 'none' as 'list' | 'other' | 'none', nearMosque: '', inviteCode: invite });
   const [errs, setErrs] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
   const toast = useToast();
   const counties = useMemo(() => geo.data?.find((p) => p.id === f.provinceId)?.counties ?? [], [geo.data, f.provinceId]);
-  const mosques = useQuery({ queryKey: ['mosques', f.countyId], enabled: !!f.countyId, queryFn: () => api<{ id: string; name: string }[]>(`/geo/mosques?countyId=${f.countyId}`) });
   const set = (k: keyof typeof f, v: string) => { setF((x) => ({ ...x, [k]: v })); setErrs((e) => ({ ...e, [k]: '' })); };
 
   async function submit(e: FormEvent) {
@@ -182,14 +181,12 @@ function Register({ regToken, mobile, invite, onDone }: { regToken: string; mobi
     if (f.lastName.trim().length < 2) er.lastName = 'نام خانوادگی را بنویسید';
     if (!f.gender) er.gender = 'یکی را انتخاب کنید';
     if (!f.countyId) er.countyId = 'شهرستان را انتخاب کنید';
-    if (f.mosqueMode === 'list' && !f.mosqueId) er.mosqueId = 'مسجدتان را انتخاب کنید، یا گزینهٔ پایین را بزنید';
-    if (f.mosqueMode !== 'list' && f.nearMosque.trim().length < 3) er.nearMosque = f.mosqueMode === 'none' ? 'نام نزدیک‌ترین مسجد را بنویسید' : 'نام و نشانی مسجد را بنویسید';
     setErrs(er); if (Object.keys(er).length) return;
     setBusy(true); setErr('');
     try {
       const r = await api<{ user: Me; notice?: string | null }>('/auth/register', { body: {
         regToken, firstName: f.firstName, lastName: f.lastName, gender: f.gender, countyId: f.countyId,
-        mosqueId: f.mosqueMode === 'list' ? f.mosqueId : undefined, nearMosque: f.mosqueMode !== 'list' ? f.nearMosque : undefined,
+        mosqueId: f.mosqueMode === 'list' ? f.mosqueId : undefined, nearMosque: f.mosqueMode !== 'list' && f.nearMosque ? f.nearMosque : undefined,
         inviteCode: f.inviteCode || undefined,
       } });
       if (r.notice) toast(r.notice, 'err');
@@ -221,25 +218,7 @@ function Register({ regToken, mobile, invite, onDone }: { regToken: string; mobi
             <option value="">انتخاب کنید</option>{counties.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select><E k="countyId" /></div>
       </div>
-      <div className="field mt-4">
-        <label htmlFor="mq">مسجد</label>
-        {f.mosqueMode === 'list' ? (
-          <select id="mq" className="input" value={f.mosqueId} disabled={!f.countyId} onChange={(e) => set('mosqueId', e.target.value)}>
-            <option value="">{f.countyId ? (mosques.data?.length ? 'انتخاب کنید' : 'مسجدی برای این شهرستان ثبت نشده') : 'اول شهرستان را انتخاب کنید'}</option>
-            {mosques.data?.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
-          </select>
-        ) : (
-          <input id="mq" className="input" value={f.nearMosque} onChange={(e) => set('nearMosque', e.target.value)}
-            placeholder={f.mosqueMode === 'none' ? 'نام نزدیک‌ترین مسجد به محل زندگی‌تان' : 'نام مسجد و محله'} />
-        )}
-        <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
-          {f.mosqueMode !== 'other' && <button type="button" className="font-semibold text-leaf-ink" onClick={() => set('mosqueMode', 'other')}>مسجدم در فهرست نیست</button>}
-          {f.mosqueMode !== 'none' && <button type="button" className="font-semibold text-leaf-ink" onClick={() => set('mosqueMode', 'none')}>عضو مسجدی نیستم</button>}
-          {f.mosqueMode !== 'list' && <button type="button" className="font-semibold text-muted" onClick={() => set('mosqueMode', 'list')}>انتخاب از فهرست</button>}
-        </div>
-        {f.mosqueMode === 'none' && <p className="hint">اشکالی ندارد؛ نزدیک‌ترین مسجد را بنویسید تا برنامه‌های محله‌تان را ببینید.</p>}
-        <E k="mosqueId" /><E k="nearMosque" />
-      </div>
+      <p className="hint mt-4">مسجدت را در قدم بعد روی نقشه انتخاب می‌کنی.</p>
       <div className="field mt-4"><label htmlFor="inv">کد دعوت هسته <span className="font-normal text-muted">(اختیاری)</span></label>
         <input id="inv" className="input ltr" value={f.inviteCode} onChange={(e) => set('inviteCode', e.target.value)} placeholder="اگر امام محله یا مسئول هسته کدی داده" /></div>
       {err && <p className="err mt-4"><CircleAlert className="size-4" />{err}</p>}
@@ -250,15 +229,15 @@ function Register({ regToken, mobile, invite, onDone }: { regToken: string; mobi
 
 function Art() {
   return (
-    <div className="relative hidden overflow-hidden lg:grid lg:place-items-center" style={{ background: 'radial-gradient(120% 90% at 100% 0%, #1F6FA8 0, #18406B 45%, #102A45 100%)' }}>
-      <div className="absolute -bottom-40 -start-40 size-[520px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(14,159,90,.45), transparent 65%)' }} />
-      <div className="absolute -end-32 -top-32 size-[420px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(242,183,5,.25), transparent 65%)' }} />
-      <div className="relative z-10 max-w-[520px] p-12 text-white">
-        <h2 className="text-[clamp(30px,3.4vw,44px)] font-extrabold leading-snug text-white">یاد بگیرید،<br />در مسجد به کار ببندید.</h2>
-        <p className="mt-4 text-lg leading-loose text-white/75">دوره‌های کوتاه برای کنشگران مسجد و هسته‌ها؛ با آزمون، مأموریت میدانی و گواهی معتبر.</p>
-        <ul className="mt-8 grid gap-4">
-          {[[ShieldCheck, 'گواهی با شناسهٔ استعلام', 'هر کسی می‌تواند درستی گواهی را بررسی کند'], [Smartphone, 'روی هر گوشی', 'بدون نصب برنامه؛ با اینترنت ضعیف هم']].map(([I, t, d]: any) => (
-            <li key={t} className="flex items-center gap-4"><I className="size-10 shrink-0 rounded-xl bg-white/10 p-2.5 text-[#A9E1C7]" /><span><b className="block">{t}</b><span className="text-sm text-white/60">{d}</span></span></li>
+    <div className="relative hidden overflow-hidden bg-[#1B2150] lg:block">
+      <img src="/brand/poster.jpg" alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: '50% 40%' }} />
+      <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgb(20 36 110 / .8), rgb(20 36 110 / .15) 55%, rgb(20 36 110 / .6))' }} />
+      <div className="absolute inset-x-12 top-14 z-10 grid gap-3 stagger">
+        <b className="text-[clamp(28px,3vw,40px)] font-extrabold leading-snug text-white">فَلیُبَلِّغِ الحاضِرُ الغائبَ</b>
+        <p className="text-base leading-loose text-white/85">مدرسهٔ آموزش مجازی امامان، شریکة‌الامام‌ها و بازوان مسجد؛ از درس تا میدان، همراه راهیار و همتایان.</p>
+        <ul className="mt-2 flex flex-wrap gap-4">
+          {([[ShieldCheck, 'گواهی با شناسهٔ استعلام'], [Smartphone, 'روی هر گوشی، بدون نصب']] as const).map(([I, t]) => (
+            <li key={t} className="flex items-center gap-2 text-sm text-white/85"><I className="size-5 shrink-0 text-flame" />{t}</li>
           ))}
         </ul>
       </div>

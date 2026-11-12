@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { CoreCohorts } from '../components/Growth';
 import { Bell, Building2, CheckCheck, Copy, Landmark, Link2, MessageCircle, Plus, RefreshCw, Send, Trash2, UserMinus, UsersRound } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
@@ -222,6 +223,7 @@ export function CorePage() {
             <button className="btn btn-ghost btn-sm" onClick={() => regen.mutate()}><RefreshCw className="size-4" />پیوند تازه</button></div>
         </section>
       )}
+      <CoreCohorts coreId={c.id} coreName={c.name} canManage={c.canManage} />
       <section className="card p-5">
         <h2 className="mb-3 font-extrabold">اعضا <span className="tnum text-muted">{fa(c.members.length)}</span></h2>
         {c.canManage ? <>

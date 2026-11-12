@@ -21,6 +21,54 @@ const GEO: Record<string, string[]> = {
   'لرستان': ['خرم‌آباد', 'بروجرد'], 'مازندران': ['ساری', 'بابل', 'آمل'], 'مرکزی': ['اراک', 'ساوه'], 'هرمزگان': ['بندرعباس', 'میناب'], 'همدان': ['همدان', 'ملایر'], 'یزد': ['یزد', 'میبد'],
 };
 
+/** برگزارکننده‌ها و مسیرهای اصلیِ هر نقش. همیشه اجرا می‌شود (نه فقط با SEED_DEMO)؛ اگر از قبل باشد دست نمی‌زند. */
+async function paths2Seed(db: ReturnType<typeof drizzle<typeof s>>) {
+  const pubs = [
+    { id: 'pub-hedayat', name: 'بنیاد هدایت', color: '#1E3A9E', kind: 'بنیاد' },
+    { id: 'pub-kanoon', name: 'کانون نوجوانان مسجد', color: '#2E7D4F', kind: 'مؤسسه' },
+  ];
+  for (const p of pubs) await db.insert(s.publishers).values({ ...p, status: 'ACTIVE' }).onConflictDoNothing();
+
+  const skel = async (slug: string, publisherId: string, d: Partial<typeof s.courses.$inferInsert>, body: string) => {
+    const found = await db.query.courses.findFirst({ where: eq(s.courses.slug, slug) });
+    if (found) return found;
+    const [c] = await db.insert(s.courses).values({ slug, title: d.title!, instructor: 'گروه مدرسان', missionRule: 'ON_APPROVAL', ...d, publisherId, libraryShare: 'all', status: 'PUBLISHED', reviewStatus: 'PUBLISHED', publishedAt: new Date() }).returning();
+    const [mod] = await db.insert(s.modules).values({ courseId: c.id, title: 'جلسهٔ ۱', order: 0 }).returning();
+    await db.insert(s.lessons).values({ moduleId: mod.id, order: 0, title: 'شروع', type: 'TEXT', durationSec: 300, content: { body } });
+    return c;
+  };
+  const imam = [
+    await skel('taayon-1', 'pub-hedayat', { title: 'امام کیست؟', subtitle: 'جایگاه امام در محله', level: 'مقدماتی', color: 'blue', icon: 'landmark' }, 'امامت یک جایگاه است، نه یک شغل. در این دوره با سه نقش امام در محله آشنا می‌شوید: پیش‌نماز، مربی، و گره‌گشای اهالی.'),
+    await skel('taayon-2', 'pub-hedayat', { title: 'نگاه به محله', subtitle: 'شناخت اهالی و نیازها', level: 'مقدماتی', color: 'blue', icon: 'map' }, 'پیش از هر برنامه، محله را ببینید: کوچه‌ها، خانواده‌ها، نوجوان‌ها، سالمندان. این دوره روش ساده‌ای برای نقشهٔ محله می‌دهد.'),
+    await skel('taayon-3', 'pub-hedayat', { title: 'برنامهٔ سال اول', subtitle: 'از منبر تا دیدار خانگی', level: 'میانی', color: 'blue', icon: 'calendar' }, 'سال اول امامت با یک برنامهٔ کوچک و قابل اجرا شروع می‌شود، نه با وعده‌های بزرگ.'),
+  ];
+  const sharik = [
+    await skel('sharik-1', 'pub-hedayat', { title: 'شریکة‌الامام یعنی چه؟', subtitle: 'نقش بانوی امام در محله', level: 'مقدماتی', color: 'rose', icon: 'heart' }, 'شریکة‌الامام شریکِ رسالت است، نه فقط همسر. در این دوره نقش او در ارتباط با بانوان و خانواده‌های محله مرور می‌شود.'),
+    await skel('sharik-2', 'pub-hedayat', { title: 'حلقهٔ بانوان', subtitle: 'راه‌اندازی اولین حلقه', level: 'میانی', color: 'rose', icon: 'users' }, 'اولین حلقهٔ بانوان با سه نفر شروع می‌شود. اینجا یاد می‌گیرید چطور دعوت کنید، جلسه را بگردانید و ادامه بدهید.'),
+  ];
+  const kanoon = await db.query.courses.findFirst({ where: eq(s.courses.slug, 'nojavan-1') });
+  const kanoon2 = await db.query.courses.findFirst({ where: eq(s.courses.slug, 'nojavan-2') });
+  const hasteh = [
+    kanoon ?? await skel('hasteh-1', 'pub-kanoon', { title: 'عضو هسته', subtitle: 'اولین قدم در کانون نوجوانان', level: 'مقدماتی', color: 'green', icon: 'users' }, 'هستهٔ نوجوانان مسجد با چند نفر که به هم اعتماد دارند شروع می‌شود. این دوره قواعد سادهٔ یک هستهٔ خوب را می‌گوید.'),
+    kanoon2 ?? await skel('hasteh-2', 'pub-kanoon', { title: 'از عضو تا مربی', subtitle: 'مسئولیت گرفتن در هسته', level: 'میانی', color: 'green', icon: 'flag' }, 'مربی هسته کسی است که خودش عضو بوده و حالا جمع را نگه می‌دارد. اینجا تمرین مسئولیت‌پذیری است.'),
+  ];
+  for (const c of [...imam, ...sharik, ...hasteh]) if (!c.publisherId) await db.update(s.courses).set({ publisherId: c.slug.startsWith('nojavan') ? 'pub-kanoon' : 'pub-hedayat', libraryShare: 'all', reviewStatus: 'PUBLISHED' }).where(eq(s.courses.id, c.id));
+
+  const step = (id: string, title: string, cs: { id: string; title: string }[], rule: string | null = null, assess = false): s.PathStep =>
+    ({ id, title, rule, items: [...cs.map((c) => ({ kind: 'course' as const, refId: c.id, title: c.title })), ...(assess ? [{ kind: 'assess' as const, refId: 'rahyar', title: 'تأیید راهیار' }] : [])] });
+  const path = async (slug: string, d: Omit<typeof s.paths2.$inferInsert, 'slug' | 'steps'>, steps: s.PathStep[]) => {
+    if (await db.query.paths2.findFirst({ where: eq(s.paths2.slug, slug) })) return;
+    await db.insert(s.paths2).values({ slug, ...d, steps, status: 'PUBLISHED', reviewedAt: new Date() });
+  };
+  await path('taayon-emamat', { title: 'تعیّن امامت', size: 'macro', publisherId: 'pub-hedayat', audience: ['IMAM'], mainFor: ['IMAM'], color: '#1E3A9E', description: 'مسیر اصلی امام محله: از شناخت جایگاه امامت تا برنامهٔ سال اول، با همراهی راهیار.' },
+    [step('s1', 'پلهٔ یک: شناخت', [imam[0]]), step('s2', 'پلهٔ دو: محله', [imam[1]], 'پس از پلهٔ یک', true), step('s3', 'پلهٔ سه: برنامه', [imam[2]], 'پس از تأیید راهیار', true)]);
+  await path('sharikat-ol-emam', { title: 'شریکة‌الامام', size: 'macro', publisherId: 'pub-hedayat', audience: ['SHARIK'], mainFor: ['SHARIK'], color: '#B2456E', description: 'مسیر اصلی بانوی امام: نقش شریکة‌الامام و راه‌اندازی حلقهٔ بانوان محله.' },
+    [step('s1', 'پلهٔ یک: نقش', [sharik[0]]), step('s2', 'پلهٔ دو: حلقه', [sharik[1]], 'پس از پلهٔ یک', true)]);
+  await path('ozv-ta-morabbi', { title: 'از عضو تا مربی هسته', size: 'macro', publisherId: 'pub-kanoon', audience: ['BAZU', 'HASTEH'], mainFor: ['BAZU', 'HASTEH'], color: '#2E7D4F', description: 'مسیر اصلی بازوها و اعضای هسته: از عضویت در هستهٔ نوجوانان تا مربی‌گری.' },
+    [step('s1', 'پلهٔ یک: عضو', [hasteh[0]]), step('s2', 'پلهٔ دو: مربی', [hasteh[1]], 'پس از پلهٔ یک', true)]);
+  console.log('مسیرهای اصلی آماده است');
+}
+
 async function main() {
   const pool = new Pool({ connectionString: config.databaseUrl });
   const db = drizzle(pool, { schema: s });
@@ -36,6 +84,7 @@ async function main() {
   console.log('دادهٔ پایه آماده است');
 
   if (process.env.SEED_DEMO === 'true') await demo(db);
+  await paths2Seed(db);
   await pool.end();
 }
 

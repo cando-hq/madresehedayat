@@ -1,3 +1,5 @@
+import { Paths2Controller, Paths2Service } from './paths2/paths2';
+import { PeersController, PeersService } from './peers/peers';
 import { Controller, Get, Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
@@ -31,6 +33,8 @@ import { Messenger, MessengerController } from './messenger/messenger';
 import { AccessLog, SecurityController } from './security/security';
 import { SupportController } from './support/support';
 import { ToolsController, ToolsService } from './tools/tools';
+import { GrowthController, GrowthService } from './growth/growth';
+import { CohortsController, CohortsService } from './cohorts/cohorts';
 import { ConsoleSms, KavenegarSms, SmsSender } from './sms/sms';
 
 @Controller('health')
@@ -51,10 +55,10 @@ class HealthController {
   ],
   controllers: [HealthController, AuthController, GeoController, LearningController, AdminController, FilesController,
     NotificationsController, RahyarController, CoresController, EventsController,
-    MessengerController, SecurityController, BroadcastsController, SupportController, ToolsController, CampaignsController, BusinessController, FeedbackController, LiveController],
+    MessengerController, SecurityController, BroadcastsController, SupportController, ToolsController, CampaignsController, BusinessController, FeedbackController, LiveController, GrowthController, CohortsController, Paths2Controller, PeersController],
   providers: [
     AuthService, LearningService, AdminService, FileStore,
-    Notifier, RahyarService, MissionsService, EventsService, Scheduler, Messenger, AccessLog, Broadcasts, ToolsService, Campaigns, Business, FeedbackService, BbbClient, LiveService,
+    Notifier, RahyarService, MissionsService, EventsService, Scheduler, Messenger, AccessLog, Broadcasts, ToolsService, Campaigns, Business, FeedbackService, BbbClient, LiveService, GrowthService, CohortsService, Paths2Service, PeersService,
     { provide: SmsSender, useClass: config.smsProvider === 'kavenegar' ? KavenegarSms : ConsoleSms },
     { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_GUARD, useClass: AuthGuard },

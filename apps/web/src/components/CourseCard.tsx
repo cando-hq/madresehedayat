@@ -7,9 +7,9 @@ import { CourseIcon } from './ui';
 export function CourseCard({ c }: { c: C }) {
   const done = !!c.me?.completedAt;
   return (
-    <Link to={`/courses/${c.slug}`} className={`tint-${c.color} card group flex flex-col overflow-hidden no-underline transition hover:-translate-y-0.5 hover:shadow-lift`}>
+    <Link to={`/courses/${c.slug}`} className={`tint-${c.color} card is-link group flex flex-col overflow-hidden no-underline`}>
       <div className="cover relative grid h-28 place-items-center">
-        <CourseIcon name={c.icon} className="size-10 transition group-hover:scale-110" />
+        <CourseIcon name={c.icon} className="size-10 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3" />
         {done && <span className="chip chip-leaf absolute end-3 top-3"><CircleCheck className="size-4" />تکمیل‌شده</span>}
       </div>
       <div className="flex flex-1 flex-col gap-1.5 p-4">

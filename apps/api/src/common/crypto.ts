@@ -23,10 +23,17 @@ export function dec(value: string | null | undefined): string | null {
   if (value == null) return null;
   if (!value.startsWith(PREFIX)) return value;
   const b = Buffer.from(value.slice(PREFIX.length), 'base64');
-  const d = createDecipheriv('aes-256-gcm', key, b.subarray(0, 12));
-  d.setAuthTag(b.subarray(12, 28));
-  return Buffer.concat([d.update(b.subarray(28)), d.final()]).toString('utf8');
+  try {
+    const d = createDecipheriv('aes-256-gcm', key, b.subarray(0, 12));
+    d.setAuthTag(b.subarray(12, 28));
+    return Buffer.concat([d.update(b.subarray(28)), d.final()]).toString('utf8');
+  } catch {
+    // با DATA_KEY فعلی باز نمی‌شود (کلید عوض شده؟). به‌جای از کار افتادن کل صفحه، خالی برمی‌گردانیم و یک بار هشدار می‌دهیم.
+    if (!warned) { warned = true; console.error('[crypto] دادهٔ رمزشده با DATA_KEY فعلی باز نشد؛ DATA_KEY سرور با کلید زمان ذخیره یکی نیست'); }
+    return null;
+  }
 }
+let warned = false;
 
 export const isEnc = (v: unknown) => typeof v === 'string' && v.startsWith(PREFIX);
 

@@ -15,7 +15,7 @@
 ## ۲. گرفتن کد
 
 ```bash
-git clone https://github.com/shahcheshme70-cando/madresehedayat.git
+git clone https://github.com/cando-hq/madresehedayat.git
 cd madresehedayat
 ```
 

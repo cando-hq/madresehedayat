@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>کارنامه و سطح امامت</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+@font-face{font-family:Ravagh;src:url(/_blob/e82b766c64b0cace84d3355c93f56b74) format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:Ravagh;src:url(/_blob/527abc1483ee47a97b558a9acbfb98c5) format("woff2");font-weight:500;font-display:swap}
+@font-face{font-family:Ravagh;src:url(/_blob/4d07209a2087021071dc7addbee9572d) format("woff2");font-weight:700;font-display:swap}
+@font-face{font-family:Ravagh;src:url(/_blob/8c3eae47921ff883f9e1052d2720315a) format("woff2");font-weight:800;font-display:swap}
+@font-face{font-family:Ravagh;src:url(/_blob/21203621768e345fd3b65247d31101f5) format("woff2");font-weight:900;font-display:swap}
+body{margin:0;background:#F4F5F9}
+a{color:#1E3A9E}a:hover{color:#152B78}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #F4F5F9; color: #1B2150; font-family: Ravagh, Tahoma, sans-serif; font-feature-settings: 'ss01' 0, 'ss02' 0, 'ss03' 0, 'swsh' 0, 'dlig' 0; line-height: 1.65; direction: rtl">
+  <dc-import name="Nav" active="karname" hint-size="100%,72px"></dc-import>
+
+  <main style="max-width: 1280px; margin: 0 auto; padding: 32px 32px 64px; display: flex; flex-direction: column; gap: 28px">
+    <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; flex-wrap: wrap">
+      <div>
+        <h1 style="margin: 0; font-size: 40px; font-weight: 900">کارنامهٔ آموزشی</h1>
+        <p style="margin: 8px 0 0; font-size: 16px; color: #6C7290">حجت‌الاسلام عباس حسنی، مسجد صاحب‌الزمان(عج)، میانکاله</p>
+      </div>
+      <a href="#" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 18px; border-radius: 12px; border: 1.5px solid #1E3A9E; color: #1E3A9E; font-weight: 800; text-decoration: none">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12 M6 10l6 6 6-6 M4 20h16"></path></svg>
+        دریافت کارنامه
+      </a>
+    </div>
+
+    <section aria-labelledby="lv-h" style="background: #1E3A9E; color: #FFFFFF; border-radius: 32px; padding: 40px; display: flex; flex-direction: column; gap: 28px">
+      <div style="display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap">
+        <div>
+          <span style="font-size: 13px; font-weight: 800; color: #F5B700">سطح امامت</span>
+          <h2 id="lv-h" style="margin: 6px 0 0; font-size: 32px; font-weight: 900">امام محله</h2>
+        </div>
+        <span style="font-size: 14px; color: #C9D3F5">تعیین‌شده در ارزیابی میدانی راهیار، ۱۲ مهر</span>
+      </div>
+      <ol style="margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; align-items: end">
+        <sc-for list="{{levels}}" as="l" hint-placeholder-count="4">
+          <li aria-current="{{l.cur}}" style="background: {{l.bg}}; color: {{l.fg}}; border-radius: 24px; padding: 20px; min-height: {{l.h}}; display: flex; flex-direction: column; justify-content: flex-end; gap: 8px; border: 2px solid {{l.border}}">
+            <span style="font-size: 13px; font-weight: 800; opacity: 0.85">سطح {{l.n}}</span>
+            <b style="font-size: 22px; font-weight: 900">{{l.name}}</b>
+            <span style="font-size: 14px; line-height: 1.8; opacity: 0.9">{{l.focus}}</span>
+            <span style="font-size: 12px; font-weight: 800">{{l.state}}</span>
+          </li>
+        </sc-for>
+      </ol>
+      <div style="display: flex; gap: 14px; flex-wrap: wrap; align-items: center; background: rgba(255,255,255,0.1); border-radius: 18px; padding: 16px 20px">
+        <b style="font-weight: 800">تا امام میانی:</b>
+        <span style="color: #E2E8FB">«ارزیابی» و «جهت‌گیری تمدنی» به حلقهٔ سوم برسند، یک مسئلهٔ محله تا گام روایت پیش برود، و تجربه‌تان برای امامان دیگر روایت شود.</span>
+      </div>
+    </section>
+
+    <section aria-labelledby="py-h" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 520px), 1fr)); gap: 20px">
+      <div style="background: #FFFFFF; border: 1px solid #E4E7EF; border-radius: 28px; padding: 28px; display: flex; flex-direction: column; gap: 16px">
+        <div style="display: flex; justify-content: space-between; align-items: center"><h2 id="py-h" style="margin: 0; font-size: 22px; font-weight: 900">گواهی‌ها</h2><a href="#" style="font-size: 14px; font-weight: 800">استعلام گواهی</a></div>
+        <sc-for list="{{certs}}" as="p" hint-placeholder-count="3">
+          <div style="display: flex; align-items: center; gap: 16px; padding: 14px 16px; border-radius: 18px; background: #F4F5F9">
+            <svg width="36" height="45" viewBox="0 0 48 60" aria-hidden="true" style="flex: none"><path d="M24 2 C30 10 44 16 44 32 C44 46 34 58 24 58 C14 58 4 46 4 32 C4 16 18 10 24 2 Z" fill="{{p.c}}"></path><path d="M16 32 l6 6 l10-12" fill="none" stroke="#FFFFFF" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+            <div style="flex: 1; display: flex; flex-direction: column"><b style="font-size: 16px; font-weight: 800">{{p.name}}</b><span style="font-size: 13px; color: #6C7290">{{p.detail}}</span></div>
+            <a href="#" style="display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px; border-radius: 12px; background: #FFFFFF; border: 1px solid #E4E7EF; font-size: 13px; font-weight: 800; text-decoration: none">دریافت PDF</a>
+          </div>
+        </sc-for>
+      </div>
+      <div style="background: #FFFFFF; border: 1px solid #E4E7EF; border-radius: 28px; padding: 28px; display: flex; flex-direction: column; gap: 16px">
+        <h2 style="margin: 0; font-size: 22px; font-weight: 900">در یک نگاه</h2>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px">
+          <sc-for list="{{stats}}" as="s" hint-placeholder-count="6">
+            <div style="background: #F4F5F9; border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 4px">
+              <b style="font-size: 30px; font-weight: 900; color: {{s.c}}">{{s.v}}</b>
+              <span style="font-size: 13px; color: #3E4462">{{s.k}}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </section>
+
+    <section aria-labelledby="rec-h" style="background: #FFFFFF; border: 1px solid #E4E7EF; border-radius: 28px; padding: 28px; display: flex; flex-direction: column; gap: 6px">
+      <h2 id="rec-h" style="margin: 0 0 10px; font-size: 22px; font-weight: 900">آنچه گذرانده‌اید</h2>
+      <sc-for list="{{records}}" as="r" hint-placeholder-count="6">
+        <div style="display: flex; align-items: center; gap: 16px; padding: 14px 4px; border-top: 1px solid #EEF0F5; flex-wrap: wrap">
+          <svg width="28" height="35" viewBox="0 0 48 60" aria-hidden="true"><path d="M24 2 C30 10 44 16 44 32 C44 46 34 58 24 58 C14 58 4 46 4 32 C4 16 18 10 24 2 Z" fill="{{r.c}}"></path></svg>
+          <div style="flex: 1; min-width: 220px; display: flex; flex-direction: column"><b style="font-size: 16px; font-weight: 800">{{r.t}}</b><span style="font-size: 13px; color: #6C7290">{{r.kind}}، {{r.petal}}</span></div>
+          <span style="font-size: 13px; color: #6C7290; min-width: 90px">{{r.date}}</span>
+          <span style="font-size: 13px; font-weight: 800; padding: 4px 12px; border-radius: 999px; background: {{r.sbg}}; color: {{r.sc}}">{{r.state}}</span>
+        </div>
+      </sc-for>
+    </section>
+
+    <section aria-labelledby="map-h" style="display: flex; flex-direction: column; gap: 14px">
+      <h2 id="map-h" style="margin: 0; font-size: 22px; font-weight: 900">نقشهٔ کامل: فرآیند تعیین امام میانی در محله</h2>
+      <img src="/_blob/2ff13929c011011919bb4b0400b4e99a" alt="نقشهٔ مارپیچ فرآیند تعیین امام میانی؛ هر حلقه یک مرحله و هر خانه یک کار" style="width: 100%; border-radius: 28px; background: #FFFFFF; border: 1px solid #E4E7EF">
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"current":{"editor":"enum","options":["1","2","3","4"],"default":"3"},"$preview":{"width":1440,"height":1640}}'>
+const fa = (n) => n.toLocaleString('fa-IR');
+const LV = [
+  { name: 'امام جماعت', focus: 'تمرکز بر نماز جماعت' },
+  { name: 'امام مسجد', focus: 'تمرکز بر خود مسجد و اهل آن' },
+  { name: 'امام محله', focus: 'تمرکز بر محله؛ نهاد، پیوند و حل مسئله' },
+  { name: 'امام میانی', focus: 'نقش الگویی و تمدنی برای امامان دیگر' },
+];
+class Component extends DCLogic {
+  renderVals() {
+    const cur = Number(this.props.current ?? '3');
+    const levels = LV.map((l, i) => {
+      const k = i + 1, done = k < cur, now = k === cur;
+      return {
+        n: fa(k), name: l.name, focus: l.focus, cur: now ? 'step' : 'false',
+        bg: now ? '#FFFFFF' : done ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.06)',
+        fg: now ? '#1B2150' : '#FFFFFF', border: now ? '#F5B700' : done ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.18)',
+        h: (130 + i * 34) + 'px', state: now ? 'اکنون اینجایید' : done ? 'گذرانده' : 'قدم بعد',
+      };
+    });
+    const certs = [
+      { name: 'پلکان اخوت در مسجد', detail: 'کد ۱۴۰۵-۰۸۷۲، ۱۹ آبان', c: '#12A58E' },
+      { name: 'احیای کارکردهای مسجد', detail: 'کد ۱۴۰۵-۰۵۱۱، ۳ آبان', c: '#D64A6A' },
+      { name: 'مراقبت‌های معنوی امام', detail: 'کد ۱۴۰۵-۰۳۰۹، ۱۰ مهر', c: '#8C93B5' },
+    ];
+    const stats = [
+      { v: '۱۴', k: 'دورهٔ گذرانده', c: '#1E3A9E' },
+      { v: '۶', k: 'گواهی', c: '#0A7A45' },
+      { v: '۱۱', k: 'مأموریت میدانی', c: '#8A5A00' },
+      { v: '۲۳', k: 'کلاس زنده', c: '#A8314F' },
+      { v: '۸', k: 'برنامهٔ حضوری', c: '#1E3A9E' },
+      { v: '۳', k: 'پویش', c: '#0B5F52' },
+    ];
+    const records = [
+      { t: 'شناسنامهٔ مسئلهٔ محله', kind: 'دوره', petal: 'به پا داشتن مردم', date: 'در جریان', state: 'درس ۴ از ۶', c: '#F5B700', sbg: '#FFF2CC', sc: '#8A5A00' },
+      { t: 'شناسنامهٔ مسئله: نوجوانان بعد از مدرسه', kind: 'پروژهٔ محله', petal: 'شناخت صحنه', date: '۲ آذر', state: 'تأیید راهیار', c: '#F08C1A', sbg: '#E2F4EA', sc: '#0A7A45' },
+      { t: 'پلکان اخوت در مسجد', kind: 'دوره', petal: 'ارکان اخوت', date: '۱۹ آبان', state: 'گواهی', c: '#12A58E', sbg: '#E2F4EA', sc: '#0A7A45' },
+      { t: 'احیای کارکردهای مسجد', kind: 'دوره', petal: 'نهاد امامت', date: '۳ آبان', state: 'گواهی', c: '#D64A6A', sbg: '#E2F4EA', sc: '#0A7A45' },
+      { t: 'کارگاه حضوری روایت‌نویسی', kind: 'برنامهٔ حضوری', petal: 'تبیین و گفتمان', date: '۲۸ مهر', state: 'حاضر', c: '#1E3A9E', sbg: '#EAEFFC', sc: '#1E3A9E' },
+      { t: 'مراقبت‌های معنوی امام', kind: 'دوره', petal: 'خودسازی امام', date: '۱۰ مهر', state: 'گواهی', c: '#8C93B5', sbg: '#E2F4EA', sc: '#0A7A45' },
+    ];
+    return { levels, certs, stats, records };
+  }
+}
+</script>
+</body>
+</html>

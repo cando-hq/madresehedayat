@@ -1,0 +1,46 @@
+/* توکن‌های طراحی مدرسهٔ هدایت — برگرفته از apps/web/src/styles/app.css (منبع اصلی همان فایل است) */
+:root {
+  /* برند */
+  --leaf: #0E9F5A;        /* سبز برگ — رنگ اصلی */
+  --leaf-ink: #0A7A45;
+  --leaf-soft: #E2F4EA;
+  --sprout: #8CC63F;      /* سبز روشن نوک برگ */
+  --dome: #3FB4C8;        /* فیروزه‌ای گنبد */
+  --dome-ink: #1D7F92;
+  --dome-soft: #E1F3F6;
+  --deep: #1E3A9E;        /* آبی گنبد؛ رنگ ناوبری و پیوندها در طراحی نو */
+  --deep-soft: #EAEFFC;
+  --flame: #F2B705;       /* زرد شعله */
+  --flame-ink: #8A6500;
+  --flame-soft: #FFF4D1;
+  --rose: #D64A6A;
+  --rose-soft: #FBE6EB;
+  /* خنثی‌ها با ته‌رنگ سرمه‌ای نوشتهٔ لوگو */
+  --ink: #1B2150;
+  --body: #3E4462;
+  --muted: #6C7290;
+  --line: #E4E7EF;
+  --line-strong: #CDD2DF;
+  --bg: #F4F5F9;
+  --card: #FFFFFF;
+  --sunken: #EEF0F5;
+  --action: #0A8449; --on-action: #FFFFFF; --danger: #C23A5B; --on-danger: #FFFFFF;
+  --rose-ink: #A8314F; --focus-ring: #0A7A45;
+  --focus: 0 0 0 2px var(--bg), 0 0 0 4px var(--focus-ring);
+  --space-0\.5: 2px; --space-1: 4px; --space-1\.5: 6px; --space-2: 8px; --space-2\.5: 10px; --space-3: 12px; --space-4: 16px; --space-5: 20px; --space-6: 24px; --space-8: 32px; --space-10: 40px; --space-12: 48px; --radius-sm: 8px; --radius-md: 10px; --radius-lg: 12px; --radius-xl: 14px; --radius-2xl: 24px; --radius-3xl: 32px; --radius-full: 999px;
+  --dur-fast: 150ms; --dur-base: 260ms; --dur-slow: 480ms;
+  --ease-out: cubic-bezier(.22, 1, .36, 1); --ease-in-out: cubic-bezier(.65, 0, .35, 1); --stagger: 45ms;
+  --shadow-sm: 0 1px 2px rgb(38 42 79 / .06), 0 2px 8px rgb(38 42 79 / .04);
+  --shadow-md: 0 4px 12px rgb(38 42 79 / .08), 0 12px 32px rgb(38 42 79 / .06);
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --leaf: #34C47F; --leaf-ink: #7FE0AE; --leaf-soft: #133526;
+  --sprout: #A6D96A; --dome: #5CC9DB; --dome-ink: #94DFEB; --dome-soft: #13323A;
+  --deep: #6AA8DA; --deep-soft: #15283A; --flame: #F5C842; --flame-ink: #F5C842; --flame-soft: #3A2F0C;
+  --rose: #EF7A94; --rose-soft: #3B1A23;
+  --ink: #ECEEF6; --body: #C8CCDD; --muted: #8E93AD; --line: #2A2F45; --line-strong: #3A405A;
+  --bg: #12141F; --card: #1A1D2B; --sunken: #161926;
+  --action: #34C47F; --on-action: #062915; --danger: #EF7A94; --on-danger: #2A0C14; --rose-ink: #EF7A94; --focus-ring: #7FE0AE;
+  color-scheme: dark;
+}

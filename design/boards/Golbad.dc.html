@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>فرایند تعیّن امامت</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+@font-face{font-family:Ravagh;src:url(/_blob/e82b766c64b0cace84d3355c93f56b74) format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:Ravagh;src:url(/_blob/527abc1483ee47a97b558a9acbfb98c5) format("woff2");font-weight:500;font-display:swap}
+@font-face{font-family:Ravagh;src:url(/_blob/4d07209a2087021071dc7addbee9572d) format("woff2");font-weight:700;font-display:swap}
+@font-face{font-family:Ravagh;src:url(/_blob/8c3eae47921ff883f9e1052d2720315a) format("woff2");font-weight:800;font-display:swap}
+@font-face{font-family:Ravagh;src:url(/_blob/21203621768e345fd3b65247d31101f5) format("woff2");font-weight:900;font-display:swap}
+body{margin:0;background:#F4F5F9}
+a{color:#1E3A9E}a:hover{color:#152B78}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #F4F5F9; color: #1B2150; font-family: Ravagh, Tahoma, sans-serif; font-feature-settings: 'ss01' 0, 'ss02' 0, 'ss03' 0, 'swsh' 0, 'dlig' 0; line-height: 1.65; direction: rtl">
+  <dc-import name="Nav" active="karname" hint-size="100%,72px"></dc-import>
+
+  <main style="max-width: 1280px; margin: 0 auto; padding: 32px 32px 64px; display: flex; flex-direction: column; gap: 24px">
+    <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; flex-wrap: wrap">
+      <div>
+        <h1 style="margin: 0; font-size: 40px; font-weight: 900">فرایند تعیّن امامت</h1>
+        <p style="margin: 8px 0 0; font-size: 16px; color: #6C7290">امامت تعیّنی است، نه تعیینی؛ با حکم آغاز می‌شود و در میدان ساخته می‌شود. ۲۴ شایستگی در چهار عرصه، هر کدام در چهار سطح: جماعت، مسجد، محله، میانی.</p>
+      </div>
+      <div style="display: flex; gap: 14px; flex-wrap: wrap; font-size: 13px; color: #3E4462">
+        <span style="display: inline-flex; align-items: center; gap: 6px"><i style="width: 14px; height: 14px; border-radius: 4px; background: #D64A6A; display: inline-block"></i>نهاد امامت</span>
+        <span style="display: inline-flex; align-items: center; gap: 6px"><i style="width: 14px; height: 14px; border-radius: 4px; background: #F5B700; display: inline-block"></i>به پا داشتن مردم</span>
+        <span style="display: inline-flex; align-items: center; gap: 6px"><i style="width: 14px; height: 14px; border-radius: 4px; background: #12A58E; display: inline-block"></i>پیوندهای اجتماعی</span>
+        <span style="display: inline-flex; align-items: center; gap: 6px"><i style="width: 14px; height: 14px; border-radius: 4px; background: #FFFFFF; border: 1px solid #CDD2DF; display: inline-block"></i>خودسازی امام</span>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+      <div style="flex: 999 1 560px; min-width: 0; background: #FFFFFF; border: 1px solid #E4E7EF; border-radius: 32px; padding: 24px; display: flex; justify-content: center">
+        <div style="width: 720px; max-width: 100%; aspect-ratio: 1 / 1; position: relative">
+          <dc-import name="Wheel" selected="{{sel}}" on-pick="{{pick}}" halo="#FFFFFF" hint-size="720px,720px"></dc-import>
+        </div>
+      </div>
+
+      <aside aria-labelledby="pet-h" style="flex: 1 1 340px; min-width: 300px; display: flex; flex-direction: column; gap: 16px">
+        <div style="background: #FFFFFF; border: 1px solid #E4E7EF; border-radius: 28px; padding: 26px; display: flex; flex-direction: column; gap: 18px">
+          <span style="align-self: flex-start; padding: 5px 12px; border-radius: 999px; background: {{cur.soft}}; color: {{cur.ink}}; font-size: 12px; font-weight: 800">{{cur.sectorName}}</span>
+          <h2 id="pet-h" style="margin: 0; font-size: 28px; font-weight: 900; line-height: 1.4">{{cur.name}}</h2>
+          <p style="margin: 0; font-size: 15px; line-height: 1.9; color: #3E4462">{{cur.desc}}</p>
+          <ol style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px" aria-label="سطح این شایستگی">
+            <sc-for list="{{cur.rings}}" as="r" hint-placeholder-count="4">
+              <li style="display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 14px; background: {{r.bg}}">
+                <span style="width: 28px; height: 28px; border-radius: 50%; background: {{r.dot}}; color: {{r.dotFg}}; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900">{{r.n}}</span>
+                <span style="flex: 1; font-size: 14px; font-weight: 700">{{r.name}}</span>
+                <span style="font-size: 12px; color: {{r.stateC}}; font-weight: 800">{{r.state}}</span>
+              </li>
+            </sc-for>
+          </ol>
+          <div style="display: flex; flex-direction: column; gap: 10px">
+            <b style="font-size: 14px; font-weight: 800">برای حلقهٔ بعد</b>
+            <sc-for list="{{cur.next}}" as="x" hint-placeholder-count="2">
+              <a href="Course.dc.html" style="display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 14px; border: 1px solid #E4E7EF; text-decoration: none; color: #1B2150">
+                <svg width="26" height="32" viewBox="0 0 48 60" aria-hidden="true"><path d="M24 2 C30 10 44 16 44 32 C44 46 34 58 24 58 C14 58 4 46 4 32 C4 16 18 10 24 2 Z" fill="{{cur.color}}"></path></svg>
+                <span style="flex: 1; display: flex; flex-direction: column"><b style="font-size: 14px; font-weight: 800">{{x.t}}</b><span style="font-size: 12px; color: #6C7290">{{x.k}}</span></span>
+              </a>
+            </sc-for>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <section aria-labelledby="all-h" style="display: flex; flex-direction: column; gap: 14px">
+      <h2 id="all-h" style="margin: 0; font-size: 22px; font-weight: 900">همهٔ شایستگی‌ها</h2>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px">
+        <sc-for list="{{groups}}" as="g" hint-placeholder-count="4">
+          <div style="background: #FFFFFF; border: 1px solid #E4E7EF; border-radius: 24px; padding: 20px; display: flex; flex-direction: column; gap: 10px">
+            <b style="font-size: 15px; font-weight: 900; color: {{g.ink}}">{{g.name}}</b>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px">
+              <sc-for list="{{g.items}}" as="it" hint-placeholder-count="5">
+                <button type="button" onClick="{{it.pick}}" aria-pressed="{{it.on}}" style="font-family: inherit; line-height: 1.4; font-size: 13px; font-weight: 700; min-height: 36px; padding: 0 12px; border-radius: 999px; border: 1.5px solid {{it.border}}; background: {{it.bg}}; color: #1B2150; cursor: pointer; display: inline-flex; align-items: center; gap: 6px">{{it.short}}<span style="font-size: 11px; color: #6C7290">{{it.lv}}</span></button>
+              </sc-for>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1080}}'>
+const SECT = {
+  self: { name: 'خودسازی امام', color: '#8C93B5', soft: '#EEF0F6', ink: '#3E4462' },
+  nahad: { name: 'نهاد امامت', color: '#D64A6A', soft: '#FBE6EB', ink: '#A8314F' },
+  meydan: { name: 'به پا داشتن مردم', color: '#F2A20C', soft: '#FFF2CC', ink: '#8A5A00' },
+  peyvand: { name: 'پیوندهای اجتماعی', color: '#12A58E', soft: '#D3EFEA', ink: '#0B5F52' },
+};
+const P = [
+  ['manavi', 'self', 'مراقبت معنوی', 'مراقبت‌های معنوی', 3, 'عبادات فردی شبانه‌روزی، نوافل، انس با قرآن و محاسبهٔ نفس؛ آنچه امام را پیش از هر کاری می‌سازد.'],
+  ['akhlagh', 'self', 'اخلاق عمومی', 'اخلاق عمومی', 3, 'حلم، صبر، تواضع و انصاف در برخورد با مردم محله.'],
+  ['ertebat', 'self', 'ارتباط با مردم', 'ویژگی‌های ارتباطی', 2, 'گشاده‌رویی، شنیدن و سخن گفتن به زبان مردم.'],
+  ['orfi', 'self', 'ویژگی‌های عرفی', 'ویژگی‌های عرفی امام', 3, 'آداب و رسوم محله را شناختن و در شادی و غم مردم حاضر بودن.'],
+  ['tashkilat', 'self', 'اخلاق تشکیلاتی', 'اخلاق تشکیلاتی', 2, 'انضباط، تقید به تشکیلات، نیروپروری و روش‌مندی.'],
+  ['modiriat', 'self', 'مدیریت', 'ویژگی‌های مدیریتی', 2, 'برنامه‌ریزی، تقسیم کار و پیگیری؛ مسجد را مثل یک نهاد اداره کردن.'],
+  ['resane', 'self', 'سواد رسانه', 'سواد رسانه و فناوری', 1, 'کار با رایانه و نرم‌افزارها، و روایت کردن کار مسجد در فضای مجازی.'],
+  ['sharika', 'nahad', 'شریکة‌الامام', 'شریکة‌الامام', 2, 'همسر امام، امامِ میدان زنان و دختران محله؛ مشورت و تقسیم کار در امور بانوان.'],
+  ['bazovan', 'nahad', 'بازوان اجرایی', 'بازوان اجرایی امام', 3, 'جوانان متعهد محله که کار را به سرانجام می‌رسانند؛ شورای تحول و صندوق پیشرفت محله.'],
+  ['halghe', 'meydan', 'حلقه‌های میانی', 'شناسایی، تشکیل و تقویت حلقه‌های میانی', 2, 'یافتن کسانی که ذهن فعال و زبان گویا دارند و مردم را به میدان می‌آورند. هدف اول: ده درصد محله.'],
+  ['sahne', 'meydan', 'شناخت صحنه', 'شناخت صحنه', 3, 'تصویری درست و واقع‌بینانه از وضع محله؛ نه تاریک و نه کاذب.'],
+  ['omid', 'meydan', 'نقاط امید', 'شناخت نقاط امیدبخش و ظرفیت‌ها', 2, 'نشانه‌هایی که ثابت می‌کند مسئله حل‌شدنی است؛ پیش از دراز کردن دست به بیرون، در خانه گشتن.'],
+  ['tamadon', 'meydan', 'جهت‌گیری تمدنی', 'جهت‌گیری تمدنی', 1, 'هر مسئله را به فرصتی برای پیشرفت محله و تمدن نوین اسلامی تبدیل کردن.'],
+  ['rahkar', 'meydan', 'طراحی راهکار', 'طراحی راهکار عملیاتی', 2, 'از ریشه‌یابی تا راه‌حل قابل سنجش.'],
+  ['eghdam', 'meydan', 'طراحی اقدام', 'طراحی اقدام عملیاتی', 1, 'برنامه‌ریزی؛ هر کار یک متولی دارد.'],
+  ['ejra', 'meydan', 'اجرای اقدام', 'اجرای اقدام عملیاتی', 1, 'اقدام میدانی تیمی و جمعی.'],
+  ['arzyabi', 'meydan', 'ارزیابی', 'ارزیابی', 0, 'بازخوردگیری و سنجش اثر؛ تا مسئلهٔ بعدی بهتر حل شود.'],
+  ['tabyin', 'meydan', 'تبیین و گفتمان', 'تبیین و گفتمان‌سازی', 1, 'گزارش و روایت؛ چون کار خوبی که روایت نشود، می‌میرد.'],
+  ['khish', 'peyvand', 'پیوند خویشاوندی', 'پیوند امام با خویشاوندان خود', 3, 'صلهٔ رحم امام، الگوی صلهٔ رحم محله.'],
+  ['okhovat', 'peyvand', 'ارکان اخوت', 'پیوند برادری و همسایگی', 3, 'پلکان هفت‌پلهٔ اخوت و حقوق همسایگی تا چهل خانه از هر سو.'],
+  ['vefagh', 'peyvand', 'یکرویی و وفاق', 'یکرویی و وفاق (انس)', 4, 'پاسخ به نیاز انس؛ همدمی اهل مسجد با هم.'],
+  ['ettehad', 'peyvand', 'اتحاد و یگانگی', 'اتحاد و یگانگی (کمال)', 3, 'رشد با هم؛ پاسخ به نیاز کمال.'],
+  ['tavazo', 'peyvand', 'تواضع', 'تواضع و فروتنی (عزت)', 4, 'دیده شدن و احترام؛ پاسخ به نیاز عزت.'],
+  ['fotovat', 'peyvand', 'فتوت', 'فتوت و جوانمردی (یاری)', 2, 'پشتیبانی بی‌چشمداشت؛ پاسخ به نیاز یاری.'],
+];
+const RINGS = ['امام جماعت', 'امام مسجد', 'امام محله', 'امام میانی'];
+const fa = (n) => n.toLocaleString('fa-IR');
+const NEXT = {
+  meydan: [{ t: 'مسیر حل مسئلهٔ محله', k: 'مسیر یادگیری، ۴ دوره و آزمون پایانی' }, { t: 'شناسنامهٔ مسئلهٔ محله', k: 'دوره، ۶ درس و یک مأموریت' }],
+  nahad: [{ t: 'تشکیلات مسجد', k: 'دوره، ۶ درس و ابزار RACI' }, { t: 'شریکة‌الامام؛ میدان خواهران', k: 'دوره، ۵ درس' }],
+  peyvand: [{ t: 'پلکان اخوت در مسجد', k: 'دوره، ۷ درس' }, { t: 'نظام همسایگی؛ چهل خانه', k: 'دوره، ۴ درس و یک مأموریت' }],
+  self: [{ t: 'اخلاق امامت محله', k: 'کلاس زنده، هر سه‌شنبه' }, { t: 'سواد رسانه برای امام', k: 'دوره، ۵ درس و پادکست' }],
+};
+class Component extends DCLogic {
+  renderVals() {
+    const sel = (this.state && this.state.sel) || 'sahne';
+    const pick = (id) => this.setState({ sel: id });
+    const row = P.find((p) => p[0] === sel) || P[10];
+    const s = SECT[row[1]];
+    const lv = row[4];
+    const rings = RINGS.map((name, k) => ({
+      n: fa(k + 1), name,
+      bg: k < lv ? s.soft : '#F4F5F9',
+      dot: k < lv ? s.color : '#FFFFFF', dotFg: k < lv ? '#FFFFFF' : '#6C7290',
+      state: k < lv ? 'رسیده' : k === lv ? 'قدم بعد' : '', stateC: k < lv ? s.ink : '#1E3A9E',
+    }));
+    const cur = { name: row[3], desc: row[5], sectorName: s.name, color: s.color, soft: s.soft, ink: s.ink, rings, next: NEXT[row[1]] };
+    const groups = ['nahad', 'meydan', 'peyvand', 'self'].map((k) => ({
+      name: SECT[k].name, ink: SECT[k].ink,
+      items: P.filter((p) => p[1] === k).map((p) => ({
+        short: p[2], lv: fa(p[4]) + '/۴', on: p[0] === sel ? 'true' : 'false',
+        border: p[0] === sel ? '#1B2150' : '#E4E7EF', bg: p[0] === sel ? SECT[k].soft : '#FFFFFF',
+        pick: () => this.setState({ sel: p[0] }),
+      })),
+    }));
+    return { sel, pick, cur, groups };
+  }
+}
+</script>
+</body>
+</html>

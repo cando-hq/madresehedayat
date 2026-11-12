@@ -1,0 +1,101 @@
+import sys; sys.path.insert(0,'/home/claude/dz/gen')
+from common import *
+body=f'''<div style="{ROOT}">
+  {nav('events')}
+  <main style="max-width: 1280px; margin: 0 auto; padding: 24px 32px 48px; display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 20px; align-items: start">
+    <div style="display: flex; flex-direction: column; gap: 16px; min-width: 0">
+      <div class="stage" role="img" aria-label="پخش زنده: استاد در حال تدریس" style="position: relative; aspect-ratio: 16 / 9; border-radius: 28px; overflow: hidden; background: #0F1538">
+        <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(15,21,56,0.15) 40%, rgba(15,21,56,0.85))"></div>
+        <div style="position: absolute; top: 18px; right: 18px; display: flex; gap: 8px">
+          <span style="display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 999px; background: #D64A6A; color: #FFFFFF; font-size: 13px; font-weight: 900"><span style="width: 8px; height: 8px; border-radius: 50%; background: #FFFFFF"></span>زنده</span>
+          <span style="padding: 6px 14px; border-radius: 999px; background: rgba(255,255,255,0.18); color: #FFFFFF; font-size: 13px; font-weight: 800">۱۱۸ نفر حاضر</span>
+        </div>
+        <div style="position: absolute; bottom: 18px; right: 22px; left: 22px; display: flex; align-items: center; gap: 12px; color: #FFFFFF; flex-wrap: wrap">
+          <div style="flex: 1; min-width: 200px"><b style="font-size: 22px; font-weight: 900">اخلاق امامت محله · جلسهٔ ۵</b><div style="font-size: 14px; color: #C9D3F5">استاد: حجت‌الاسلام رحیمی · ۳۸ دقیقه گذشته</div></div>
+          <sc-for list="{{{{ctl}}}}" as="b" hint-placeholder-count="4">
+            <button type="button" aria-label="{{{{b.t}}}}" style="width: 48px; height: 48px; border-radius: 50%; border: 0; background: rgba(255,255,255,0.18); color: #FFFFFF; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{{{b.i}}}}"></path></svg></button>
+          </sc-for>
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px">
+        <div style="{CARD}; border-radius: 22px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
+          <b style="font-size: 15px; font-weight: 900">نظرسنجی زنده</b>
+          <span style="font-size: 14px; line-height: 1.8">بزرگ‌ترین مانع رفاقت شما با نوجوان‌های محله چیست؟</span>
+          <sc-for list="{{{{poll}}}}" as="p" hint-placeholder-count="3">
+            <div style="position: relative; border-radius: 12px; background: #F4F5F9; overflow: hidden; min-height: 40px; display: flex; align-items: center; padding: 0 12px; font-size: 13px; font-weight: 700">
+              <span style="position: absolute; inset: 0 0 0 auto; width: {{{{p.w}}}}; background: {{{{p.c}}}}"></span><span style="position: relative; flex: 1">{{{{p.t}}}}</span><span style="position: relative">{{{{p.v}}}}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="{CARD}; border-radius: 22px; padding: 18px; display: flex; flex-direction: column; gap: 10px">
+          <b style="font-size: 15px; font-weight: 900">پیوست‌های جلسه</b>
+          <sc-for list="{{{{files}}}}" as="f" hint-placeholder-count="3">
+            <a href="#" style="display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 12px; border-radius: 12px; background: #F4F5F9; text-decoration: none; color: #1B2150; font-size: 14px; font-weight: 700"><span style="padding: 2px 8px; border-radius: 6px; background: {{{{f.bg}}}}; color: {{{{f.c}}}}; font-size: 11px; font-weight: 900">{{{{f.k}}}}</span>{{{{f.t}}}}</a>
+          </sc-for>
+        </div>
+        <div style="background: #FFF6DA; border-radius: 22px; padding: 18px; display: flex; flex-direction: column; gap: 10px">
+          <b style="font-size: 15px; font-weight: 900">حضور شما ثبت شد</b>
+          <span style="font-size: 14px; line-height: 1.8; color: #3E4462">بعد از کلاس، بازپخش و خلاصهٔ صوتی در همین صفحه می‌ماند و جلسه در کارنامه‌تان ثبت می‌شود.</span>
+          <a href="Course.dc.html" style="font-size: 14px; font-weight: 800">دیدن جلسه‌های قبل</a>
+        </div>
+      </div>
+    </div>
+
+    <aside aria-label="گفت‌وگو و پرسش" style="{CARD}; border-radius: 28px; display: flex; flex-direction: column; height: 760px; overflow: hidden">
+      <div role="tablist" style="display: grid; grid-template-columns: 1fr 1fr; padding: 8px; gap: 6px; border-bottom: 1px solid #E4E7EF">
+        <sc-for list="{{{{tabs}}}}" as="t" hint-placeholder-count="2">
+          <button type="button" role="tab" aria-selected="{{{{t.on}}}}" onClick="{{{{t.pick}}}}" style="min-height: 44px; border: 0; border-radius: 12px; background: {{{{t.bg}}}}; color: {{{{t.fg}}}}; font: inherit; font-size: 14px; font-weight: 800; line-height: 1.4; cursor: pointer">{{{{t.t}}}}</button>
+        </sc-for>
+      </div>
+      <div style="flex: 1; overflow: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+        <sc-for list="{{{{msgs}}}}" as="m" hint-placeholder-count="6">
+          <div style="display: flex; gap: 10px; align-items: flex-start">
+            <span style="width: 34px; height: 34px; border-radius: 50%; background: {{{{m.bg}}}}; color: {{{{m.fg}}}}; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 13px; flex: none">{{{{m.i}}}}</span>
+            <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+              <span style="font-size: 12px; color: #6C7290"><b style="color: #1B2150; font-weight: 800">{{{{m.n}}}}</b> {{{{m.tag}}}}</span>
+              <span style="font-size: 14px; line-height: 1.8">{{{{m.t}}}}</span>
+              <span style="font-size: 12px; color: #1E3A9E; font-weight: 800">{{{{m.up}}}}</span>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="padding: 12px; border-top: 1px solid #E4E7EF; display: flex; gap: 8px">
+        <label style="flex: 1; display: flex"><span style="position: absolute; width: 1px; height: 1px; overflow: hidden">پیام شما</span><input placeholder="{{{{ph}}}}" style="flex: 1; min-height: 48px; border: 1.5px solid #E4E7EF; border-radius: 14px; padding: 0 14px; font: inherit; font-size: 14px"></label>
+        <button type="button" aria-label="فرستادن" style="width: 48px; height: 48px; border-radius: 14px; border: 0; background: #1E3A9E; color: #FFFFFF; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 4 l-16 7 l7 2 l2 7z"></path></svg></button>
+      </div>
+    </aside>
+  </main>
+</div>'''
+css='.stage{background-image:url(/_blob/702a4dfcbc9ca7da3287d181fdf527c9);background-size:cover;background-position:50% 40%}'
+script='''class Component extends DCLogic {
+  renderVals() {
+    const tab = (this.state && this.state.tab) || 'chat';
+    const tabs = [['chat', 'گفت‌وگو'], ['qa', 'پرسش از استاد · ۷']].map(([k, t]) => ({ t, on: k === tab ? 'true' : 'false', bg: k === tab ? '#1B2150' : 'transparent', fg: k === tab ? '#FFFFFF' : '#3E4462', pick: () => this.setState({ tab: k }) }));
+    const ctl = [
+      { t: 'دست بالا', i: 'M8 13 v-8 a1.5 1.5 0 0 1 3 0 v6 M11 11 v-7 a1.5 1.5 0 0 1 3 0 v7 M14 11 v-5 a1.5 1.5 0 0 1 3 0 v8 c0 4-3 7-7 7 c-3 0-5-2-6-5 l-1-3 a1.5 1.5 0 0 1 3-1 l1 2' },
+      { t: 'زیرنویس', i: 'M3 6 h18 v12 h-18z M7 14 h4 M13 14 h4' },
+      { t: 'فقط صدا', i: 'M12 3 a3 3 0 0 1 3 3 v6 a3 3 0 0 1-6 0 v-6 a3 3 0 0 1 3-3 M5 11 a7 7 0 0 0 14 0' },
+      { t: 'تمام‌صفحه', i: 'M4 9 v-5 h5 M20 9 v-5 h-5 M4 15 v5 h5 M20 15 v5 h-5' },
+    ];
+    const poll = [
+      { t: 'وقت ندارم', v: '٪۲۲', w: '22%', c: '#EAEFFC' },
+      { t: 'زبان مشترک نداریم', v: '٪۴۷', w: '47%', c: '#FFF2CC' },
+      { t: 'جای مناسب در مسجد نیست', v: '٪۳۱', w: '31%', c: '#D3EFEA' },
+    ];
+    const files = [{ k: 'PDF', t: 'خلاصهٔ جلسه', bg: '#FBE6EB', c: '#A8314F' }, { k: 'MP3', t: 'نسخهٔ صوتی', bg: '#E1F3F6', c: '#1D7F92' }, { k: 'ابزار', t: 'نقشهٔ همدلی نوجوان', bg: '#E2F5EA', c: '#0A7A45' }];
+    const chat = [
+      { i: 'ر', n: 'حجت‌الاسلام رحیمی', tag: 'استاد', t: 'سلام علیکم. امروز از «زبان مشترک» شروع می‌کنیم.', bg: '#1E3A9E', fg: '#FFFFFF', up: '' },
+      { i: 'ک', n: 'حاج‌آقا کریمی', tag: 'امام مسجد · ساری', t: 'ما فوتبال جمعه‌ها را شروع کردیم، جواب داد.', bg: '#D3EFEA', fg: '#0B5F52', up: '' },
+      { i: 'ن', n: 'خانم نوری', tag: 'شریکة‌الامام', t: 'برای دختران، حلقهٔ کتاب‌خوانی بهتر جواب داده.', bg: '#FBE6EB', fg: '#A8314F', up: '' },
+      { i: 'ص', n: 'حاج‌آقا صادقی', tag: 'امام جماعت', t: 'ما هنوز اتاقی برای این کار نداریم.', bg: '#FFF2CC', fg: '#8A5A00', up: '' },
+      { i: 'ر', n: 'حجت‌الاسلام رحیمی', tag: 'استاد', t: 'گوشهٔ شبستان هم کافی است؛ جا مهم نیست، ماندن مهم است.', bg: '#1E3A9E', fg: '#FFFFFF', up: '' },
+    ];
+    const qa = [
+      { i: 'ا', n: 'حاج‌آقا امینی', tag: 'امام محله', t: 'اگر خانواده‌ها مخالف حضور شبانه باشند چه کنیم؟', bg: '#EAEFFC', fg: '#1E3A9E', up: '۱۴ نفر همین سؤال را دارند' },
+      { i: 'م', n: 'آقا مهدی', tag: 'بازوی اجرایی', t: 'بودجهٔ اردو را از کجا بیاوریم؟', bg: '#D3EFEA', fg: '#0B5F52', up: '۹ نفر · پاسخ داده شد' },
+      { i: 'ز', n: 'خانم زارعی', tag: 'شریکة‌الامام', t: 'برای نوجوانانی که اصلاً مسجد نمی‌آیند از کجا شروع کنیم؟', bg: '#FBE6EB', fg: '#A8314F', up: '۶ نفر' },
+    ];
+    return { tabs, ctl, poll, files, msgs: tab === 'chat' ? chat : qa, ph: tab === 'chat' ? 'پیام به کلاس…' : 'پرسش از استاد…' };
+  }
+}'''
+open('/home/claude/dz/project/Live.dc.html','w').write(page('کلاس زنده', body, script, 1440, 900, css))

@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>پنل راهیار: صف روایت‌ها (نهایی)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+@font-face{font-family:Ravagh;src:url(/_blob/e82b766c64b0cace84d3355c93f56b74) format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:Ravagh;src:url(/_blob/527abc1483ee47a97b558a9acbfb98c5) format("woff2");font-weight:500;font-display:swap}
+@font-face{font-family:Ravagh;src:url(/_blob/4d07209a2087021071dc7addbee9572d) format("woff2");font-weight:700;font-display:swap}
+@font-face{font-family:Ravagh;src:url(/_blob/8c3eae47921ff883f9e1052d2720315a) format("woff2");font-weight:800;font-display:swap}
+@font-face{font-family:Ravagh;src:url(/_blob/21203621768e345fd3b65247d31101f5) format("woff2");font-weight:900;font-display:swap}
+body{margin:0;background:#F4F5F9}
+a{color:#1E3A9E}a:hover{color:#152B78}
+
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #F4F5F9; color: #1B2150; font-family: Ravagh, Tahoma, sans-serif; font-feature-settings: 'ss01' 0, 'ss02' 0, 'ss03' 0, 'swsh' 0, 'dlig' 0; line-height: 1.65; direction: rtl; display: flex">
+  <aside style="width: 248px; flex: none; background: #1B2150; color: #FFFFFF; padding: 22px 14px; display: flex; flex-direction: column; gap: 4px; box-sizing: border-box"><img src="/_blob/b522f6290bfc782976410c6c8494344e" alt="مدرسهٔ هدایت" style="width: 150px; max-width: 100%; height: auto; align-self: flex-start; margin: 0 8px 10px"><div style="padding: 0 10px 14px; font-size: 13px; color: #C9D3F5">پنل راهیار، حاج‌آقا محمدی</div><nav style="display: flex; flex-direction: column; gap: 2px"><a href="RahyarFinal.dc.html" aria-current="page" style="display: flex; align-items: center; gap: 10px; min-height: 42px; padding: 0 12px; border-radius: 12px; background: rgba(255,255,255,0.14); color: #FFFFFF; font-size: 14px; font-weight: 800; text-decoration: none"><span style="width: 8px; height: 8px; border-radius: 50%; background: #F5B700"></span>صف روایت‌ها</a><a href="RahyarActors.dc.html" style="display: flex; align-items: center; gap: 10px; min-height: 42px; padding: 0 12px; border-radius: 12px; background: transparent; color: #FFFFFF; font-size: 14px; font-weight: 500; text-decoration: none"><span style="width: 8px; height: 8px; border-radius: 50%; background: #12A58E"></span>کنشگران من</a><a href="RahyarGaade.dc.html" style="display: flex; align-items: center; gap: 10px; min-height: 42px; padding: 0 12px; border-radius: 12px; background: transparent; color: #FFFFFF; font-size: 14px; font-weight: 500; text-decoration: none"><span style="width: 8px; height: 8px; border-radius: 50%; background: #F08C1A"></span>گعده‌ها</a><a href="Messages.dc.html" style="display: flex; align-items: center; gap: 10px; min-height: 42px; padding: 0 12px; border-radius: 12px; background: transparent; color: #FFFFFF; font-size: 14px; font-weight: 500; text-decoration: none"><span style="width: 8px; height: 8px; border-radius: 50%; background: #8C93B5"></span>پیام‌ها</a></nav></aside>
+  <main style="flex: 1; padding: 28px 32px 48px; display: flex; flex-direction: column; gap: 18px; min-width: 0">
+    <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap"><div><h1 style="margin: 0; font-size: 28px; font-weight: 900">صف روایت‌ها</h1><p style="margin: 4px 0 0; color: #6C7290">هر روایت را در دو دقیقه ببند: یک حکم، یک جمله.</p></div><div style="display: flex; gap: 8px"><span style="padding: 6px 14px; border-radius: 999px; background: #FBE6EB; color: #A8314F; font-size: 13px; font-weight: 800">۳ روایت بیش از سه روز</span><span style="padding: 6px 14px; border-radius: 999px; background: #FFF2CC; color: #8A5A00; font-size: 13px; font-weight: 800">۱۱ منتظر</span></div></div>
+    <div style="display: grid; grid-template-columns: 380px minmax(0, 1fr); gap: 18px; align-items: start">
+      <div style="background: #FFFFFF; border: 1px solid #E4E7EF; border-radius: 24px; padding: 10px; display: flex; flex-direction: column; gap: 6px">
+        <sc-for list="{{queue}}" as="r" hint-placeholder-count="6">
+          <button type="button" onClick="{{r.pick}}" aria-pressed="{{r.on}}" style="text-align: right; font: inherit; cursor: pointer; color: #1B2150; border: 0; border-radius: 16px; padding: 12px 14px; background: {{r.bg}}; display: flex; gap: 12px; align-items: center">
+            <span style="width: 38px; height: 38px; border-radius: 50%; background: {{r.av}}; color: #FFFFFF; font-weight: 900; display: flex; align-items: center; justify-content: center; flex: none">{{r.i}}</span>
+            <span style="flex: 1; min-width: 0; display: flex; flex-direction: column"><b style="font-size: 14px; font-weight: 800">{{r.n}}</b><span style="font-size: 12px; color: #6C7290; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{r.task}}</span></span>
+            <span style="font-size: 12px; font-weight: 800; color: {{r.ac}}; white-space: nowrap">{{r.age}}</span>
+          </button>
+        </sc-for>
+      </div>
+      <div style="background: #FFFFFF; border: 1px solid #E4E7EF; border-radius: 24px; padding: 26px; display: flex; flex-direction: column; gap: 16px">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap"><div><span style="font-size: 13px; color: #6C7290">{{cur.path}}</span><h2 style="margin: 2px 0 0; font-size: 22px; font-weight: 900">{{cur.n}}، {{cur.task}}</h2><span style="font-size: 13px; color: #6C7290">{{cur.meta}}</span></div><a href="#" style="font-size: 14px; font-weight: 800">پروندهٔ کنشگر</a></div>
+        <div style="padding: 18px; border-radius: 18px; background: #FBFAF6; font-size: 16px; line-height: 2">{{cur.text}}</div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap"><span style="padding: 4px 12px; border-radius: 999px; background: #F4F5F9; font-size: 12px; font-weight: 800">🔒 یک عکس خصوصی</span><span style="padding: 4px 12px; border-radius: 999px; background: #F4F5F9; font-size: 12px; font-weight: 800">روایت قبلی: تأیید شده</span><span style="padding: 4px 12px; border-radius: 999px; background: #F4F5F9; font-size: 12px; font-weight: 800">نظر همتایان گعده: ۲</span></div>
+        <div style="display: flex; flex-direction: column; gap: 8px"><b style="font-size: 14px">معیار این تکلیف (از مسیر)</b>
+          <sc-for list="{{cur.crit}}" as="c" hint-placeholder-count="3"><label style="display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 14px; border-radius: 14px; background: #F4F5F9; font-size: 14px"><input type="checkbox" checked="{{c.ok}}" style="width: 20px; height: 20px; accent-color: #0E9F5A">{{c.t}}</label></sc-for></div>
+        <label style="display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 800">یک جمله برای کنشگر<textarea rows="2" placeholder="یک قوت و یک قدم بعدی" style="border: 1.5px solid #E4E7EF; border-radius: 14px; padding: 10px 12px; font: inherit; font-size: 15px; resize: vertical"></textarea></label>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap"><button type="button" style="min-height: 48px; padding: 0 22px; border-radius: 14px; border: 0; background: #0E9F5A; color: #FFFFFF; font: inherit; font-weight: 800; line-height: 1.4; cursor: pointer">تأیید؛ یک گام جلو</button><button type="button" style="min-height: 48px; padding: 0 18px; border-radius: 14px; border: 1.5px solid #1E3A9E; background: #FFFFFF; color: #1E3A9E; font: inherit; font-weight: 800; line-height: 1.4; cursor: pointer">فقط بازخورد</button><button type="button" style="min-height: 48px; padding: 0 18px; border-radius: 14px; border: 1.5px solid #F0C2CD; background: #FFFFFF; color: #A8314F; font: inherit; font-weight: 800; line-height: 1.4; cursor: pointer">درخواست اصلاح</button><span style="margin-right: auto; font-size: 12px; color: #6C7290; align-self: center">بعد از حکم، روایت بعدی باز می‌شود</span></div>
+      </div>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":980}}'>
+const Q = [
+  ['م', 'مهدی کاظمی', 'بوم مسئله و پنج چرا', '۴ روز', 1, '#0B5F52', 'مسیر حل مسئلهٔ محله، دورهٔ حل مسئله', 'با سه نفر از تیم بوم را پر کردیم. با سه خانواده حرف زدیم: هر سه گفتند بچه‌ها بعد از ساعت هشت جایی ندارند. ریشه‌ای که رسیدیم: هیچ بزرگ‌تری برایشان وقت نمی‌گذارد. قدم بعد: دو پدر داوطلب شدند سه‌شنبه‌ها در مسجد بمانند.', ['ریشه با پنج چرا به دست آمده، نه حدس', 'دست‌کم سه گفت‌وگوی واقعی', 'روایت کوتاه و بی‌نکتهٔ آبرویی']],
+  ['ک', 'حاج‌آقا کریمی', 'منشور همکاری ارکان', '۳ روز', 1, '#1E3A9E', 'تعیّن امامت، پلهٔ امام مسجد', 'جلسهٔ ماهانهٔ ارکان را برگزار کردم و صورت‌جلسه را با سه ستون «چه کسی، چه کاری، تا کی» در گروه گذاشتم.', ['جلسه با دستور مکتوب', 'هر تصمیم مسئول و مهلت دارد', 'صورت‌جلسه منتشر شده']],
+  ['ز', 'خانم زارعی', 'نخستین حلقهٔ بانوان', '۲ روز', 0, '#A8314F', 'حلقهٔ خانگی بانوان', 'با چهار همسایه نخستین حلقه را گذاشتیم.', ['دست‌کم چهار نفر', 'موضوع و زمان ثابت', 'قرار جلسهٔ بعد']],
+  ['ص', 'حاج‌آقا صادقی', 'دفتر نام و احوال', 'دیروز', 0, '#1E3A9E', 'تعیّن امامت، پلهٔ امام جماعت', 'دفتر به ۲۸ نام رسید؛ ۴ پیگیری غایب.', ['دست‌کم ۴۰ نام', '۸ پیگیری غایب', 'یک گفت‌وگو با پیشکسوت']],
+  ['ع', 'علی احمدی', 'یک عقد اخوت', 'امروز', 0, '#0B5F52', 'پلکان اخوت', 'با رضا عقد اخوت بستیم و قرار هفتگی گذاشتیم.', ['عقد با یک نفر', 'قرار هفتگی']],
+];
+class Component extends DCLogic {
+  renderVals() {
+    const sel = (this.state && this.state.i) || 0;
+    const queue = Q.map(([i, n, task, age, late, av], k) => ({ i, n, task, age, av, on: k === sel ? 'true' : 'false', bg: k === sel ? '#EAEFFC' : '#F4F5F9', ac: late ? '#A8314F' : '#6C7290', pick: () => this.setState({ i: k }) }));
+    const c = Q[sel];
+    return { queue, cur: { n: c[1], task: c[2], path: c[6], meta: 'رسیده ' + c[3] + ' پیش', text: c[7], crit: c[8].map((t, j) => ({ t, ok: j < 2 })) } };
+  }
+}
+</script>
+</body>
+</html>

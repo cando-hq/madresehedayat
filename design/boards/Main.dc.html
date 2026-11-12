@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>خانهٔ امام محله</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+@font-face{font-family:Ravagh;src:url(/_blob/e82b766c64b0cace84d3355c93f56b74) format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:Ravagh;src:url(/_blob/527abc1483ee47a97b558a9acbfb98c5) format("woff2");font-weight:500;font-display:swap}
+@font-face{font-family:Ravagh;src:url(/_blob/4d07209a2087021071dc7addbee9572d) format("woff2");font-weight:700;font-display:swap}
+@font-face{font-family:Ravagh;src:url(/_blob/8c3eae47921ff883f9e1052d2720315a) format("woff2");font-weight:800;font-display:swap}
+@font-face{font-family:Ravagh;src:url(/_blob/21203621768e345fd3b65247d31101f5) format("woff2");font-weight:900;font-display:swap}
+body{margin:0;background:#F4F5F9}
+a{color:#1E3A9E}a:hover{color:#152B78}
+.hero-img{background-image:url(/_blob/702a4dfcbc9ca7da3287d181fdf527c9);background-size:cover;background-position:50% 38%}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #F4F5F9; color: #1B2150; font-family: Ravagh, Tahoma, sans-serif; font-feature-settings: 'ss01' 0, 'ss02' 0, 'ss03' 0, 'swsh' 0, 'dlig' 0; line-height: 1.65; direction: rtl">
+  <dc-import name="Nav" active="home" hint-size="100%,72px"></dc-import>
+
+  <main style="max-width: 1280px; margin: 0 auto; padding: 28px 32px 64px; display: flex; flex-direction: column; gap: 28px">
+
+    <section aria-labelledby="hero-h" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); border-radius: 32px; overflow: hidden; background: #1E3A9E; color: #FFFFFF; min-height: 400px">
+      <div style="padding: 44px 48px; display: flex; flex-direction: column; justify-content: center; gap: 18px">
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap">
+          <span style="display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 999px; background: rgba(255,255,255,0.14); font-size: 13px; font-weight: 800">
+            <svg width="16" height="20" viewBox="0 0 48 60" aria-hidden="true"><path d="M24 2 C30 10 44 16 44 32 C44 46 34 58 24 58 C14 58 4 46 4 32 C4 16 18 10 24 2 Z" fill="#F5B700"></path></svg>
+            سطح ۳، امام محله
+          </span>
+          <span style="font-size: 13px; color: #C9D3F5">ارزیابی میدانی راهیار: ۱۸ آذر</span>
+        </div>
+        <h1 style="margin: 0; font-size: 44px; line-height: 1.35; font-weight: 900">صبح بخیر، حاج‌آقا</h1>
+        <div style="background: #FFFFFF; color: #1B2150; border-radius: 22px; padding: 22px 24px; display: flex; flex-direction: column; gap: 14px; max-width: 520px">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+            <span style="font-size: 13px; font-weight: 800; color: #B07800">مسیر حل مسئلهٔ محله، حل مسئله</span>
+            <span style="font-size: 13px; color: #6C7290">بخش ۳ از ۷</span>
+          </div>
+          <div style="font-size: 22px; font-weight: 900; line-height: 1.5">از علامت تا ریشه</div>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap">
+            <sc-for list="{{parts}}" as="p" hint-placeholder-count="4"><span style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 999px; background: {{p.bg}}; color: {{p.c}}; font-size: 12px; font-weight: 800"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{p.i}}"></path></svg>{{p.t}}</span></sc-for>
+          </div>
+          <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap">
+            <a href="Lesson.dc.html" style="display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 24px; border-radius: 14px; background: #0E9F5A; color: #FFFFFF; font-weight: 800; font-size: 16px; text-decoration: none">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5v14l11-7z"></path></svg>
+              ادامهٔ درس، ۱۲ دقیقه
+            </a>
+            <a href="Tools.dc.html" style="font-size: 14px; font-weight: 800">ابزار درس: پنج چرا</a>
+          </div>
+        </div>
+      </div>
+      <div class="hero-img" role="img" aria-label="گنبد مسجد با ترنج‌هایی از عرصه‌های زندگی و کبوترها در غروب" style="min-height: 400px"></div>
+    </section>
+
+    <section aria-label="امروز و این هفته" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px">
+      <sc-for list="{{week}}" as="w" hint-placeholder-count="4">
+        <a href="{{w.href}}" style="background: #FFFFFF; border: 1px solid #E4E7EF; border-radius: 22px; padding: 20px; display: flex; gap: 14px; align-items: flex-start; text-decoration: none; color: #1B2150">
+          <svg width="40" height="50" viewBox="0 0 48 60" aria-hidden="true" style="flex: none"><path d="M24 2 C30 10 44 16 44 32 C44 46 34 58 24 58 C14 58 4 46 4 32 C4 16 18 10 24 2 Z" fill="{{w.bg}}"></path><path d="{{w.icon}}" fill="none" stroke="{{w.fg}}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" transform="translate(12 18)"></path></svg>
+          <span style="display: flex; flex-direction: column; gap: 4px; min-width: 0">
+            <span style="font-size: 12px; font-weight: 800; color: {{w.ink}}">{{w.kind}}</span>
+            <span style="font-size: 16px; font-weight: 800; line-height: 1.6">{{w.title}}</span>
+            <span style="font-size: 13px; color: #6C7290">{{w.when}}</span>
+          </span>
+        </a>
+      </sc-for>
+    </section>
+
+    <section aria-labelledby="gol-h" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 520px), 1fr)); gap: 20px">
+      <div style="background: #FFFFFF; border: 1px solid #E4E7EF; border-radius: 28px; padding: 28px; display: flex; flex-direction: column; gap: 18px">
+        <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap">
+          <div>
+            <h2 id="gol-h" style="margin: 0; font-size: 24px; font-weight: 900">فرایند تعیّن امامت شما</h2>
+            <p style="margin: 6px 0 0; font-size: 14px; color: #6C7290">هر گلبرگ یک شایستگی؛ هر حلقه یک سطح امامت</p>
+          </div>
+          <a href="Golbad.dc.html" style="font-size: 14px; font-weight: 800; color: #1E3A9E">دیدن کامل</a>
+        </div>
+        <div style="display: flex; gap: 24px; align-items: center; flex-wrap: wrap">
+          <div style="width: 360px; height: 360px; position: relative; flex: none">
+            <div style="position: absolute; top: 0; right: 0; width: 720px; height: 720px; transform: scale(0.5); transform-origin: top right">
+              <dc-import name="Wheel" halo="#F4F5F9" hint-size="720px,720px"></dc-import>
+            </div>
+          </div>
+          <div style="flex: 1; min-width: 220px; display: flex; flex-direction: column; gap: 14px">
+            <sc-for list="{{sectors}}" as="s" hint-placeholder-count="4">
+              <div style="display: flex; flex-direction: column; gap: 6px">
+                <div style="display: flex; justify-content: space-between; font-size: 14px"><b style="font-weight: 800">{{s.name}}</b><span style="color: #6C7290">{{s.note}}</span></div>
+                <div style="height: 10px; border-radius: 5px; background: #EEF0F5; overflow: hidden"><div style="height: 100%; width: {{s.pct}}; background: {{s.c}}; border-radius: 5px"></div></div>
+              </div>
+            </sc-for>
+            <div style="margin-top: 6px; padding: 14px 16px; border-radius: 16px; background: #FFF6DA; font-size: 14px; line-height: 1.8"><b style="font-weight: 800">پیشنهاد راهیار:</b> «ارزیابی» و «جهت‌گیری تمدنی» هنوز خالی‌اند. مسیر «حل مسئلهٔ محله» هر دو را پر می‌کند.</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 20px">
+        <div style="background: #FFFFFF; border: 1px solid #E4E7EF; border-radius: 28px; padding: 26px; display: flex; flex-direction: column; gap: 16px">
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px">
+            <h2 style="margin: 0; font-size: 20px; font-weight: 900">مسئلهٔ محله</h2>
+            <span style="padding: 4px 12px; border-radius: 999px; background: #FDEBC4; color: #8A5A00; font-size: 12px; font-weight: 800">گام ۵ از ۱۱</span>
+          </div>
+          <div style="font-size: 18px; font-weight: 800; line-height: 1.7">نوجوان‌ها بعد از مدرسه جایی برای ماندن ندارند</div>
+          <div style="display: grid; grid-template-columns: repeat(11, minmax(0, 1fr)); gap: 4px">
+            <sc-for list="{{steps}}" as="st" hint-placeholder-count="11"><span title="{{st.t}}" style="height: 34px; border-radius: 8px; background: {{st.c}}; color: {{st.fc}}; font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center">{{st.n}}</span></sc-for>
+          </div>
+          <div style="display: flex; gap: 16px; flex-wrap: wrap; font-size: 14px">
+            <a href="Tools.dc.html" style="font-weight: 800">تختهٔ درخت مسئله</a>
+            <a href="Tools.dc.html" style="font-weight: 800">طرح اقدام (پیش‌نویس)</a>
+          </div>
+        </div>
+
+        <div style="background: #FFFFFF; border: 1px solid #E4E7EF; border-radius: 28px; padding: 26px; display: flex; flex-direction: column; gap: 16px">
+          <div style="display: flex; justify-content: space-between; align-items: center">
+            <h2 style="margin: 0; font-size: 20px; font-weight: 900">تیم مسجد</h2>
+            <a href="Mosque.dc.html" style="font-size: 14px; font-weight: 800">مسجد من</a>
+          </div>
+          <div style="display: flex; gap: 14px; flex-wrap: wrap">
+            <sc-for list="{{team}}" as="m" hint-placeholder-count="5">
+              <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; width: 76px">
+                <span style="width: 52px; height: 52px; border-radius: 50%; background: {{m.bg}}; color: {{m.fg}}; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 18px">{{m.i}}</span>
+                <span style="font-size: 13px; font-weight: 700; text-align: center">{{m.name}}</span>
+                <span style="font-size: 11px; color: #6C7290; text-align: center">{{m.role}}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section aria-labelledby="dore-h" style="display: flex; flex-direction: column; gap: 16px">
+      <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 16px">
+        <h2 id="dore-h" style="margin: 0; font-size: 24px; font-weight: 900">مسیرهای من</h2>
+        <a href="Paths.dc.html" style="font-size: 14px; font-weight: 800">همهٔ مسیرها</a>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px">
+        <sc-for list="{{courses}}" as="c" hint-placeholder-count="4">
+          <a href="Paths.dc.html" style="background: #FFFFFF; border: 1px solid #E4E7EF; border-radius: 24px; overflow: hidden; text-decoration: none; color: #1B2150; display: flex; flex-direction: column">
+            <div style="height: 132px; background: {{c.bg}}; display: flex; align-items: center; justify-content: center; position: relative">
+              <svg width="72" height="90" viewBox="0 0 48 60" aria-hidden="true"><path d="M24 2 C30 10 44 16 44 32 C44 46 34 58 24 58 C14 58 4 46 4 32 C4 16 18 10 24 2 Z" fill="rgba(255,255,255,0.22)" stroke="rgba(255,255,255,0.7)" stroke-width="1.2"></path><path d="{{c.icon}}" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" transform="translate(12 18)"></path></svg>
+              <span style="position: absolute; top: 12px; right: 12px; padding: 4px 10px; border-radius: 999px; background: rgba(255,255,255,0.92); color: {{c.ink}}; font-size: 11px; font-weight: 800">{{c.layer}}</span>
+            </div>
+            <div style="padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 10px">
+              <span style="font-size: 12px; font-weight: 800; color: {{c.ink}}">{{c.petal}}</span>
+              <b style="font-size: 17px; font-weight: 900; line-height: 1.6">{{c.title}}</b>
+              <div style="display: flex; align-items: center; gap: 10px"><div style="flex: 1; height: 6px; border-radius: 3px; background: #EEF0F5"><div style="height: 100%; width: {{c.pct}}; background: {{c.bar}}; border-radius: 3px"></div></div><span style="font-size: 12px; color: #6C7290">{{c.pctFa}}</span></div>
+            </div>
+          </a>
+        </sc-for>
+      </div>
+    </section>
+
+    <section aria-labelledby="ravi-h" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 480px), 1fr)); gap: 20px">
+      <figure style="margin: 0; background: #1B2150; color: #FFFFFF; border-radius: 28px; padding: 32px; display: flex; flex-direction: column; gap: 16px">
+        <span id="ravi-h" style="font-size: 13px; font-weight: 800; color: #F5B700">روایت میدان، مسجد حضرت ابوالفضل(ع)، چالوس</span>
+        <blockquote style="margin: 0; font-size: 22px; line-height: 1.9; font-weight: 700">«جان مسجد، همین بچه‌هان.»</blockquote>
+        <figcaption style="font-size: 14px; color: #C9D3F5; line-height: 1.9">آمنه نیلویی با پنج‌شش دختر شروع کرد و کلاس را از کف مسجد به کنار دریا و پای کوه برد. حالا مسجد پاتوق همیشگی نوجوانان محله است.</figcaption>
+        <a href="#" style="color: #FFFFFF; font-weight: 800; font-size: 14px">شنیدن در رادیو محله</a>
+      </figure>
+      <div style="background: #FFFFFF; border: 1px solid #E4E7EF; border-radius: 28px; padding: 28px; display: flex; flex-direction: column; gap: 14px">
+        <h2 style="margin: 0; font-size: 20px; font-weight: 900">راهیار شما</h2>
+        <div style="display: flex; align-items: center; gap: 14px">
+          <span style="width: 56px; height: 56px; border-radius: 50%; background: #E1F3F6; color: #1D7F92; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 20px">م</span>
+          <div><b style="font-size: 17px; font-weight: 800">حجت‌الاسلام محمدی</b><div style="font-size: 13px; color: #6C7290">راهیار شما از آغاز مسیر</div></div>
+        </div>
+        <ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; font-size: 14px">
+          <li style="display: flex; justify-content: space-between"><span>ارزیابی میدانی بعدی</span><b style="font-weight: 800">۱۸ آذر</b></li>
+          <li style="display: flex; justify-content: space-between"><span>بازخورد آخرین گزارش</span><b style="font-weight: 800; color: #0A7A45">رسیده</b></li>
+        </ul>
+        <a href="Messages.dc.html" style="display: inline-flex; align-self: flex-start; align-items: center; min-height: 44px; padding: 0 20px; border-radius: 12px; border: 1.5px solid #1E3A9E; color: #1E3A9E; font-weight: 800; text-decoration: none">پیام به راهیار</a>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2120}}'>
+const IC = {
+  live: 'M2 12 a10 10 0 0 1 20 0 M6 12 a6 6 0 0 1 12 0 M12 12 v8',
+  people: 'M8 9 a3 3 0 1 0 0.01 0 M16 9 a3 3 0 1 0 0.01 0 M2 22 c0-4 3-6 6-6 s6 2 6 6 M12 22 c0-4 3-6 6-6',
+  visit: 'M3 12 l9-8 l9 8 M6 10 v11 h12 v-11',
+  book: 'M4 4 h7 a2 2 0 0 1 2 2 v15 a2 2 0 0 0-2-2 h-7z M22 4 h-7 a2 2 0 0 0-2 2 v15 a2 2 0 0 1 2-2 h7z',
+  search: 'M10 4 a7 7 0 1 0 0.01 0 M15 15 l6 6',
+  heart: 'M12 21 s-8-5-8-11 a4 4 0 0 1 8-1 a4 4 0 0 1 8 1 c0 6-8 11-8 11z',
+  chart: 'M4 20 v-6 M10 20 v-12 M16 20 v-8 M22 20 h-20',
+  talk: 'M3 5 h14 v10 h-8 l-5 4 v-4 h-1z',
+};
+class Component extends DCLogic {
+  renderVals() {
+    const parts = [
+      { t: 'ویدیو ۶ دقیقه', i: 'M8 5v14l11-7z', bg: '#EAEFFC', c: '#1E3A9E' },
+      { t: 'پادکست', i: 'M12 3 a3 3 0 0 1 3 3 v6 a3 3 0 0 1-6 0 v-6 a3 3 0 0 1 3-3 M5 11 a7 7 0 0 0 14 0 M12 18 v3', bg: '#E1F3F6', c: '#1D7F92' },
+      { t: 'آزمونک', i: 'M9 12 l2 2 l4-4 M4 4 h16 v16 h-16z', bg: '#E2F5EA', c: '#0A7A45' },
+      { t: 'کاربرگ بوم مسئله', i: 'M12 21 s-7-6-7-11 a7 7 0 0 1 14 0 c0 5-7 11-7 11z M12 10 a2 2 0 1 0 0.01 0', bg: '#FFF2CC', c: '#8A5A00' },
+    ];
+    const week = [
+      { kind: 'کلاس زنده، پخش زنده', title: 'اخلاق امامت محله، جلسهٔ ۵', when: 'امروز، ۲۱:۰۰، ۱۲۴ نفر ثبت‌نام', icon: IC.live, bg: '#FBE6EB', fg: '#C23A5B', ink: '#A8314F', href: 'Live.dc.html' },
+      { kind: 'برنامهٔ حضوری', title: 'جشن نیمه‌شب نوجوانان مسجد', when: 'جمعه ۲۴ آبان، ثبت‌نام باز است', icon: IC.visit, bg: '#EAEFFC', fg: '#1E3A9E', ink: '#1E3A9E', href: 'Events.dc.html' },
+      { kind: 'پویش', title: 'هر مسجد، یک کتابخانهٔ محله', when: '۱۲ روز مانده، ۳۸۰ مسجد همراه', icon: IC.heart, bg: '#D3EFEA', fg: '#0B5F52', ink: '#0B5F52', href: 'Campaigns.dc.html' },
+      { kind: 'تختهٔ تیمی', title: 'درخت مسئلهٔ نوجوانان', when: '۳ نفر دیروز ویرایش کردند', icon: IC.chart, bg: '#FFF2CC', fg: '#8A5A00', ink: '#8A5A00', href: 'Tools.dc.html' },
+    ];
+    const sectors = [
+      { name: 'خودسازی امام', note: '۷ شایستگی', pct: '58%', c: '#8C93B5' },
+      { name: 'نهاد امامت', note: 'شریکة‌الامام و بازوان', pct: '62%', c: '#D64A6A' },
+      { name: 'به پا داشتن مردم', note: '۹ شایستگی', pct: '36%', c: '#F2A20C' },
+      { name: 'پیوندهای اجتماعی', note: 'اخوت و همسایگی', pct: '79%', c: '#12A58E' },
+    ];
+    const names = ['شناخت درست', 'اولویت‌سنجی', 'ریشه‌یابی', 'وضع مطلوب', 'ظرفیت‌شناسی', 'راه‌حل‌یابی', 'انتخاب راه‌حل', 'برنامه‌ریزی', 'اقدام تیمی', 'بازخورد', 'روایت'];
+    const steps = names.map((t, i) => ({ t, n: (i + 1).toLocaleString('fa-IR'), c: i < 4 ? '#0E9F5A' : i === 4 ? '#F5B700' : '#EEF0F5', fc: i < 4 ? '#FFFFFF' : i === 4 ? '#3B2B00' : '#6C7290' }));
+    const team = [
+      { i: 'ح', name: 'خودتان', role: 'امام محله', bg: '#1E3A9E', fg: '#FFFFFF' },
+      { i: 'ز', name: 'همسرتان', role: 'شریکة‌الامام', bg: '#FBE6EB', fg: '#A8314F' },
+      { i: 'ف', name: 'فاطمه', role: 'کنشگر خواهران', bg: '#FBE6EB', fg: '#A8314F' },
+      { i: 'م', name: 'مهدی', role: 'کنشگر برادران', bg: '#D3EFEA', fg: '#0B5F52' },
+      { i: 'ع', name: 'علی', role: 'نوجوان', bg: '#FFF2CC', fg: '#8A5A00' },
+    ];
+    const courses = [
+      { title: 'حل مسئلهٔ محله', petal: '۵ دوره، ویدیو، صوت، کارگاه', layer: 'در حال خواندن', bg: '#F08C1A', ink: '#8A5A00', bar: '#F08C1A', icon: IC.search, pct: '35%', pctFa: '٪۳۵' },
+      { title: 'آغاز امامت محله', petal: '۴ دوره، مسیر پایه', layer: 'در حال خواندن', bg: '#1E3A9E', ink: '#1E3A9E', bar: '#1E3A9E', icon: IC.visit, pct: '62%', pctFa: '٪۶۲' },
+      { title: 'پیوندها و ولایت عرضی', petal: '۴ دوره، ویدیو، کتاب، مستند', layer: 'نزدیک پایان', bg: '#12A58E', ink: '#0B5F52', bar: '#12A58E', icon: IC.people, pct: '80%', pctFa: '٪۸۰' },
+      { title: 'جهاد تبیین و روایت', petal: '۴ دوره، پادکست قبس', layer: 'تازه شروع', bg: '#F5B700', ink: '#8A5A00', bar: '#F5B700', icon: IC.talk, pct: '15%', pctFa: '٪۱۵' },
+    ];
+    return { parts, week, sectors, steps, team, courses };
+  }
+}
+</script>
+</body>
+</html>

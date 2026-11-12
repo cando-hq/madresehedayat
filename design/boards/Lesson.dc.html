@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>صفحهٔ درس</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+@font-face{font-family:Ravagh;src:url(/_blob/e82b766c64b0cace84d3355c93f56b74) format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:Ravagh;src:url(/_blob/527abc1483ee47a97b558a9acbfb98c5) format("woff2");font-weight:500;font-display:swap}
+@font-face{font-family:Ravagh;src:url(/_blob/4d07209a2087021071dc7addbee9572d) format("woff2");font-weight:700;font-display:swap}
+@font-face{font-family:Ravagh;src:url(/_blob/8c3eae47921ff883f9e1052d2720315a) format("woff2");font-weight:800;font-display:swap}
+@font-face{font-family:Ravagh;src:url(/_blob/21203621768e345fd3b65247d31101f5) format("woff2");font-weight:900;font-display:swap}
+body{margin:0;background:#F4F5F9}
+a{color:#1E3A9E}a:hover{color:#152B78}
+.vid{background-image:url(/_blob/702a4dfcbc9ca7da3287d181fdf527c9);background-size:cover;background-position:50% 45%}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #F4F5F9; color: #1B2150; font-family: Ravagh, Tahoma, sans-serif; font-feature-settings: 'ss01' 0, 'ss02' 0, 'ss03' 0, 'swsh' 0, 'dlig' 0; line-height: 1.65; direction: rtl; background: #FBFAF6">
+  <header style="background: #FFFFFF; border-bottom: 1px solid #E4E7EF">
+    <div style="max-width: 1100px; margin: 0 auto; padding: 12px 24px; display: flex; align-items: center; gap: 16px">
+      <a href="Course.dc.html" style="display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-weight: 800; text-decoration: none"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6 l6 6 l-6 6"></path></svg>حل مسئله؛ از علامت تا ریشه</a>
+      <div style="flex: 1; display: flex; gap: 4px" aria-label="بخش ۲ از ۵ این درس">
+        <sc-for list="{{segs}}" as="s" hint-placeholder-count="5"><span style="flex: 1; height: 6px; border-radius: 3px; background: {{s.c}}"></span></sc-for>
+      </div>
+      <button type="button" style="min-height: 40px; padding: 0 14px; border-radius: 12px; border: 1.5px solid #E4E7EF; background: #FFFFFF; font: inherit; font-size: 13px; font-weight: 800; line-height: 1.4; color: #1B2150; cursor: pointer">حالت تمرکز</button>
+    </div>
+  </header>
+  <main style="max-width: 760px; margin: 0 auto; padding: 32px 24px 64px; display: flex; flex-direction: column; gap: 24px">
+    <div><span style="font-size: 13px; font-weight: 800; color: #B07800">بخش ۳ از ۷، مفهوم کلیدی</span><h1 style="margin: 4px 0 0; font-size: 34px; font-weight: 900; line-height: 1.4">از علامت تا ریشه</h1></div>
+
+    <div class="vid" role="img" aria-label="ویدیوی درس" style="position: relative; aspect-ratio: 16 / 9; border-radius: 24px; overflow: hidden">
+      <div style="position: absolute; inset: 0; background: rgba(15,21,56,0.35); display: flex; align-items: center; justify-content: center">
+        <button type="button" aria-label="پخش ویدیو، ۶ دقیقه" style="width: 76px; height: 76px; border-radius: 50%; border: 0; background: #FFFFFF; color: #1E3A9E; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"></path></svg></button>
+      </div>
+      <div style="position: absolute; bottom: 14px; right: 16px; left: 16px; display: flex; gap: 8px; justify-content: space-between; color: #FFFFFF; font-size: 13px; font-weight: 800"><span>۶:۱۲</span><span>زیرنویس، سرعت ۱٫۲۵، فقط صدا</span></div>
+    </div>
+
+    <div style="font-size: 18px; line-height: 2.1; color: #1B2150">
+      <p style="margin: 0 0 14px">مسئلهٔ «نوجوان‌ها جایی برای ماندن ندارند» خودش ریشه نیست؛ نشانه است. اگر فقط به نشانه جواب بدهیم، یک اتاق باز می‌کنیم و سه ماه بعد خالی می‌ماند.</p>
+      <p style="margin: 0">«پنج چرا» یعنی از همان جملهٔ اول پنج بار بپرسیم «چرا؟» تا به جایی برسیم که اگر درستش کنیم، بقیه هم درست شود.</p>
+    </div>
+
+    <section aria-labelledby="q-h" style="background: #FFFFFF; border: 1.5px solid #E4E7EF; border-radius: 24px; padding: 24px; display: flex; flex-direction: column; gap: 12px">
+      <span style="font-size: 12px; font-weight: 800; color: #0A7A45">بررسی کوتاه</span>
+      <h2 id="q-h" style="margin: 0; font-size: 19px; font-weight: 900; line-height: 1.7">کدام جمله «ریشه» است، نه نشانه؟</h2>
+      <sc-for list="{{opts}}" as="o" hint-placeholder-count="3">
+        <button type="button" onClick="{{o.pick}}" aria-pressed="{{o.on}}" style="text-align: right; min-height: 52px; padding: 12px 16px; border-radius: 16px; border: 1.5px solid {{o.border}}; background: {{o.bg}}; font: inherit; font-size: 15px; font-weight: 700; line-height: 1.7; color: #1B2150; cursor: pointer">{{o.t}}</button>
+      </sc-for>
+      <sc-if value="{{fb.show}}" hint-placeholder-height="60px"><div role="status" style="padding: 14px 16px; border-radius: 16px; background: {{fb.bg}}; color: {{fb.c}}; font-size: 15px; line-height: 1.8; font-weight: 700">{{fb.t}}</div></sc-if>
+    </section>
+
+    <section style="background: #FFF6DA; border-radius: 24px; padding: 22px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap">
+      <svg width="40" height="50" viewBox="0 0 48 60" aria-hidden="true"><path d="M24 2 C30 10 44 16 44 32 C44 46 34 58 24 58 C14 58 4 46 4 32 C4 16 18 10 24 2 Z" fill="#F5B700"></path></svg>
+      <div style="flex: 1; min-width: 220px"><b style="font-size: 16px; font-weight: 900">تمرین روی تختهٔ تیم</b><div style="font-size: 14px; color: #3E4462">پنج چرای مسئلهٔ خودتان را با تیم مسجد بنویسید.</div></div>
+      <a href="Tools.dc.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 18px; border-radius: 12px; background: #1B2150; color: #FFFFFF; font-weight: 800; text-decoration: none">باز کردن ابزار پنج چرا</a>
+    </section>
+
+    <div style="display: flex; justify-content: space-between; gap: 12px; padding-top: 8px">
+      <a href="Course.dc.html" style="display: inline-flex; align-items: center; min-height: 52px; padding: 0 22px; border-radius: 16px; border: 1.5px solid #E4E7EF; color: #1B2150; font-weight: 800; text-decoration: none">بخش قبل</a>
+      <a href="#" style="display: inline-flex; align-items: center; min-height: 52px; padding: 0 28px; border-radius: 16px; background: #0E9F5A; color: #FFFFFF; font-weight: 800; text-decoration: none">بخش بعد: پادکست ۸ دقیقه</a>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1500}}'>
+const O = ['نوجوان‌ها شب‌ها در کوچه می‌مانند', 'هیچ بزرگ‌تری در محله برایشان وقت نمی‌گذارد', 'مسجد اتاق خالی ندارد'];
+class Component extends DCLogic {
+  renderVals() {
+    const a = this.state ? this.state.a : undefined;
+    const segs = [0, 1, 2, 3, 4].map((i) => ({ c: i < 1 ? '#0E9F5A' : i === 1 ? '#F5B700' : '#E4E7EF' }));
+    const opts = O.map((t, i) => {
+      const on = a === i, right = i === 1;
+      return { t, on: on ? 'true' : 'false', pick: () => this.setState({ a: i }),
+        border: on ? (right ? '#0E9F5A' : '#D64A6A') : '#E4E7EF', bg: on ? (right ? '#E2F5EA' : '#FBE6EB') : '#FFFFFF' };
+    });
+    const fb = a === undefined ? { show: false } : a === 1
+      ? { show: true, bg: '#E2F5EA', c: '#0A7A45', t: 'درست است. اگر یک بزرگ‌تر وقت بگذارد، کوچه و اتاق هم حل می‌شود.' }
+      : { show: true, bg: '#FBE6EB', c: '#A8314F', t: 'این هنوز نشانه است؛ یک «چرا» دیگر بپرسید.' };
+    return { segs, opts, fb };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>پنل راهیار</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+@font-face{font-family:Ravagh;src:url(/_blob/e82b766c64b0cace84d3355c93f56b74) format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:Ravagh;src:url(/_blob/527abc1483ee47a97b558a9acbfb98c5) format("woff2");font-weight:500;font-display:swap}
+@font-face{font-family:Ravagh;src:url(/_blob/4d07209a2087021071dc7addbee9572d) format("woff2");font-weight:700;font-display:swap}
+@font-face{font-family:Ravagh;src:url(/_blob/8c3eae47921ff883f9e1052d2720315a) format("woff2");font-weight:800;font-display:swap}
+@font-face{font-family:Ravagh;src:url(/_blob/21203621768e345fd3b65247d31101f5) format("woff2");font-weight:900;font-display:swap}
+body{margin:0;background:#F4F5F9}
+a{color:#1E3A9E}a:hover{color:#152B78}
+
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #F4F5F9; color: #1B2150; font-family: Ravagh, Tahoma, sans-serif; font-feature-settings: 'ss01' 0, 'ss02' 0, 'ss03' 0, 'swsh' 0, 'dlig' 0; line-height: 1.65; direction: rtl; display: flex">
+  <aside style="width: 260px; flex: none; background: #1B2150; color: #FFFFFF; padding: 22px 14px; display: flex; flex-direction: column; gap: 4px; min-height: 100vh; box-sizing: border-box">
+    <img src="/_blob/b522f6290bfc782976410c6c8494344e" alt="مدرسهٔ هدایت" style="height: 38px; width: auto; align-self: flex-start; margin: 0 8px 6px">
+    <div style="padding: 0 10px 14px; font-size: 13px; color: #C9D3F5">پنل راهیار، حجت‌الاسلام محمدی</div>
+    <nav aria-label="منوی پنل راهیار" style="display: flex; flex-direction: column; gap: 2px"><a href="#" aria-current="page" style="display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 14px; border-radius: 12px; background: rgba(255,255,255,0.14); color: #FFFFFF; font-size: 14px; font-weight: 800; text-decoration: none"><span style="width: 8px; height: 8px; border-radius: 50%; background: #F5B700"></span>پیشخوان</a><a href="#" style="display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 14px; border-radius: 12px; background: transparent; color: #FFFFFF; font-size: 14px; font-weight: 500; text-decoration: none"><span style="width: 8px; height: 8px; border-radius: 50%; background: #12A58E"></span>امامان و تیم‌ها</a><a href="#" style="display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 14px; border-radius: 12px; background: transparent; color: #FFFFFF; font-size: 14px; font-weight: 500; text-decoration: none"><span style="width: 8px; height: 8px; border-radius: 50%; background: #D64A6A"></span>گزارش‌ها</a><a href="#" style="display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 14px; border-radius: 12px; background: transparent; color: #FFFFFF; font-size: 14px; font-weight: 500; text-decoration: none"><span style="width: 8px; height: 8px; border-radius: 50%; background: #1BA3C6"></span>تعیین دوره</a><a href="Messages.dc.html" style="display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 14px; border-radius: 12px; background: transparent; color: #FFFFFF; font-size: 14px; font-weight: 500; text-decoration: none"><span style="width: 8px; height: 8px; border-radius: 50%; background: #8C93B5"></span>پیام‌ها</a><a href="#" style="display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 14px; border-radius: 12px; background: transparent; color: #FFFFFF; font-size: 14px; font-weight: 500; text-decoration: none"><span style="width: 8px; height: 8px; border-radius: 50%; background: #F08C1A"></span>درخت راهیاری</a></nav>
+  </aside>
+  <main style="flex: 1; padding: 28px 32px; display: flex; flex-direction: column; gap: 20px; min-width: 0">
+    <h1 style="margin: 0; font-size: 30px; font-weight: 900">۲۴ مسجد همراه شما</h1>
+    <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px">
+      <sc-for list="{{lv}}" as="l" hint-placeholder-count="4">
+        <div style="background: #FFFFFF; border: 1px solid #E4E7EF; border-radius: 24px; border-radius: 22px; padding: 18px; display: flex; gap: 14px; align-items: center">
+          <svg width="40" height="50" viewBox="0 0 48 60" aria-hidden="true"><path d="M24 2 C30 10 44 16 44 32 C44 46 34 58 24 58 C14 58 4 46 4 32 C4 16 18 10 24 2 Z" fill="{{l.c}}"></path><text x="24" y="40" text-anchor="middle" font-size="20" font-weight="900" fill="#FFFFFF" font-family="Ravagh, Tahoma">{{l.n}}</text></svg>
+          <div><b style="font-size: 26px; font-weight: 900">{{l.v}}</b><div style="font-size: 13px; color: #6C7290">{{l.t}}</div></div>
+        </div>
+      </sc-for>
+    </div>
+    <section style="display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 20px; align-items: start">
+      <div style="background: #FFFFFF; border: 1px solid #E4E7EF; border-radius: 24px; border-radius: 28px; padding: 22px; display: flex; flex-direction: column; gap: 8px">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px"><h2 style="margin: 0; font-size: 19px; font-weight: 900">امامان</h2><label style="display: flex"><span style="position: absolute; width: 1px; height: 1px; overflow: hidden">جست‌وجو</span><input placeholder="جست‌وجوی نام یا مسجد" style="min-height: 40px; border: 1.5px solid #E4E7EF; border-radius: 12px; padding: 0 12px; font: inherit; font-size: 13px; width: 220px"></label></div>
+        <sc-for list="{{imams}}" as="m" hint-placeholder-count="6">
+          <div style="display: grid; grid-template-columns: 1.6fr 1fr 1.2fr auto; gap: 12px; align-items: center; padding: 12px 14px; border-radius: 16px; background: #F4F5F9; font-size: 14px">
+            <span style="display: flex; flex-direction: column"><b style="font-weight: 800">{{m.n}}</b><span style="font-size: 12px; color: #6C7290">{{m.mosque}}</span></span>
+            <span style="justify-self: start; padding: 4px 12px; border-radius: 999px; background: {{m.lbg}}; color: {{m.lc}}; font-size: 12px; font-weight: 800">{{m.level}}</span>
+            <span style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; color: #6C7290">تعیّن امامت {{m.pfa}}</span><span style="height: 6px; border-radius: 3px; background: #E4E7EF"><span style="display: block; height: 100%; width: {{m.p}}; border-radius: 3px; background: #1E3A9E"></span></span></span>
+            <button type="button" onClick="{{m.pick}}" style="min-height: 40px; padding: 0 14px; border-radius: 12px; border: 1.5px solid #1E3A9E; background: #FFFFFF; color: #1E3A9E; font: inherit; font-size: 13px; font-weight: 800; line-height: 1.4; cursor: pointer">ارزیابی</button>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 16px">
+        <div style="background: #FFFFFF; border: 1px solid #E4E7EF; border-radius: 24px; border-radius: 28px; padding: 22px; display: flex; flex-direction: column; gap: 12px">
+          <span style="font-size: 12px; font-weight: 800; color: #B07800">ارزیابی میدانی</span>
+          <b style="font-size: 18px; font-weight: 900">{{cur.n}}</b>
+          <span style="font-size: 13px; color: #6C7290">سطح را پس از دیدار در مسجد تعیین کنید.</span>
+          <div role="radiogroup" aria-label="سطح امام" style="display: flex; flex-direction: column; gap: 6px">
+            <sc-for list="{{cur.opts}}" as="o" hint-placeholder-count="4">
+              <button type="button" role="radio" aria-checked="{{o.on}}" onClick="{{o.pick}}" style="display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 14px; border-radius: 14px; border: 1.5px solid {{o.border}}; background: {{o.bg}}; font: inherit; font-size: 14px; font-weight: 800; line-height: 1.4; color: #1B2150; cursor: pointer; text-align: right"><span style="width: 26px; height: 26px; border-radius: 50%; background: {{o.c}}; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 13px">{{o.n}}</span>{{o.t}}</button>
+            </sc-for>
+          </div>
+          <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 800">یادداشت دیدار<textarea rows="3" style="border: 1.5px solid #E4E7EF; border-radius: 14px; padding: 10px 12px; font: inherit; font-size: 14px; resize: vertical"></textarea></label>
+          <button type="button" style="min-height: 48px; border-radius: 14px; border: 0; background: #0E9F5A; color: #FFFFFF; font: inherit; font-weight: 800; line-height: 1.4; cursor: pointer">ثبت ارزیابی</button>
+        </div>
+        <div style="background: #FBE6EB; border-radius: 28px; padding: 20px; display: flex; flex-direction: column; gap: 6px">
+          <b style="font-size: 15px; font-weight: 900; color: #A8314F">۵ گزارش ماهانه منتظر بازخورد</b>
+          <span style="font-size: 13px; color: #3E4462">۳ مأموریت میدانی هم منتظر تأیید شماست.</span>
+          <a href="#" style="font-size: 14px; font-weight: 800">بررسی گزارش‌ها</a>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+const LV = [['۱', 'امام جماعت', '#8C93B5'], ['۲', 'امام مسجد', '#D64A6A'], ['۳', 'امام محله', '#F08C1A'], ['۴', 'امام میانی', '#12A58E']];
+const I = [
+  ['حجت‌الاسلام حسنی', 'صاحب‌الزمان، باغ‌نو', 3, 64], ['حاج‌آقا کریمی', 'امام رضا، ساری', 2, 48], ['حاج‌آقا صادقی', 'جامع، گلوگاه', 1, 22],
+  ['حجت‌الاسلام امینی', 'ابوالفضل، چالوس', 4, 86], ['حاج‌آقا رستمی', 'المهدی، نکا', 2, 41], ['حاج‌آقا موسوی', 'فاطمیه، بهشهر', 3, 58],
+];
+const SOFT = { '#8C93B5': '#EEF0F5', '#D64A6A': '#FBE6EB', '#F08C1A': '#FDEBC4', '#12A58E': '#D3EFEA' };
+const INK = { '#8C93B5': '#3E4462', '#D64A6A': '#A8314F', '#F08C1A': '#8A5A00', '#12A58E': '#0B5F52' };
+class Component extends DCLogic {
+  renderVals() {
+    const s = this.state || {};
+    const who = s.who ?? 0;
+    const lvl = s.lvl ?? I[who][2];
+    const lv = LV.map(([n, t, c], k) => ({ n, t, c, v: ['۶', '۸', '۷', '۳'][k] }));
+    const imams = I.map(([n, mosque, l, p], k) => {
+      const c = LV[l - 1][2];
+      return { n, mosque, level: 'سطح ' + LV[l - 1][0] + '، ' + LV[l - 1][1], lbg: SOFT[c], lc: INK[c], p: p + '%', pfa: '٪' + p.toLocaleString('fa-IR'), pick: () => this.setState({ who: k, lvl: undefined }) };
+    });
+    const cur = { n: I[who][0] + '، ' + I[who][1], opts: LV.map(([n, t, c], k) => ({ n, t, c, on: k + 1 === lvl ? 'true' : 'false', border: k + 1 === lvl ? c : '#E4E7EF', bg: k + 1 === lvl ? SOFT[c] : '#FFFFFF', pick: () => this.setState({ lvl: k + 1 }) })) };
+    return { lv, imams, cur };
+  }
+}
+</script>
+</body>
+</html>

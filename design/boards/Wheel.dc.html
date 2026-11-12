@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>فرایند تعیّن امامت</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+@font-face{font-family:Ravagh;src:url(/_blob/e82b766c64b0cace84d3355c93f56b74) format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:Ravagh;src:url(/_blob/527abc1483ee47a97b558a9acbfb98c5) format("woff2");font-weight:500;font-display:swap}
+@font-face{font-family:Ravagh;src:url(/_blob/4d07209a2087021071dc7addbee9572d) format("woff2");font-weight:700;font-display:swap}
+@font-face{font-family:Ravagh;src:url(/_blob/8c3eae47921ff883f9e1052d2720315a) format("woff2");font-weight:800;font-display:swap}
+@font-face{font-family:Ravagh;src:url(/_blob/21203621768e345fd3b65247d31101f5) format("woff2");font-weight:900;font-display:swap}
+body{margin:0}
+a{color:#1E3A9E}a:hover{color:#152B78}
+</style>
+</helmet>
+<div style="position: relative; width: 720px; height: 720px; font-family: Ravagh, Tahoma, sans-serif; font-feature-settings: 'ss01' 0, 'ss02' 0, 'ss03' 0, 'swsh' 0, 'dlig' 0; line-height: 1.65; direction: rtl">
+  <svg width="720" height="720" viewBox="0 0 720 720" style="position: absolute; inset: 0" aria-hidden="true">
+    <circle cx="360" cy="360" r="352" fill="{{halo}}"></circle>
+    <path d="{{wedgeNahad}}" fill="#D64A6A"></path>
+    <path d="{{wedgeMeydan}}" fill="#F2B705"></path>
+    <path d="{{wedgePeyvand}}" fill="#1F8FD6"></path>
+    <path d="{{bandSelf}}" fill="#FFFFFF" stroke="#D9DCE6" stroke-width="1"></path>
+    <text x="0" y="0" transform="{{selfLabelT}}" font-size="13" font-weight="800" fill="#1B2150" text-anchor="middle" dominant-baseline="middle" font-family="Ravagh, Tahoma, sans-serif">امام</text>
+    <text x="0" y="0" transform="translate(318 300)" font-size="14" font-weight="800" fill="#FFFFFF" text-anchor="middle" font-family="Ravagh, Tahoma, sans-serif">نهاد امامت</text>
+    <text x="0" y="0" transform="translate(410 352)" font-size="14" font-weight="800" fill="#3B2B00" text-anchor="middle" font-family="Ravagh, Tahoma, sans-serif">به پا داشتن</text>
+    <text x="0" y="0" transform="translate(410 370)" font-size="14" font-weight="800" fill="#3B2B00" text-anchor="middle" font-family="Ravagh, Tahoma, sans-serif">مردم</text>
+    <text x="0" y="0" transform="translate(318 418)" font-size="14" font-weight="800" fill="#FFFFFF" text-anchor="middle" font-family="Ravagh, Tahoma, sans-serif">پیوندها</text>
+  </svg>
+  <sc-for list="{{petals}}" as="p" hint-placeholder-count="24">
+    <svg width="720" height="720" viewBox="0 0 720 720" style="position: absolute; inset: 0; pointer-events: none" aria-hidden="true">
+      <g onClick="{{p.pick}}" style="pointer-events: auto; cursor: pointer">
+        <path d="{{p.s0}}" fill="{{p.f0}}" stroke="{{p.stroke}}" stroke-width="{{p.sw}}"></path>
+        <path d="{{p.s1}}" fill="{{p.f1}}" stroke="{{p.stroke}}" stroke-width="{{p.sw}}"></path>
+        <path d="{{p.s2}}" fill="{{p.f2}}" stroke="{{p.stroke}}" stroke-width="{{p.sw}}"></path>
+        <path d="{{p.s3}}" fill="{{p.f3}}" stroke="{{p.stroke}}" stroke-width="{{p.sw}}"></path>
+        <text x="0" y="0" transform="{{p.lt}}" font-size="12.5" font-weight="700" fill="{{p.lc}}" text-anchor="middle" dominant-baseline="middle" font-family="Ravagh, Tahoma, sans-serif">{{p.short}}</text>
+      </g>
+    </svg>
+  </sc-for>
+  <div style="position: absolute; left: 324px; top: 324px; width: 72px; height: 72px; border-radius: 50%; background: #FFFFFF; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 6px rgba(255,255,255,0.35)">
+    <img src="/_blob/fe59d6eaa1f47fb4ce032d00a56563f8" alt="" style="width: 40px; height: 40px; object-fit: contain">
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"selected":{"editor":"text","default":"sahne","section":"نمایش"},"halo":{"editor":"color","default":"#EEF1F8","options":["#EEF1F8","#FFFFFF","#1E3A9E"]},"onPick":{"editor":null},"$preview":{"width":720,"height":720}}'>
+const PETALS = [
+  { id: 'manavi', sector: 'self', short: 'مراقبت معنوی', level: 3 },
+  { id: 'akhlagh', sector: 'self', short: 'اخلاق عمومی', level: 3 },
+  { id: 'ertebat', sector: 'self', short: 'ارتباط با مردم', level: 2 },
+  { id: 'orfi', sector: 'self', short: 'ویژگی‌های عرفی', level: 3 },
+  { id: 'tashkilat', sector: 'self', short: 'اخلاق تشکیلاتی', level: 2 },
+  { id: 'modiriat', sector: 'self', short: 'مدیریت', level: 2 },
+  { id: 'resane', sector: 'self', short: 'سواد رسانه', level: 1 },
+  { id: 'sharika', sector: 'nahad', short: 'شریکة‌الامام', level: 2 },
+  { id: 'bazovan', sector: 'nahad', short: 'بازوان اجرایی', level: 3 },
+  { id: 'halghe', sector: 'meydan', short: 'حلقه‌های میانی', level: 2 },
+  { id: 'sahne', sector: 'meydan', short: 'شناخت صحنه', level: 3 },
+  { id: 'omid', sector: 'meydan', short: 'نقاط امید', level: 2 },
+  { id: 'tamadon', sector: 'meydan', short: 'جهت‌گیری تمدنی', level: 1 },
+  { id: 'rahkar', sector: 'meydan', short: 'طراحی راهکار', level: 2 },
+  { id: 'eghdam', sector: 'meydan', short: 'طراحی اقدام', level: 1 },
+  { id: 'ejra', sector: 'meydan', short: 'اجرای اقدام', level: 1 },
+  { id: 'arzyabi', sector: 'meydan', short: 'ارزیابی', level: 0 },
+  { id: 'tabyin', sector: 'meydan', short: 'تبیین و گفتمان', level: 1 },
+  { id: 'khish', sector: 'peyvand', short: 'پیوند خویشاوندی', level: 3 },
+  { id: 'okhovat', sector: 'peyvand', short: 'ارکان اخوت', level: 3 },
+  { id: 'vefagh', sector: 'peyvand', short: 'یکرویی و وفاق', level: 4 },
+  { id: 'ettehad', sector: 'peyvand', short: 'اتحاد و یگانگی', level: 3 },
+  { id: 'tavazo', sector: 'peyvand', short: 'تواضع', level: 4 },
+  { id: 'fotovat', sector: 'peyvand', short: 'فتوت', level: 2 },
+];
+const COLORS = {
+  self: { on: ['#FFFFFF', '#FFFFFF'], tint: '#E9ECF3', stroke: '#CDD2DF', ink: '#1B2150', onInk: '#1B2150' },
+  nahad: { on: ['#D64A6A', '#C23A5B'], tint: '#F6D9E0', stroke: '#FFFFFF', ink: '#8E2440', onInk: '#FFFFFF' },
+  meydan: { on: ['#F5B700', '#F08C1A'], tint: '#FCEBC4', stroke: '#FFFFFF', ink: '#7A4C00', onInk: '#3B2B00' },
+  peyvand: { on: ['#12A58E', '#1BA3C6'], tint: '#D3EFEA', stroke: '#FFFFFF', ink: '#0B5F52', onInk: '#FFFFFF' },
+};
+const CX = 360, CY = 360, RIN = 152, ROUT = 312, RTIP = 346;
+const rad = (d) => (d * Math.PI) / 180;
+const P = (r, a) => (CX + r * Math.cos(rad(a))).toFixed(1) + ' ' + (CY + r * Math.sin(rad(a))).toFixed(1);
+const ring = (r0, r1, a0, a1) => 'M ' + P(r0, a0) + ' L ' + P(r1, a0) + ' A ' + r1 + ' ' + r1 + ' 0 0 1 ' + P(r1, a1) + ' L ' + P(r0, a1) + ' A ' + r0 + ' ' + r0 + ' 0 0 0 ' + P(r0, a0) + ' Z';
+const tip = (r0, r1, a0, a1) => { const m = (a0 + a1) / 2; return 'M ' + P(r0, a0) + ' L ' + P(r1, a0) + ' Q ' + P(r1 + 22, a0 + 1.5) + ' ' + P(RTIP, m) + ' Q ' + P(r1 + 22, a1 - 1.5) + ' ' + P(r1, a1) + ' L ' + P(r0, a1) + ' A ' + r0 + ' ' + r0 + ' 0 0 0 ' + P(r0, a0) + ' Z'; };
+const wedge = (r, a0, a1) => 'M ' + CX + ' ' + CY + ' L ' + P(r, a0) + ' A ' + r + ' ' + r + ' 0 ' + (a1 - a0 > 180 ? 1 : 0) + ' 1 ' + P(r, a1) + ' Z';
+// زاویه‌ها: ۰ = ساعت ۳، ساعتگرد. سفید از ساعت ۹ تا ۱، سرخ ۱ تا ۲، زرد ۲ تا ۶، سبز ۶ تا ۹
+const START = 180, STEP = 15;
+class Component extends DCLogic {
+  renderVals() {
+    const sel = (this.state && this.state.sel) || this.props.selected || 'sahne';
+    const rs = [RIN, RIN + 40, RIN + 80, RIN + 120, ROUT];
+    const petals = PETALS.map((pt, i) => {
+      const a0 = START + i * STEP + 0.9, a1 = a0 + STEP - 1.8, m = (a0 + a1) / 2;
+      const c = COLORS[pt.sector];
+      const on = c.on[i % 2];
+      const f = [0, 1, 2, 3].map((k) => (k < pt.level ? on : c.tint));
+      const norm = ((m % 360) + 360) % 360;
+      const flip = norm > 90 && norm < 270;
+      const lr = (RIN + ROUT) / 2 + 6;
+      const pos = P(lr, m).split(' ');
+      const isSel = pt.id === sel;
+      return {
+        id: pt.id, short: pt.short,
+        s0: ring(rs[0], rs[1], a0, a1), s1: ring(rs[1], rs[2], a0, a1), s2: ring(rs[2], rs[3], a0, a1), s3: tip(rs[3], rs[4], a0, a1),
+        f0: f[0], f1: f[1], f2: f[2], f3: f[3],
+        stroke: isSel ? '#1B2150' : c.stroke, sw: isSel ? 3 : 1.5,
+        lt: 'translate(' + pos[0] + ' ' + pos[1] + ') rotate(' + (flip ? m + 180 : m).toFixed(1) + ')',
+        lc: pt.level >= 3 ? c.onInk : c.ink,
+        pick: () => { this.setState({ sel: pt.id }); if (this.props.onPick) this.props.onPick(pt.id); },
+      };
+    });
+    const sl = P(133, 232).split(' ');
+    return {
+      petals,
+      halo: this.props.halo ?? '#EEF1F8',
+      wedgeNahad: wedge(122, 180, 315), wedgeMeydan: wedge(122, 315, 450), wedgePeyvand: wedge(122, 90, 180),
+      bandSelf: ring(126, 146, 182, 283),
+      selfLabelT: 'translate(' + sl[0] + ' ' + sl[1] + ') rotate(' + (232 - 270 + 360) + ')',
+    };
+  }
+}
+</script>
+</body>
+</html>

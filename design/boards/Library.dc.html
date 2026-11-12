@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>همهٔ دوره‌ها</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+@font-face{font-family:Ravagh;src:url(/_blob/e82b766c64b0cace84d3355c93f56b74) format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:Ravagh;src:url(/_blob/527abc1483ee47a97b558a9acbfb98c5) format("woff2");font-weight:500;font-display:swap}
+@font-face{font-family:Ravagh;src:url(/_blob/4d07209a2087021071dc7addbee9572d) format("woff2");font-weight:700;font-display:swap}
+@font-face{font-family:Ravagh;src:url(/_blob/8c3eae47921ff883f9e1052d2720315a) format("woff2");font-weight:800;font-display:swap}
+@font-face{font-family:Ravagh;src:url(/_blob/21203621768e345fd3b65247d31101f5) format("woff2");font-weight:900;font-display:swap}
+body{margin:0;background:#F4F5F9}
+a{color:#1E3A9E}a:hover{color:#152B78}
+
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #F4F5F9; color: #1B2150; font-family: Ravagh, Tahoma, sans-serif; font-feature-settings: 'ss01' 0, 'ss02' 0, 'ss03' 0, 'swsh' 0, 'dlig' 0; line-height: 1.65; direction: rtl">
+  <dc-import name="Nav" active="lib" hint-size="100%,72px"></dc-import>
+  <main style="max-width: 1280px; margin: 0 auto; padding: 28px 32px 64px; display: flex; flex-direction: column; gap: 20px">
+    <section style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap">
+      <div style="flex: 1; min-width: 280px"><h1 style="margin: 0; font-size: 36px; font-weight: 900">همهٔ دوره‌ها</h1><p style="margin: 4px 0 0; color: #6C7290; font-size: 15px">{{count}}</p></div>
+      <label style="display: flex; align-items: center; gap: 10px; background: #FFFFFF; border: 1.5px solid #E4E7EF; border-radius: 16px; padding: 0 16px; min-height: 52px; width: 420px">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6C7290" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M10 4 a7 7 0 1 0 0.01 0 M15 15 l6 6"></path></svg>
+        <span style="position: absolute; width: 1px; height: 1px; overflow: hidden">جست‌وجوی دوره</span>
+        <input placeholder="جست‌وجو در دوره‌ها، استادها و موضوع‌ها" style="flex: 1; border: 0; outline: none; font: inherit; font-size: 15px; background: transparent; color: #1B2150">
+      </label>
+    </section>
+    <div style="display: flex; flex-direction: column; gap: 10px">
+      <div role="group" aria-label="قالب" style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center"><span style="font-size: 13px; font-weight: 800; color: #6C7290; width: 64px">قالب</span><sc-for list="{{kinds}}" as="f" hint-placeholder-count="6">
+          <button type="button" onClick="{{f.pick}}" aria-pressed="{{f.on}}" style="min-height: 44px; padding: 0 16px; border-radius: 999px; border: 1.5px solid {{f.border}}; background: {{f.bg}}; color: {{f.fg}}; font: inherit; font-size: 14px; font-weight: 800; line-height: 1.4; cursor: pointer">{{f.t}}</button>
+        </sc-for></div>
+      <div role="group" aria-label="موضوع" style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center"><span style="font-size: 13px; font-weight: 800; color: #6C7290; width: 64px">موضوع</span><sc-for list="{{topics}}" as="f" hint-placeholder-count="6">
+          <button type="button" onClick="{{f.pick}}" aria-pressed="{{f.on}}" style="min-height: 44px; padding: 0 16px; border-radius: 999px; border: 1.5px solid {{f.border}}; background: {{f.bg}}; color: {{f.fg}}; font: inherit; font-size: 14px; font-weight: 800; line-height: 1.4; cursor: pointer">{{f.t}}</button>
+        </sc-for></div>
+    </div>
+    <section aria-label="دوره‌ها" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px">
+      <sc-for list="{{courses}}" as="c" hint-placeholder-count="12">
+        <a href="Course.dc.html" style="background: #FFFFFF; border: 1px solid #E4E7EF; border-radius: 24px; overflow: hidden; text-decoration: none; color: #1B2150; display: flex; flex-direction: column">
+          <span style="height: 140px; background: {{c.c}}; position: relative; display: flex; align-items: center; justify-content: center">
+            <svg width="70" height="88" viewBox="0 0 48 60" aria-hidden="true"><path d="M24 2 C30 10 44 16 44 32 C44 46 34 58 24 58 C14 58 4 46 4 32 C4 16 18 10 24 2 Z" fill="rgba(255,255,255,0.22)" stroke="rgba(255,255,255,0.75)" stroke-width="1.2"></path><path d="{{c.big}}" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" transform="translate(12 18)"></path></svg>
+            <span style="position: absolute; bottom: 10px; left: 12px; padding: 3px 10px; border-radius: 8px; background: rgba(15,21,56,0.55); color: #FFFFFF; font-size: 12px; font-weight: 800">{{c.dur}}</span>
+          </span>
+          <span style="padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 8px">
+            <span style="font-size: 12px; font-weight: 800; color: {{c.ink}}">{{c.topic}}</span>
+            <b style="font-size: 17px; font-weight: 900; line-height: 1.55">{{c.t}}</b>
+            <span style="font-size: 13px; color: #6C7290">{{c.who}}</span>
+            <span style="display: flex; gap: 6px; flex-wrap: wrap"><sc-for list="{{c.media}}" as="m" hint-placeholder-count="3"><span style="display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 999px; background: {{m.bg}}; color: {{m.c}}; font-size: 12px; font-weight: 800"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{m.i}}"></path></svg>{{m.t}}</span></sc-for></span>
+          </span>
+        </a>
+      </sc-for>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1500}}'>
+const MI = {
+  v: ['ویدیو', 'M8 5v14l11-7z', '#EAEFFC', '#1E3A9E'],
+  a: ['صوتی', 'M12 3 a3 3 0 0 1 3 3 v6 a3 3 0 0 1-6 0 v-6 a3 3 0 0 1 3-3 M5 11 a7 7 0 0 0 14 0 M12 18 v3', '#E1F3F6', '#1D7F92'],
+  b: ['کتاب و متن', 'M4 4 h7 a2 2 0 0 1 2 2 v15 a2 2 0 0 0-2-2 h-7z M22 4 h-7 a2 2 0 0 0-2 2 v15 a2 2 0 0 1 2-2 h7z', '#F4F5F9', '#3E4462'],
+  l: ['کلاس زنده', 'M2 12 a10 10 0 0 1 20 0 M6 12 a6 6 0 0 1 12 0 M12 12 v8', '#FBE6EB', '#A8314F'],
+  w: ['کاربرگ و تمرین', 'M6 3 h9 l4 4 v14 h-13z M9 12 h6 M9 16 h6', '#FFF2CC', '#8A5A00'],
+  d: ['مستند', 'M3 6 h18 v12 h-18z M10 9 l5 3 l-5 3z', '#D3EFEA', '#0B5F52'],
+};
+const media = (s) => s.split('').map((k) => ({ t: MI[k][0], i: MI[k][1], bg: MI[k][2], c: MI[k][3] }));
+const fa = (n) => n.toLocaleString('fa-IR');
+const chips = (opts, sel, key, self) => opts.map(([k, t]) => ({ t, on: k === sel ? 'true' : 'false', bg: k === sel ? '#1B2150' : '#FFFFFF', fg: k === sel ? '#FFFFFF' : '#1B2150', border: k === sel ? '#1B2150' : '#E4E7EF', pick: () => self.setState({ [key]: k }) }));
+const TP = {
+  rel: ['ارتباط و جذب', '#1E3A9E', '#1E3A9E'], mng: ['مدیریت و تشکیلات', '#D64A6A', '#A8314F'], prob: ['حل مسئله', '#F08C1A', '#8A5A00'],
+  tab: ['تبیین و رسانه', '#F5B700', '#8A5A00'], pey: ['پیوندها', '#12A58E', '#0B5F52'], mab: ['مبانی امامت', '#5B6BD6', '#1E3A9E'],
+};
+const C = [
+  ['مهارت‌های ارتباطی و جذب مردم به مسجد', 'rel', 'vaw', '۳ ساعت، ۷ بخش', 'امام موفق محله و کارشناس مهارت'],
+  ['مدیریت مسجد؛ منشور همکاری با ارکان', 'mng', 'vbw', '۳ ساعت، ۷ بخش', 'ویژهٔ امام و هیئت امنا'],
+  ['جذب نوجوانان و جوانان', 'rel', 'vdw', '۳ ساعت، ۷ بخش', 'نقش واقعی و نردبان مسئولیت'],
+  ['حل مسئله؛ از علامت تا ریشه', 'prob', 'vaw', '۳ ساعت، ۷ بخش', 'بوم مسئله و پنج چرا'],
+  ['تیم‌سازی و کادرسازی', 'mng', 'vaw', '۳ ساعت، ۷ بخش', 'معجزهٔ دیده‌شدن و نقش روشن'],
+  ['گفت‌وگو و پاسخ به پرسش‌ها', 'tab', 'vaw', '۳ ساعت، ۷ بخش', 'گفت‌وگو به‌جای خطابه'],
+  ['روایت و رسانهٔ مسجد در فضای مجازی', 'tab', 'vw', '۳ ساعت، ۷ بخش', 'اداره گروه و کانال محله'],
+  ['مشارکت مردم و تأمین منابع', 'mng', 'vaw', '۳ ساعت، دورهٔ ویژه', 'پویش با سهم‌های کوچک'],
+  ['امامت در آیینهٔ قرآن', 'mab', 'ab', 'کتاب صوتی، ۹ ساعت', 'مدل پنج‌لایهٔ امامت قرآنی'],
+  ['قبس، خودمانی', 'tab', 'a', 'پادکست، ۱۷ قسمت', 'برای روشنگران مسجد'],
+  ['پلکان اخوت در مسجد', 'pey', 'vab', '۷ درس', 'اخوت ایمانی در محله'],
+  ['گعده‌داری', 'mng', 'ab', '۵ درس', 'رشد در جمع همتا'],
+  ['تجربهٔ امامت محله؛ دفتر اول', 'mab', 'bd', 'کتاب، ۲۱ روایت', 'روایت بیست‌ویک امام محله'],
+  ['یکی از ما', 'pey', 'd', 'مستند، ۸ قسمت', 'امامان محله، راوی زندگی خود'],
+  ['زکات، مایهٔ برکات', 'mng', 'ab', '۴ درس', 'تأمین مالی از منطق امامت'],
+  ['نفر سوم؛ حلقهٔ میانی', 'prob', 'vab', '۶ درس', 'به میدان آوردن مردم'],
+];
+const BIG = { v: 'M8 5v14l11-7z', a: 'M12 3 a3 3 0 0 1 3 3 v6 a3 3 0 0 1-6 0 v-6 a3 3 0 0 1 3-3 M5 11 a7 7 0 0 0 14 0 M12 18 v3', b: 'M4 4 h7 a2 2 0 0 1 2 2 v15 a2 2 0 0 0-2-2 h-7z M22 4 h-7 a2 2 0 0 0-2 2 v15 a2 2 0 0 1 2-2 h7z', d: 'M3 6 h18 v12 h-18z M10 9 l5 3 l-5 3z' };
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const k = st.k || 'all', tp = st.tp || 'all';
+    const kinds = chips([['all', 'همه'], ['v', 'ویدیویی'], ['a', 'صوتی و پادکست'], ['b', 'کتاب و متن'], ['d', 'مستند'], ['w', 'با کاربرگ و تمرین']], k, 'k', this);
+    const topics = chips([['all', 'همه'], ...Object.entries(TP).map(([id, v]) => [id, v[0]])], tp, 'tp', this);
+    const list = C.filter((c) => (k === 'all' || c[2].includes(k)) && (tp === 'all' || c[1] === tp));
+    const courses = list.map(([t, top, m, dur, who]) => ({ t, dur, who, topic: TP[top][0], c: TP[top][1], ink: TP[top][2], media: media(m), big: BIG[m[0]] || BIG.v }));
+    return { kinds, topics, courses, count: fa(list.length) + ' دوره از ' + fa(C.length) + ' دوره، برای امام، شریکة‌الامام و بازوان مسجد' };
+  }
+}
+</script>
+</body>
+</html>

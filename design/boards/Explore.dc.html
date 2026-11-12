@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>کاوش: همهٔ مسیرها و دوره‌ها</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+@font-face{font-family:Ravagh;src:url(/_blob/e82b766c64b0cace84d3355c93f56b74) format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:Ravagh;src:url(/_blob/527abc1483ee47a97b558a9acbfb98c5) format("woff2");font-weight:500;font-display:swap}
+@font-face{font-family:Ravagh;src:url(/_blob/4d07209a2087021071dc7addbee9572d) format("woff2");font-weight:700;font-display:swap}
+@font-face{font-family:Ravagh;src:url(/_blob/8c3eae47921ff883f9e1052d2720315a) format("woff2");font-weight:800;font-display:swap}
+@font-face{font-family:Ravagh;src:url(/_blob/21203621768e345fd3b65247d31101f5) format("woff2");font-weight:900;font-display:swap}
+body{margin:0;background:#F4F5F9}
+a{color:#1E3A9E}a:hover{color:#152B78}
+
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #F4F5F9; color: #1B2150; font-family: Ravagh, Tahoma, sans-serif; font-feature-settings: 'ss01' 0, 'ss02' 0, 'ss03' 0, 'swsh' 0, 'dlig' 0; line-height: 1.65; direction: rtl">
+  <dc-import name="Nav" active="learn" hint-size="100%,72px"></dc-import>
+  <main style="max-width: 1280px; margin: 0 auto; padding: 28px 32px 64px; display: flex; flex-direction: column; gap: 22px">
+    <section style="display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap">
+      <div><h1 style="margin: 0; font-size: 34px; font-weight: 900">کاوش</h1><p style="margin: 4px 0 0; color: #6C7290">همهٔ مسیرها، دوره‌ها و پخش‌های زندهٔ برگزارکنندگان؛ کنار مسیر اصلی‌ات هر کدام را جدا بردار.</p></div>
+      <label style="display: flex; align-items: center; gap: 10px; background: #FFFFFF; border: 1.5px solid #E4E7EF; border-radius: 16px; padding: 0 16px; min-height: 52px; width: 400px"><span style="position: absolute; width: 1px; height: 1px; overflow: hidden">جست‌وجو</span><input placeholder="جست‌وجو؛ مثلاً نوجوان، حل مسئله، روایت" style="flex: 1; border: 0; outline: none; font: inherit; font-size: 15px; background: transparent"></label>
+    </section>
+    <div role="tablist" style="display: flex; gap: 4px; background: #FFFFFF; border: 1px solid #E4E7EF; border-radius: 16px; padding: 4px; align-self: flex-start"><a role="tab" aria-selected="false" href="MyPaths.dc.html" style="padding: 10px 20px; border-radius: 12px; color: #3E4462; font-weight: 800; text-decoration: none">مسیرهای من</a><a role="tab" aria-selected="false" href="PathMacro.dc.html" style="padding: 10px 20px; border-radius: 12px; color: #3E4462; font-weight: 800; text-decoration: none">مسیر اصلی من</a><a role="tab" aria-selected="true" href="Explore.dc.html" style="padding: 10px 20px; border-radius: 12px; background: #EAEFFC; color: #1E3A9E; font-weight: 800; text-decoration: none">کاوش</a></div>
+    <div style="display: flex; flex-direction: column; gap: 10px">
+      <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center"><span style="width: 76px; font-size: 13px; font-weight: 800; color: #6C7290">برای کی</span>
+        <sc-for list="{{who}}" as="w" hint-placeholder-count="5"><button type="button" onClick="{{w.pick}}" aria-pressed="{{w.on}}" style="min-height: 38px; padding: 0 14px; border-radius: 999px; border: 1.5px solid {{w.border}}; background: {{w.bg}}; color: {{w.fg}}; font: inherit; font-size: 13px; font-weight: 800; cursor: pointer">{{w.t}}</button></sc-for></div>
+      <div role="group" aria-label="نوع" style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center"><span style="width: 76px; font-size: 13px; font-weight: 800; color: #6C7290">نوع</span>
+        <sc-for list="{{kinds}}" as="f" hint-placeholder-count="6"><button type="button" onClick="{{f.pick}}" aria-pressed="{{f.on}}" style="min-height: 42px; padding: 0 16px; border-radius: 999px; border: 1.5px solid {{f.border}}; background: {{f.bg}}; color: {{f.fg}}; font: inherit; font-size: 14px; font-weight: 800; line-height: 1.4; cursor: pointer">{{f.t}}</button></sc-for></div>
+      <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center"><span style="width: 76px; font-size: 13px; font-weight: 800; color: #6C7290">برگزارکننده</span>
+        <sc-for list="{{pubs}}" as="p" hint-placeholder-count="5"><span style="display: inline-flex; align-items: center; gap: 6px; min-height: 38px; padding: 0 14px; border-radius: 999px; border: 1.5px solid #E4E7EF; background: #FFFFFF; font-size: 13px; font-weight: 800"><span style="width: 10px; height: 10px; border-radius: 50%; background: {{p.c}}"></span>{{p.t}}</span></sc-for></div>
+    </div>
+    <section style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px">
+      <sc-for list="{{items}}" as="x" hint-placeholder-count="9">
+        <a href="{{x.href}}" style="background: #FFFFFF; border: 1px solid #E4E7EF; border-radius: 24px; overflow: hidden; text-decoration: none; color: #1B2150; display: flex; flex-direction: column">
+          <span style="height: 108px; background: {{x.c}}; display: flex; align-items: center; justify-content: space-between; padding: 0 18px">
+            <svg width="48" height="60" viewBox="0 0 48 60" aria-hidden="true"><path d="M24 2 C30 10 44 16 44 32 C44 46 34 58 24 58 C14 58 4 46 4 32 C4 16 18 10 24 2 Z" fill="rgba(255,255,255,0.25)" stroke="rgba(255,255,255,0.85)" stroke-width="1.2"></path></svg>
+            <span style="padding: 4px 12px; border-radius: 999px; background: rgba(255,255,255,0.92); color: {{x.ink}}; font-size: 12px; font-weight: 800">{{x.kind}}</span>
+          </span>
+          <span style="padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 6px">
+            <span style="font-size: 12px; font-weight: 800; color: #6C7290">{{x.by}}</span>
+            <b style="font-size: 17px; font-weight: 900; line-height: 1.55">{{x.t}}</b>
+            <span style="font-size: 13px; color: #3E4462">{{x.meta}}</span>
+          </span>
+        </a>
+      </sc-for>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1200}}'>
+const PUB = { 'بنیاد هدایت': '#1E3A9E', 'مؤسسهٔ برکت': '#0E9F5A', 'مجمع بانوان مسجدی': '#D64A6A', 'شبکهٔ مساجد شهر': '#F08C1A', 'کانون نوجوانان مسجد': '#1BA3C6' };
+const KS = { macro: ['مسیر کلان', '#1E3A9E', '#1E3A9E'], mid: ['مسیر میانه', '#F08C1A', '#8A5A00'], micro: ['مسیر خرد', '#12A58E', '#0B5F52'], course: ['دوره', '#E0A300', '#8A5A00'], live: ['پخش زنده', '#D64A6A', '#A8314F'] };
+const IT = [
+  ['macro', 'تعیّن امامت', 'بنیاد هدایت', 'مسیر اصلی امام، ۴ پله، با راهیار', 'PathMacro.dc.html', ['imam']],
+  ['macro', 'شریکة‌الامام', 'بنیاد هدایت', 'مسیر اصلی همسر امام، ۳ پله، با راهیار', '#', ['sharik']],
+  ['macro', 'از عضو تا مربی هسته', 'کانون نوجوانان مسجد', 'مسیر اصلی بازو و هسته، ۳ پله', 'PathBuilder.dc.html', ['bazu', 'haste']],
+  ['mid', 'حل مسئلهٔ محله', 'بنیاد هدایت', '۳ دوره، یک فصل، گواهی', '#', ['imam', 'bazu']],
+  ['micro', 'جذب نوجوان در یک ماه', 'بنیاد هدایت', '۴ هفته، هفته‌ای ۲ ساعت', 'PathMicro.dc.html', ['imam', 'bazu', 'haste']],
+  ['micro', 'حلقهٔ خانگی بانوان', 'مجمع بانوان مسجدی', '۳ هفته، با هسته بخوانید', '#', ['sharik']],
+  ['course', 'مهارت‌های ارتباطی و جذب مردم', 'بنیاد هدایت', '۸ بخش، تکلیف سی‌روزه', 'Course.dc.html', ['imam', 'sharik', 'bazu', 'haste']],
+  ['course', 'کار با نوجوان در فضای مجازی', 'مؤسسهٔ برکت', '۵ بخش، ویدیو و کاربرگ', 'Course.dc.html', ['bazu', 'haste']],
+  ['live', 'مهمانی محله؛ تجربهٔ ۴۵۰۰ محله', 'شبکهٔ مساجد شهر', 'سه‌شنبه ساعت ۲۰:۳۰', 'Live.dc.html', ['imam', 'sharik', 'bazu', 'haste']],
+  ['live', 'اخلاق امامت محله، جلسهٔ ۶', 'بنیاد هدایت', 'هر سه‌شنبه ساعت ۲۱', 'Live.dc.html', ['imam']],
+];
+const WHO = [['all', 'همه'], ['imam', 'امام'], ['sharik', 'شریکة‌الامام'], ['bazu', 'بازو'], ['haste', 'عضو هسته']];
+class Component extends DCLogic {
+  renderVals() {
+    const sel = (this.state && this.state.k) || 'all'; const wsel = (this.state && this.state.w) || 'all';
+    const who = WHO.map(([id, t]) => ({ t, on: id === wsel ? 'true' : 'false', bg: id === wsel ? '#EAEFFC' : '#FFFFFF', fg: id === wsel ? '#1E3A9E' : '#3E4462', border: id === wsel ? '#1E3A9E' : '#E4E7EF', pick: () => this.setState({ w: id }) }));
+    const kinds = [['all', 'همه'], ['macro', 'مسیر کلان'], ['mid', 'مسیر میانه'], ['micro', 'مسیر خرد'], ['course', 'دوره'], ['live', 'پخش زنده']].map(([id, t]) => ({ t, on: id === sel ? 'true' : 'false', bg: id === sel ? '#1B2150' : '#FFFFFF', fg: id === sel ? '#FFFFFF' : '#1B2150', border: id === sel ? '#1B2150' : '#E4E7EF', pick: () => this.setState({ k: id }) }));
+    const pubs = Object.entries(PUB).map(([t, c]) => ({ t, c }));
+    const items = IT.filter((x) => (sel === 'all' || x[0] === sel) && (wsel === 'all' || x[5].includes(wsel))).map(([k, t, by, meta, href]) => ({ kind: KS[k][0], c: KS[k][1], ink: KS[k][2], t, by, meta, href }));
+    return { kinds, pubs, items, who };
+  }
+}
+</script>
+</body>
+</html>

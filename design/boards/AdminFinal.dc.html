@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>پنل ستاد: صف بازبینی (نهایی)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+@font-face{font-family:Ravagh;src:url(/_blob/e82b766c64b0cace84d3355c93f56b74) format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:Ravagh;src:url(/_blob/527abc1483ee47a97b558a9acbfb98c5) format("woff2");font-weight:500;font-display:swap}
+@font-face{font-family:Ravagh;src:url(/_blob/4d07209a2087021071dc7addbee9572d) format("woff2");font-weight:700;font-display:swap}
+@font-face{font-family:Ravagh;src:url(/_blob/8c3eae47921ff883f9e1052d2720315a) format("woff2");font-weight:800;font-display:swap}
+@font-face{font-family:Ravagh;src:url(/_blob/21203621768e345fd3b65247d31101f5) format("woff2");font-weight:900;font-display:swap}
+body{margin:0;background:#F4F5F9}
+a{color:#1E3A9E}a:hover{color:#152B78}
+
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #F4F5F9; color: #1B2150; font-family: Ravagh, Tahoma, sans-serif; font-feature-settings: 'ss01' 0, 'ss02' 0, 'ss03' 0, 'swsh' 0, 'dlig' 0; line-height: 1.65; direction: rtl; display: flex">
+  <aside style="width: 248px; flex: none; background: #1B2150; color: #FFFFFF; padding: 22px 14px; display: flex; flex-direction: column; gap: 4px; box-sizing: border-box"><img src="/_blob/b522f6290bfc782976410c6c8494344e" alt="مدرسهٔ هدایت" style="width: 150px; max-width: 100%; height: auto; align-self: flex-start; margin: 0 8px 10px"><div style="padding: 0 10px 14px; font-size: 13px; color: #C9D3F5">ستاد، بازبینی و ادارهٔ سامانه</div><nav style="display: flex; flex-direction: column; gap: 2px"><a href="AdminFinal.dc.html" aria-current="page" style="display: flex; align-items: center; gap: 10px; min-height: 42px; padding: 0 12px; border-radius: 12px; background: rgba(255,255,255,0.14); color: #FFFFFF; font-size: 14px; font-weight: 800; text-decoration: none"><span style="width: 8px; height: 8px; border-radius: 50%; background: #F5B700"></span>صف بازبینی</a><a href="AdminPubs.dc.html" style="display: flex; align-items: center; gap: 10px; min-height: 42px; padding: 0 12px; border-radius: 12px; background: transparent; color: #FFFFFF; font-size: 14px; font-weight: 500; text-decoration: none"><span style="width: 8px; height: 8px; border-radius: 50%; background: #F08C1A"></span>برگزارکنندگان</a><a href="#" style="display: flex; align-items: center; gap: 10px; min-height: 42px; padding: 0 12px; border-radius: 12px; background: transparent; color: #FFFFFF; font-size: 14px; font-weight: 500; text-decoration: none"><span style="width: 8px; height: 8px; border-radius: 50%; background: #1BA3C6"></span>کنشگران</a><a href="AdminSupport.dc.html" style="display: flex; align-items: center; gap: 10px; min-height: 42px; padding: 0 12px; border-radius: 12px; background: transparent; color: #FFFFFF; font-size: 14px; font-weight: 500; text-decoration: none"><span style="width: 8px; height: 8px; border-radius: 50%; background: #D64A6A"></span>پشتیبانی</a><a href="AdminReport.dc.html" style="display: flex; align-items: center; gap: 10px; min-height: 42px; padding: 0 12px; border-radius: 12px; background: transparent; color: #FFFFFF; font-size: 14px; font-weight: 500; text-decoration: none"><span style="width: 8px; height: 8px; border-radius: 50%; background: #1E3A9E"></span>گزارش کل</a></nav></aside>
+  <main style="flex: 1; padding: 28px 32px 48px; display: flex; flex-direction: column; gap: 18px; min-width: 0">
+    <div><h1 style="margin: 0; font-size: 28px; font-weight: 900">صف بازبینی</h1><p style="margin: 4px 0 0; color: #6C7290">هر مسیر، دوره و پخش زنده پیش از انتشار یک بار اینجا دیده می‌شود. ستاد بازبین است، نه سازنده.</p></div>
+    <section style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px">
+      <sc-for list="{{kpi}}" as="x" hint-placeholder-count="4"><div style="background: #FFFFFF; border: 1px solid #E4E7EF; border-radius: 24px; border-radius: 22px; padding: 18px 20px"><span style="font-size: 13px; color: #6C7290">{{x.t}}</span><b style="display: block; font-size: 28px; font-weight: 900">{{x.v}}</b></div></sc-for>
+    </section>
+    <div style="display: grid; grid-template-columns: 360px minmax(0, 1fr); gap: 18px; align-items: start">
+      <div style="background: #FFFFFF; border: 1px solid #E4E7EF; border-radius: 24px; padding: 10px; display: flex; flex-direction: column; gap: 6px">
+        <sc-for list="{{queue}}" as="q" hint-placeholder-count="5">
+          <button type="button" onClick="{{q.pick}}" aria-pressed="{{q.on}}" style="text-align: right; font: inherit; cursor: pointer; color: #1B2150; border: 0; border-radius: 16px; padding: 12px 14px; background: {{q.bg}}; display: flex; flex-direction: column; gap: 4px">
+            <span style="display: flex; gap: 8px; align-items: center"><span style="padding: 2px 10px; border-radius: 999px; background: {{q.kbg}}; color: {{q.kc}}; font-size: 12px; font-weight: 800">{{q.kind}}</span><span style="font-size: 12px; color: #6C7290">{{q.by}}</span></span>
+            <b style="font-size: 14px; font-weight: 800">{{q.t}}</b>
+          </button>
+        </sc-for>
+      </div>
+      <div style="background: #FFFFFF; border: 1px solid #E4E7EF; border-radius: 24px; padding: 26px; display: flex; flex-direction: column; gap: 16px">
+        <div><span style="font-size: 13px; color: #6C7290">{{cur.kind}}، {{cur.by}}</span><h2 style="margin: 2px 0 0; font-size: 22px; font-weight: 900">{{cur.t}}</h2></div>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px">
+          <sc-for list="{{cur.facts}}" as="f" hint-placeholder-count="3"><div style="padding: 12px 14px; border-radius: 14px; background: #F4F5F9"><span style="font-size: 12px; color: #6C7290">{{f.k}}</span><b style="display: block; font-size: 15px">{{f.v}}</b></div></sc-for>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px"><b style="font-size: 14px">چک‌لیست بازبینی</b>
+          <sc-for list="{{cur.checks}}" as="c" hint-placeholder-count="5"><label style="display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 14px; border-radius: 14px; background: {{c.bg}}; font-size: 14px"><input type="checkbox" checked="{{c.ok}}" style="width: 20px; height: 20px; accent-color: #0E9F5A">{{c.t}}</label></sc-for></div>
+        <label style="display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 800">یادداشت برای برگزارکننده<textarea rows="2" style="border: 1.5px solid #E4E7EF; border-radius: 14px; padding: 10px 12px; font: inherit; font-size: 15px"></textarea></label>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap"><a href="PathMacro.dc.html" style="display: inline-flex; align-items: center; min-height: 48px; padding: 0 18px; border-radius: 14px; border: 1.5px solid #E4E7EF; background: #FFFFFF; color: #1B2150; font-weight: 800; text-decoration: none">پیش‌نمایش از دید کنشگر</a><button type="button" style="min-height: 48px; padding: 0 22px; border-radius: 14px; border: 0; background: #0E9F5A; color: #FFFFFF; font: inherit; font-weight: 800; line-height: 1.4; cursor: pointer">انتشار</button><button type="button" style="min-height: 48px; padding: 0 18px; border-radius: 14px; border: 1.5px solid #F0C2CD; background: #FFFFFF; color: #A8314F; font: inherit; font-weight: 800; line-height: 1.4; cursor: pointer">برگرداندن برای اصلاح</button></div>
+      </div>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":980}}'>
+const KC = { 'مسیر کلان': ['#EAEFFC', '#1E3A9E'], 'مسیر خرد': ['#D3EFEA', '#0B5F52'], 'دوره': ['#FFF2CC', '#8A5A00'], 'پخش زنده': ['#FBE6EB', '#A8314F'], 'برگزارکنندهٔ تازه': ['#F4F5F9', '#3E4462'] };
+const Q = [
+  ['مسیر کلان', 'از عضو تا مربی هسته', 'کانون نوجوانان مسجد', [['اندازه', '۳ پله، ۱۸ ماه'], ['محتوا', '۷ دوره، ۲ مسیر خرد'], ['راهیار', '۱۲ مربی هسته']], ['مخاطب و پله‌ها روشن است', 'قاعدهٔ رفتن به پلهٔ بعد تعریف شده', 'هر پله دست‌کم یک تکلیف میدانی دارد', 'محتوای دیگران با نام سازنده آمده', 'حریم: کاربرگ‌ها نکتهٔ آبرویی نمی‌خواهند']],
+  ['پخش زنده', 'مهمانی محله؛ تجربهٔ ۴۵۰۰ محله', 'شبکهٔ مساجد شهر', [['زمان', 'سه‌شنبه ۴ آذر، ۲۰:۳۰'], ['ظرفیت', '۳۰۰ نفر'], ['ضبط', 'بله، برای ثبت‌نامی‌ها']], ['عنوان و زمان درست است', 'مجری معرفی شده', 'در سقف ساعت زندهٔ برگزارکننده است']],
+  ['دوره', 'حلقهٔ خانگی؛ گام به گام', 'مجمع بانوان مسجدی', [['بخش‌ها', '۶ بخش، صوت و کاربرگ'], ['تکلیف', 'سی‌روزه، با تأیید راهیار'], ['کتابخانه', 'عمومی']], ['هر بخش یک کار دارد', 'تکلیف میدانی روشن است', 'قابل استفاده در مسیرهای دیگران']],
+  ['برگزارکنندهٔ تازه', 'مؤسسهٔ فرهنگی نورالهدی', 'درخواست پذیرش', [['نوع', 'مؤسسهٔ ثبت‌شده'], ['مخاطب', 'امامان روستا'], ['معرف', 'ستاد استان فارس']], ['هویت تأیید شده', 'معرف معتبر', 'تعهد حریم امضا شده']],
+];
+class Component extends DCLogic {
+  renderVals() {
+    const sel = (this.state && this.state.i) || 0;
+    const queue = Q.map(([kind, t, by], k) => ({ kind, t, by, kbg: KC[kind][0], kc: KC[kind][1], on: k === sel ? 'true' : 'false', bg: k === sel ? '#EAEFFC' : '#F4F5F9', pick: () => this.setState({ i: k }) }));
+    const c = Q[sel];
+    const kpi = [{ t: 'در صف بازبینی', v: '۴' }, { t: 'برگزارکنندهٔ فعال', v: '۱۲' }, { t: 'گام رشد تأییدشده، این فصل', v: '۱٬۸۴۰' }, { t: 'میانگین زمان بازبینی', v: '۱٫۵ روز' }];
+    return { kpi, queue, cur: { kind: c[0], t: c[1], by: c[2], facts: c[3].map(([k, v]) => ({ k, v })), checks: c[4].map((t, j) => ({ t, ok: j < 2, bg: '#F4F5F9' })) } };
+  }
+}
+</script>
+</body>
+</html>

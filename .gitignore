@@ -2,8 +2,6 @@ node_modules
 dist
 .env
 *.log
-apps/web/public/fonts/*.woff*
-!apps/web/public/fonts/.gitkeep
 coverage
 .DS_Store
 dist-demo

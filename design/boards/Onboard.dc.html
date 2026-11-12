@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>نخستین ورود</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+@font-face{font-family:Ravagh;src:url(/_blob/e82b766c64b0cace84d3355c93f56b74) format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:Ravagh;src:url(/_blob/527abc1483ee47a97b558a9acbfb98c5) format("woff2");font-weight:500;font-display:swap}
+@font-face{font-family:Ravagh;src:url(/_blob/4d07209a2087021071dc7addbee9572d) format("woff2");font-weight:700;font-display:swap}
+@font-face{font-family:Ravagh;src:url(/_blob/8c3eae47921ff883f9e1052d2720315a) format("woff2");font-weight:800;font-display:swap}
+@font-face{font-family:Ravagh;src:url(/_blob/21203621768e345fd3b65247d31101f5) format("woff2");font-weight:900;font-display:swap}
+body{margin:0;background:#F4F5F9}
+a{color:#1E3A9E}a:hover{color:#152B78}
+
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #F4F5F9; color: #1B2150; font-family: Ravagh, Tahoma, sans-serif; font-feature-settings: 'ss01' 0, 'ss02' 0, 'ss03' 0, 'swsh' 0, 'dlig' 0; line-height: 1.65; direction: rtl; display: grid; grid-template-columns: 1fr 1fr; min-height: 100vh">
+  <section style="position: relative; overflow: hidden; background: #1E3A9E"><img src="/_blob/702a4dfcbc9ca7da3287d181fdf527c9" alt="گنبد مسجد در غروب" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.55"><div style="position: relative; padding: 44px 48px; color: #FFFFFF; display: flex; flex-direction: column; gap: 14px; background: linear-gradient(180deg, rgba(27,33,80,0.85), rgba(27,33,80,0))"><img src="/_blob/b522f6290bfc782976410c6c8494344e" alt="مدرسهٔ هدایت" style="width: 200px; max-width: 100%; height: auto; align-self: flex-start"><h1 style="margin: 0; font-size: 30px; font-weight: 900; line-height: 1.4">یادگیری برای کار در مسجد، نه برای نمره</h1><p style="margin: 0; font-size: 15px; color: #C9D3F5; max-width: 420px">مسیرهای کوتاه و بلندِ برگزارکنندگان مختلف؛ هر درس یک کار واقعی در مسجد دارد و راهیار کنار توست.</p></div></section>
+  <section style="padding: 44px 56px; display: flex; flex-direction: column; gap: 22px; justify-content: center">
+    <div style="display: flex; gap: 8px; align-items: center; font-size: 13px; color: #6C7290"><span style="padding: 4px 10px; border-radius: 999px; background: #EAEFFC; color: #1E3A9E; font-weight: 800">۱ ورود</span><span style="padding: 4px 10px; border-radius: 999px; background: #1E3A9E; color: #FFFFFF; font-weight: 800">۲ آشنایی</span><span style="padding: 4px 10px; border-radius: 999px; background: #F4F5F9; font-weight: 800">۳ مسجد تو</span><span style="padding: 4px 10px; border-radius: 999px; background: #F4F5F9; font-weight: 800">۴ اولین مسیر</span></div>
+    <div><h2 style="margin: 0; font-size: 28px; font-weight: 900">خوش آمدی. دو سؤال کوتاه</h2><p style="margin: 4px 0 0; color: #6C7290">تا مسیرهای مناسب‌تر را اول نشانت بدهیم. هر دو را می‌توانی بعداً تغییر دهی.</p></div>
+    <label style="display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 800">نام<input value="سیدمحمد حسنی" style="min-height: 50px; border: 1.5px solid #E4E7EF; border-radius: 14px; padding: 0 14px; font: inherit; font-size: 16px"><span style="font-size: 13px; color: #6C7290; font-weight: 500">همان نامی که راهیار و همتایان می‌بینند</span></label>
+    <div style="display: flex; flex-direction: column; gap: 8px"><b style="font-size: 14px">نقش تو در مسجد (اختیاری)</b><div style="display: flex; gap: 8px; flex-wrap: wrap">
+      <sc-for list="{{roles}}" as="r" hint-placeholder-count="5"><button type="button" onClick="{{r.pick}}" aria-pressed="{{r.on}}" style="min-height: 44px; padding: 0 16px; border-radius: 999px; border: 1.5px solid {{r.b}}; background: {{r.bg}}; color: {{r.c}}; font: inherit; font-size: 14px; font-weight: 800; cursor: pointer">{{r.t}}</button></sc-for></div></div>
+    <div style="padding: 14px 16px; border-radius: 16px; background: #EAEFFC; display: flex; gap: 12px; align-items: center"><svg width="30" height="37" viewBox="0 0 48 60" aria-hidden="true"><path d="M24 2 C30 10 44 16 44 32 C44 46 34 58 24 58 C14 58 4 46 4 32 C4 16 18 10 24 2 Z" fill="#1E3A9E"></path></svg><span style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 12px; color: #1E3A9E; font-weight: 800">مسیر اصلی برای تو</span><b style="font-size: 16px; font-weight: 900">{{main.t}}</b><span style="font-size: 13px; color: #3E4462">{{main.d}}</span></span></div>
+    <label style="display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 800">مسجد یا محله (اختیاری)<input placeholder="مثلاً مسجد صاحب‌الزمان، بهشهر" style="min-height: 50px; border: 1.5px solid #E4E7EF; border-radius: 14px; padding: 0 14px; font: inherit; font-size: 16px"><span style="font-size: 13px; color: #6C7290; font-weight: 500">برای پیشنهاد گعده‌ها و مسیرهای نزدیک</span></label>
+    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap"><a href="OnboardMosque.dc.html" style="display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 24px; border-radius: 14px; background: #0E9F5A; color: #FFFFFF; border: 0; font-weight: 800; font-size: 16px; text-decoration: none; line-height: 1.4">ادامه</a><a href="HomeFinal.dc.html" style="display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 24px; border-radius: 14px; background: transparent; color: #3E4462; border: 1.5px solid #E4E7EF; font-weight: 800; font-size: 16px; text-decoration: none; line-height: 1.4">بعداً</a><span style="font-size: 13px; color: #6C7290">مسیر اصلی پیش‌فرض است، اجبار نیست؛ از «کاوش» هر چیز دیگری را برمی‌داری.</span></div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+const R = ['امام', 'شریکة‌الامام', 'بازو', 'عضو هسته', 'دیگر'];
+const MAIN = [['تعیّن امامت', 'بنیاد هدایت، ۴ پله از امام خانه تا امام مسجد، با راهیار'], ['شریکة‌الامام', 'بنیاد هدایت، ۳ پله، همراهی امام در خانه، حلقه و محله'], ['از عضو تا مربی هسته', 'کانون نوجوانان مسجد، ۳ پله، با مربی هسته'], ['از عضو تا مربی هسته', 'کانون نوجوانان مسجد، ۳ پله، با مربی هسته'], ['بی مسیر اصلی', 'از کاوش شروع کن؛ هر وقت نقش‌ت را گفتی، مسیر اصلی پیشنهاد می‌شود']];
+class Component extends DCLogic { renderVals() { const s = (this.state && this.state.i) ?? 0; return { main: { t: MAIN[s][0], d: MAIN[s][1] }, roles: R.map((t, i) => ({ t, on: i === s ? 'true' : 'false', b: i === s ? '#1E3A9E' : '#E4E7EF', bg: i === s ? '#EAEFFC' : '#FFFFFF', c: i === s ? '#1E3A9E' : '#3E4462', pick: () => this.setState({ i }) })) }; } }
+</script>
+</body>
+</html>

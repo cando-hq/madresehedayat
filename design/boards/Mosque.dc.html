@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>مسجد من</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+@font-face{font-family:Ravagh;src:url(/_blob/e82b766c64b0cace84d3355c93f56b74) format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:Ravagh;src:url(/_blob/527abc1483ee47a97b558a9acbfb98c5) format("woff2");font-weight:500;font-display:swap}
+@font-face{font-family:Ravagh;src:url(/_blob/4d07209a2087021071dc7addbee9572d) format("woff2");font-weight:700;font-display:swap}
+@font-face{font-family:Ravagh;src:url(/_blob/8c3eae47921ff883f9e1052d2720315a) format("woff2");font-weight:800;font-display:swap}
+@font-face{font-family:Ravagh;src:url(/_blob/21203621768e345fd3b65247d31101f5) format("woff2");font-weight:900;font-display:swap}
+body{margin:0;background:#F4F5F9}
+a{color:#1E3A9E}a:hover{color:#152B78}
+
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #F4F5F9; color: #1B2150; font-family: Ravagh, Tahoma, sans-serif; font-feature-settings: 'ss01' 0, 'ss02' 0, 'ss03' 0, 'swsh' 0, 'dlig' 0; line-height: 1.65; direction: rtl">
+  <dc-import name="Nav" active="mosque" hint-size="100%,72px"></dc-import>
+  <main style="max-width: 1280px; margin: 0 auto; padding: 28px 32px 64px; display: flex; flex-direction: column; gap: 22px">
+    <section style="display: flex; align-items: center; gap: 22px; flex-wrap: wrap; background: #FFFFFF; border: 1px solid #E4E7EF; border-radius: 24px; border-radius: 32px; padding: 28px 32px">
+      <svg width="64" height="80" viewBox="0 0 48 60" aria-hidden="true"><path d="M24 2 C30 10 44 16 44 32 C44 46 34 58 24 58 C14 58 4 46 4 32 C4 16 18 10 24 2 Z" fill="#1E3A9E"></path><path d="M14 40 v-10 a10 10 0 0 1 20 0 v10z M24 14 v6" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round"></path></svg>
+      <div style="flex: 1; min-width: 240px"><h1 style="margin: 0; font-size: 30px; font-weight: 900">مسجد صاحب‌الزمان(عج)</h1><div style="font-size: 14px; color: #6C7290">بهشهر، محلهٔ باغ‌نو، امام: حجت‌الاسلام حسنی، سطح ۳، امام محله</div></div>
+      <div style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 16px; background: #F4F5F9">
+        <span style="font-size: 13px; color: #6C7290">کد پیوستن به تیم</span><b style="font-size: 18px; font-weight: 900; letter-spacing: 2px; direction: ltr">SZ-4821</b>
+        <button type="button" style="min-height: 40px; padding: 0 14px; border-radius: 12px; border: 0; background: #1E3A9E; color: #FFFFFF; font: inherit; font-size: 13px; font-weight: 800; line-height: 1.4; cursor: pointer">فرستادن پیوند دعوت</button>
+      </div>
+    </section>
+
+    <section style="display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 20px; align-items: start">
+      <div style="background: #FFFFFF; border: 1px solid #E4E7EF; border-radius: 24px; border-radius: 28px; padding: 24px; display: flex; flex-direction: column; gap: 8px">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px"><h2 style="margin: 0; font-size: 20px; font-weight: 900">تیم مسجد</h2><a href="#" style="display: inline-flex; align-items: center; min-height: 40px; padding: 0 16px; border-radius: 12px; background: #0E9F5A; color: #FFFFFF; font-size: 14px; font-weight: 800; text-decoration: none">تعیین دوره برای تیم</a></div>
+        <div style="display: grid; grid-template-columns: 1.6fr 1fr 1.4fr 0.8fr; gap: 12px; padding: 8px 14px; font-size: 12px; font-weight: 800; color: #6C7290"><span>عضو</span><span>نقش</span><span>دورهٔ جاری</span><span>آخرین فعالیت</span></div>
+        <sc-for list="{{team}}" as="m" hint-placeholder-count="6">
+          <div style="display: grid; grid-template-columns: 1.6fr 1fr 1.4fr 0.8fr; gap: 12px; align-items: center; padding: 12px 14px; border-radius: 16px; background: #F4F5F9; font-size: 14px">
+            <span style="display: flex; align-items: center; gap: 10px"><span style="width: 38px; height: 38px; border-radius: 50%; background: {{m.bg}}; color: {{m.fg}}; display: flex; align-items: center; justify-content: center; font-weight: 900; flex: none">{{m.i}}</span><b style="font-weight: 800">{{m.n}}</b></span>
+            <span style="color: {{m.ink}}; font-weight: 800">{{m.role}}</span>
+            <span style="display: flex; flex-direction: column; gap: 4px"><span>{{m.c}}</span><span style="height: 6px; border-radius: 3px; background: #E4E7EF"><span style="display: block; height: 100%; width: {{m.p}}; border-radius: 3px; background: {{m.bar}}"></span></span></span>
+            <span style="color: #6C7290">{{m.last}}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 16px">
+        <div style="background: #1B2150; color: #FFFFFF; border-radius: 28px; padding: 24px; display: flex; flex-direction: column; gap: 12px">
+          <b style="font-size: 17px; font-weight: 900">گزارش ماهانه برای راهیار</b>
+          <span style="font-size: 14px; color: #C9D3F5; line-height: 1.8">آذر: ۴ از ۶ بخش پر شده. عکس‌ها و روایت را اضافه کنید.</span>
+          <div style="height: 8px; border-radius: 4px; background: rgba(255,255,255,0.18)"><div style="width: 66%; height: 100%; border-radius: 4px; background: #F5B700"></div></div>
+          <a href="#" style="display: flex; align-items: center; justify-content: center; min-height: 48px; border-radius: 14px; background: #FFFFFF; color: #1B2150; font-weight: 800; text-decoration: none">ادامهٔ گزارش</a>
+        </div>
+        <div style="background: #FFFFFF; border: 1px solid #E4E7EF; border-radius: 24px; border-radius: 28px; padding: 22px; display: flex; flex-direction: column; gap: 10px">
+          <b style="font-size: 16px; font-weight: 900">کارهای تیم این هفته</b>
+          <sc-for list="{{tasks}}" as="t" hint-placeholder-count="4">
+            <label style="display: flex; align-items: center; gap: 10px; min-height: 40px; font-size: 14px"><input type="checkbox" checked="{{t.d}}" style="width: 20px; height: 20px; accent-color: #0E9F5A"><span style="flex: 1">{{t.t}}</span><span style="font-size: 12px; color: #6C7290">{{t.who}}</span></label>
+          </sc-for>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const R = { imam: ['#1E3A9E', '#FFFFFF', '#1E3A9E'], sh: ['#FBE6EB', '#A8314F', '#A8314F'], b: ['#D3EFEA', '#0B5F52', '#0B5F52'], n: ['#FFF2CC', '#8A5A00', '#8A5A00'] };
+    const M = [
+      ['ح', 'حجت‌الاسلام حسنی', 'امام محله', 'imam', 'شناسنامهٔ مسئلهٔ محله', '55%', 'امروز'],
+      ['ز', 'خانم حسنی', 'شریکة‌الامام', 'sh', 'شریکة‌الامام؛ میدان خواهران', '40%', 'امروز'],
+      ['ف', 'فاطمه رضایی', 'بازوی اجرایی خواهران', 'sh', 'سفر مخاطب', '80%', 'دیروز'],
+      ['م', 'مهدی کاظمی', 'بازوی اجرایی برادران', 'b', 'تشکیلات مسجد', '25%', 'دیروز'],
+      ['ر', 'رضا یوسفی', 'مسئول رسانه', 'b', 'سواد رسانه برای امام', '60%', '۳ روز پیش'],
+      ['ع', 'علی احمدی', 'نوجوان فعال', 'n', 'پلکان اخوت در مسجد', '90%', 'هفتهٔ پیش'],
+    ];
+    const team = M.map(([i, n, role, k, c, p, last]) => ({ i, n, role, c, p, last, bg: R[k][0], fg: R[k][1], ink: R[k][2], bar: R[k][2] }));
+    const tasks = [
+      { t: 'رزرو صندلی برای جشن جمعه', who: 'مهدی', d: true },
+      { t: 'دعوت از سه خانوادهٔ تازه', who: 'خانم حسنی', d: false },
+      { t: 'عکس و روایت جلسهٔ کتابخانه', who: 'رضا', d: false },
+      { t: 'به‌روزرسانی تختهٔ درخت مسئله', who: 'فاطمه', d: true },
+    ];
+    return { team, tasks };
+  }
+}
+</script>
+</body>
+</html>

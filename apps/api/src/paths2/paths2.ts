@@ -316,7 +316,7 @@ export class Paths2Service {
   async pubPath(u: AuthUser, id: string) { const pub = await this.needPub(u); const p = await this.path(id); if (p.publisherId !== pub.id) throw new ForbiddenException(err('forbidden', 'این مسیر مال برگزارکنندهٔ دیگری است')); return { ...p, view: await this.pathView(p, undefined) }; }
   async savePath(u: AuthUser, d: PathDto) {
     const pub = await this.needPub(u);
-    const steps: PathStep[] = d.steps.map((s, i) => ({ id: s.id ?? 's' + (i + 1), title: s.title?.trim() || (d.size === 'micro' ? `هفتهٔ ${i + 1}` : `پلهٔ ${i + 1}`), rule: s.rule?.trim() || null, items: (s.items ?? []).filter((it) => it.refId && ['course', 'path', 'live', 'assess'].includes(it.kind)).map((it) => ({ kind: it.kind as any, refId: it.refId, optional: !!it.optional })) }));
+    const steps: PathStep[] = d.steps.map((s, i) => ({ id: s.id ?? 's' + (i + 1), title: s.title?.trim() || (['یک', 'دو', 'سه', 'چهار', 'پنج', 'شش', 'هفت', 'هشت', 'نه', 'ده'][i] ?? String(i + 1)), rule: s.rule?.trim() || null, items: (s.items ?? []).filter((it) => it.refId && ['course', 'path', 'live', 'assess'].includes(it.kind)).map((it) => ({ kind: it.kind as any, refId: it.refId, optional: !!it.optional })) }));
     // آیتم‌های دیگران فقط از کتابخانهٔ مشترک
     for (const s of steps) for (const it of s.items) {
       if (it.kind === 'course') { const c = await this.db.query.courses.findFirst({ where: eq(courses.id, it.refId), columns: { publisherId: true, libraryShare: true, title: true } }); if (!c) throw new BadRequestException(err('no_course', 'دوره پیدا نشد')); if (c.publisherId !== pub.id && c.libraryShare === 'none') throw new BadRequestException(err('not_shared', `«${c.title}» در کتابخانهٔ مشترک نیست`)); }

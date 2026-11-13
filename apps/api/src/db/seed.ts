@@ -61,11 +61,11 @@ async function paths2Seed(db: ReturnType<typeof drizzle<typeof s>>) {
     await db.insert(s.paths2).values({ slug, ...d, steps, status: 'PUBLISHED', reviewedAt: new Date() });
   };
   await path('taayon-emamat', { title: 'تعیّن امامت', size: 'macro', publisherId: 'pub-hedayat', audience: ['IMAM'], mainFor: ['IMAM'], color: '#1E3A9E', description: 'مسیر اصلی امام محله: از شناخت جایگاه امامت تا برنامهٔ سال اول، با همراهی راهیار.' },
-    [step('s1', 'پلهٔ یک: شناخت', [imam[0]]), step('s2', 'پلهٔ دو: محله', [imam[1]], 'پس از پلهٔ یک', true), step('s3', 'پلهٔ سه: برنامه', [imam[2]], 'پس از تأیید راهیار', true)]);
+    [step('s1', 'شناخت', [imam[0]]), step('s2', 'محله', [imam[1]], 'پس از پلهٔ یک', true), step('s3', 'برنامه', [imam[2]], 'پس از تأیید راهیار', true)]);
   await path('sharikat-ol-emam', { title: 'شریکة‌الامام', size: 'macro', publisherId: 'pub-hedayat', audience: ['SHARIK'], mainFor: ['SHARIK'], color: '#B2456E', description: 'مسیر اصلی بانوی امام: نقش شریکة‌الامام و راه‌اندازی حلقهٔ بانوان محله.' },
-    [step('s1', 'پلهٔ یک: نقش', [sharik[0]]), step('s2', 'پلهٔ دو: حلقه', [sharik[1]], 'پس از پلهٔ یک', true)]);
+    [step('s1', 'نقش', [sharik[0]]), step('s2', 'حلقه', [sharik[1]], 'پس از پلهٔ یک', true)]);
   await path('ozv-ta-morabbi', { title: 'از عضو تا مربی هسته', size: 'macro', publisherId: 'pub-kanoon', audience: ['BAZU', 'HASTEH'], mainFor: ['BAZU', 'HASTEH'], color: '#2E7D4F', description: 'مسیر اصلی بازوها و اعضای هسته: از عضویت در هستهٔ نوجوانان تا مربی‌گری.' },
-    [step('s1', 'پلهٔ یک: عضو', [hasteh[0]]), step('s2', 'پلهٔ دو: مربی', [hasteh[1]], 'پس از پلهٔ یک', true)]);
+    [step('s1', 'عضو', [hasteh[0]]), step('s2', 'مربی', [hasteh[1]], 'پس از پلهٔ یک', true)]);
   console.log('مسیرهای اصلی آماده است');
 }
 

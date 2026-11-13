@@ -45,7 +45,7 @@ export default function Onboard() {
   const stepsUi = ['نقش تو', 'مسجد تو', 'شروع'];
   return (
     <div className="min-h-dvh bg-bg">
-      <header className="wrap flex h-16 items-center justify-between"><Brand /><ol className="flex items-center gap-1.5 text-[13px]" aria-label="قدم‌ها">{stepsUi.map((t, i) => <li key={t} className={`rounded-full px-3 py-1 font-bold ${i === step ? 'bg-deep text-white' : i < step ? 'bg-deep-soft text-deep' : 'bg-sunken text-muted'}`}>{fa(i + 1)} {t}</li>)}</ol></header>
+      <header className="wrap flex h-16 items-center justify-between"><Brand /><ol className="flex shrink-0 items-center gap-1.5 text-[13px]" aria-label="قدم‌ها">{stepsUi.map((t, i) => <li key={t} aria-current={i === step ? 'step' : undefined} className={`whitespace-nowrap rounded-full py-1 font-bold ${i === step ? 'bg-deep px-3 text-white' : i < step ? 'bg-deep-soft px-2.5 text-deep' : 'bg-sunken px-2.5 text-muted'}`}>{fa(i + 1)}<span className={i === step ? 'ms-1' : 'ms-1 max-sm:hidden'}>{t}</span></li>)}</ol></header>
       <main className="wrap grid max-w-3xl gap-8 py-8">
         {step === 0 && (
           <section className="rise grid gap-6">

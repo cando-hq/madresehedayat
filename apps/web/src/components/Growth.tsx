@@ -35,7 +35,7 @@ export function StageTrack({ g, compact }: { g: Growth; compact?: boolean }) {
   return (
     <section className="growth-card card overflow-hidden" aria-labelledby="stage-h">
       <div className="growth-hero relative grid justify-items-center gap-2 px-6 pb-6 pt-8 text-center">
-        <img src="/brand/mark.svg" alt="" aria-hidden="true" className="growth-mark" />
+        <img src={`${import.meta.env.BASE_URL}brand/mark.svg`} alt="" aria-hidden="true" className="growth-mark" />
         <span className="growth-icon grid size-20 place-items-center rounded-full"><I className="size-10" /></span>
         <span className="text-[13px] font-bold text-leaf-ink">مرحلهٔ رشد</span>
         <h2 id="stage-h" className="text-2xl font-extrabold">{g.stageTitle}</h2>

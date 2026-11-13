@@ -19,8 +19,8 @@ const NAV: { to: string; label: string; icon: typeof House; end?: boolean; short
 export function Brand({ compact }: { compact?: boolean }) {
   return (
     <Link to="/" className="flex items-center gap-2.5 no-underline" aria-label="مدرسهٔ هدایت — خانه">
-      <img src="/brand/logo-mark.png" alt="" width={22} height={36} className="h-9 w-auto" />
-      {!compact && <img src="/brand/logo-type-ink.png" alt="مدرسهٔ هدایت" className="h-[18px] w-auto dark:hidden" />}
+      <img src={`${import.meta.env.BASE_URL}brand/logo-mark.png`} alt="" width={22} height={36} className="h-9 w-auto" />
+      {!compact && <img src={`${import.meta.env.BASE_URL}brand/logo-type-ink.png`} alt="مدرسهٔ هدایت" className="h-[18px] w-auto dark:hidden" />}
       {!compact && <span className="hidden text-lg font-extrabold text-ink dark:inline">مدرسهٔ هدایت</span>}
     </Link>
   );

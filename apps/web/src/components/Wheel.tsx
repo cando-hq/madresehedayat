@@ -38,7 +38,7 @@ export function Wheel({ levels, selected, onPick, size = 360 }: { levels: Record
           </g>
         );
       })}
-      <image href="/brand/logo-mark.png" x="315" y="300" width="90" height="120" />
+      <image href={`${import.meta.env.BASE_URL}brand/logo-mark.png`} x="315" y="300" width="90" height="120" />
     </svg>
   );
 }

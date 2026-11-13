@@ -19,6 +19,8 @@ import { Notifier } from '../notifications/notifications';
 type ActorRole = 'IMAM' | 'SHARIK' | 'BAZU' | 'HASTEH' | 'OTHER';
 const ROLES: ActorRole[] = ['IMAM', 'SHARIK', 'BAZU', 'HASTEH', 'OTHER'];
 const ROLE_FA: Record<ActorRole, string> = { IMAM: 'امام', SHARIK: 'شریکة‌الامام', BAZU: 'بازو', HASTEH: 'عضو هسته', OTHER: 'دیگر' };
+// نسبت با مسجد از نقش معلوم است؛ جدا پرسیده نمی‌شود
+const RELATION_OF: Record<ActorRole, string> = { IMAM: 'امام جماعت', SHARIK: 'شریکة‌الامام', BAZU: 'بازو', HASTEH: 'عضو هسته', OTHER: 'نمازگزار' };
 const SIZE_FA: Record<string, string> = { micro: 'مسیر خرد', mid: 'مسیر میانه', macro: 'مسیر کلان' };
 const STATUS_FA: Record<string, string> = { DRAFT: 'پیش‌نویس', IN_REVIEW: 'در بازبینی', PUBLISHED: 'منتشرشده', RETURNED: 'نیاز به اصلاح', ARCHIVED: 'بایگانی' };
 const err = (code: string, message: string, extra: Record<string, unknown> = {}) => ({ code, message, ...extra });
@@ -287,6 +289,7 @@ export class Paths2Service {
     if (d.mosqueId !== undefined) { patch.mosqueId = d.mosqueId || null; if (d.mosqueId) { const m = await this.db.query.mosques.findFirst({ where: eq(mosques.id, d.mosqueId) }); if (!m) throw new NotFoundException(err('no_mosque', 'مسجد پیدا نشد')); patch.lat = m.lat; patch.lng = m.lng; patch.countyId = m.countyId; patch.nearMosque = null; } }
     if (d.lat != null && d.lng != null) { patch.lat = d.lat; patch.lng = d.lng; }
     if (d.relation) patch.mosqueRelation = d.relation;
+    else if (d.mosqueId && d.actorRole) patch.mosqueRelation = RELATION_OF[d.actorRole];
     if (!patch.countyId && d.countyId) {
       if (!(await this.db.query.counties.findFirst({ where: eq(counties.id, d.countyId), columns: { id: true } }))) throw new BadRequestException(err('bad_county', 'شهرستان پیدا نشد'));
       patch.countyId = d.countyId;

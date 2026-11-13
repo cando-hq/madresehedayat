@@ -265,6 +265,7 @@ export function registerPaths2(X: Any) {
     if (b.mosqueId !== undefined) { u.mosqueId = b.mosqueId || null; const mq = DB().mosques.find((m: Any) => m.id === b.mosqueId); if (mq) { u.lat = mq.lat; u.lng = mq.lng; u.countyId = mq.countyId; } }
     if (b.lat != null && b.lng != null) { u.lat = b.lat; u.lng = b.lng; }
     if (b.relation) u.mosqueRelation = b.relation;
+    else if (b.mosqueId && b.actorRole) u.mosqueRelation = ({ IMAM: 'امام جماعت', SHARIK: 'شریکة‌الامام', BAZU: 'بازو', HASTEH: 'عضو هسته', OTHER: 'نمازگزار' } as Record<string, string>)[b.actorRole];
     if (!u.countyId && b.countyId) u.countyId = b.countyId;
     if (!u.countyId) throw E(400, 'no_county', 'مسجدت را انتخاب کن یا دست‌کم شهرستانت را بگو');
     const main = mainFor(u.actorRole);

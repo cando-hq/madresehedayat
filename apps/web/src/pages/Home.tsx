@@ -61,7 +61,7 @@ export default function Home() {
           </div>
           {d.main && <span className="text-sm text-white/75">مسیر اصلی تو: {d.main.title}{d.main.rahyar ? `، با ${d.main.rahyar.name}` : ''}</span>}
         </div>
-        <img src="/brand/poster.jpg" alt="گنبد مسجد با ترنج‌هایی از عرصه‌های زندگی و کبوترها در غروب" className="h-full max-h-[420px] min-h-[220px] w-full object-cover" style={{ objectPosition: '50% 38%' }} />
+        <img src={`${import.meta.env.BASE_URL}brand/poster.jpg`} alt="گنبد مسجد با ترنج‌هایی از عرصه‌های زندگی و کبوترها در غروب" className="h-full max-h-[420px] min-h-[220px] w-full object-cover" style={{ objectPosition: '50% 38%' }} />
       </section>
 
       {!!week.length && (

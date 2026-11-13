@@ -104,9 +104,9 @@ export default function Login() {
       <div className="flex justify-center px-6 sm:items-center" style={{ paddingTop: 'max(48px, env(safe-area-inset-top))', paddingBottom: 'max(32px, env(safe-area-inset-bottom))' }}>
         <div className="flex w-full max-w-[400px] flex-col">
           <div className="mb-10 flex items-center gap-3" role="img" aria-label="مدرسهٔ هدایت">
-            <img src="/brand/logo-mark.png" alt="" className="h-10 w-auto" />
-            <img src="/brand/logo-type-ink.png" alt="" className="h-3.5 w-auto dark:hidden" />
-            <img src="/brand/logo-type-white.png" alt="" className="hidden h-3.5 w-auto dark:block" />
+            <img src={`${import.meta.env.BASE_URL}brand/logo-mark.png`} alt="" className="h-10 w-auto" />
+            <img src={`${import.meta.env.BASE_URL}brand/logo-type-ink.png`} alt="" className="h-3.5 w-auto dark:hidden" />
+            <img src={`${import.meta.env.BASE_URL}brand/logo-type-white.png`} alt="" className="hidden h-3.5 w-auto dark:block" />
           </div>
           {step === 'mobile' && (
             <form onSubmit={sendCode} noValidate className="rise flex flex-1 flex-col sm:flex-none">
@@ -247,7 +247,7 @@ function Art() {
   // تصویر آزاد نفس بکشد؛ نوشته پایین، روی سایهٔ ملایم، دور از گنبد و نشان
   return (
     <div className="relative m-3 hidden overflow-hidden rounded-[28px] bg-[#1B2150] lg:block">
-      <img src="/brand/poster.jpg" alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: '50% 45%' }} />
+      <img src={`${import.meta.env.BASE_URL}brand/poster.jpg`} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: '50% 45%' }} />
       <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, transparent 45%, rgb(16 24 72 / .88))' }} />
       <div className="absolute inset-x-12 bottom-12 z-10 grid max-w-[460px] gap-2">
         <b className="text-[34px] font-extrabold leading-snug text-white">فَلیُبَلِّغِ الحاضِرُ الغائبَ</b>

@@ -3,9 +3,11 @@
  * ۱) مکانت را می‌گیریم ← ۲) «این مسجدها نزدیک تو هستند؛ مسجد تو کدام است؟» ← ۳) اگر نبود، ثبتش کن.
  * کسی که مکان نمی‌دهد استان و شهرستان را انتخاب می‌کند و مسجدهای همان شهرستان را می‌بیند.
  * شهرستان کاربر از مسجد انتخاب‌شده می‌آید (یا نزدیک‌ترین مسجد، یا انتخاب دستی)؛ برای همین در فرم ثبت‌نام نیست.
+ * نسبت با مسجد پرسیده نمی‌شود: از نقش معلوم است. اگر مسجد از پیش معلوم باشد (کد دعوت)، همان انتخاب‌شده نشان داده می‌شود.
  */
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { CircleAlert, LocateFixed, Plus, Search } from 'lucide-react';
+import type { ActorRole } from '../lib/types';
 import { lazy, Suspense, useState } from 'react';
 import { api, type ApiError } from '../lib/api';
 import { fa } from '../lib/fa';
@@ -16,13 +18,20 @@ const MosqueMap = lazy(() => import('./MosqueMap'));
 
 export interface Near { id: string; name: string; address: string | null; lat: number | null; lng: number | null; verified: boolean; distance: number | null; countyId: string; county: string; provinceId: string }
 interface Province { id: string; name: string; counties: { id: string; name: string }[] }
-export interface MosqueChoice { mosqueId: string | null; mosqueName: string | null; countyId: string | null; lat: number | null; lng: number | null; relation: string }
+export interface MosqueChoice { mosqueId: string | null; mosqueName: string | null; countyId: string | null; lat: number | null; lng: number | null }
 
 const IRAN = { lat: 32.4, lng: 53.7 };
 const dist = (m: number | null) => m == null ? '' : m < 1000 ? `${fa(Math.round(m / 10) * 10)} متر` : `${fa((m / 1000).toFixed(1))} کیلومتر`;
-const RELATIONS = ['امام جماعت', 'شریکة‌الامام', 'بازو', 'عضو هسته', 'نمازگزار'];
+// متن قدم به نقش بسته است تا روشن باشد کدام مسجد را می‌خواهیم
+const COPY: Record<ActorRole, [string, string]> = {
+  IMAM: ['مسجدی که امامش هستی', 'راهیار منطقه و گعدهٔ امامان نزدیکت از همین معلوم می‌شود.'],
+  SHARIK: ['مسجدی که همسرت امامش است', 'برای حلقه‌ها و گعده‌های بانوان نزدیکت.'],
+  BAZU: ['مسجدی که در آن کار می‌کنی', 'تا به امام و هستهٔ همان مسجد وصل شوی.'],
+  HASTEH: ['مسجد هسته‌ات', 'تا به امام و هستهٔ همان مسجد وصل شوی.'],
+  OTHER: ['مسجد محله‌ات', 'برای برنامه‌ها و گعده‌های نزدیکت.'],
+};
 
-export function MosqueStep({ value, onChange, onNext, onBack }: { value: MosqueChoice; onChange: (v: MosqueChoice) => void; onNext: () => void; onBack: () => void }) {
+export function MosqueStep({ role, value, onChange, onNext, onBack, finishing }: { role: ActorRole; value: MosqueChoice; onChange: (v: MosqueChoice) => void; onNext: (v: MosqueChoice) => void; onBack: () => void; finishing?: boolean }) {
   const toast = useToast(); const qc = useQueryClient();
   const [mode, setMode] = useState<'ask' | 'here' | 'county'>(value.lat != null ? 'here' : value.countyId ? 'county' : 'ask');
   const [here, setHere] = useState<{ lat: number; lng: number } | null>(value.lat != null && value.lng != null ? { lat: value.lat, lng: value.lng } : null);
@@ -71,16 +80,24 @@ export function MosqueStep({ value, onChange, onNext, onBack }: { value: MosqueC
   // بدون انتخاب مسجد هم می‌شود رفت، به شرط این‌که شهرستان معلوم باشد
   const fallbackCounty = value.countyId ?? (mode === 'county' ? county || null : closeBy[0]?.countyId ?? null);
   const canNext = !!value.mosqueId || !!fallbackCounty;
-  const next = () => { if (!value.mosqueId) onChange({ ...value, countyId: fallbackCounty }); onNext(); };
+  const next = () => { const v = value.mosqueId ? value : { ...value, countyId: fallbackCounty }; onChange(v); onNext(v); };
   const countiesOf = (p: string) => provinces.data?.find((x) => x.id === p)?.counties ?? [];
 
   const sel = (on: boolean) => `grid size-5 shrink-0 place-items-center rounded-full border-2 ${on ? 'border-leaf' : 'border-line-strong'}`;
   return (
     <section className="rise flex flex-1 flex-col">
-      <h1 className="text-[26px] font-extrabold leading-tight">مسجدت کجاست؟</h1>
-      <p className="mt-2 text-[15px] text-muted">برای گعده‌های نزدیک و راهیار منطقه‌ات.</p>
+      <h1 className="text-[26px] font-extrabold leading-tight">{COPY[role][0]}</h1>
+      <p className="mt-2 text-[15px] text-muted">{COPY[role][1]}</p>
 
-      {mode === 'ask' && (
+      {mode === 'ask' && value.mosqueId && (
+        <div className="mt-8 flex items-center gap-3 rounded-2xl border border-leaf bg-leaf-soft px-4 py-3.5">
+          <span className="grid size-5 shrink-0 place-items-center rounded-full border-2 border-leaf"><span className="size-2.5 rounded-full bg-leaf" /></span>
+          <b className="min-w-0 flex-1 truncate text-[15px] text-ink">{value.mosqueName}</b>
+          <button type="button" className="shrink-0 py-1 text-[13px] font-bold text-leaf-ink" onClick={() => onChange({ ...value, mosqueId: null, mosqueName: null })}>عوض کن</button>
+        </div>
+      )}
+
+      {mode === 'ask' && !value.mosqueId && (
         <div className="mt-8 grid gap-3">
           <button type="button" className="btn btn-primary btn-lg w-full" onClick={locate} disabled={locating}>{locating ? <><InlineSpinner />در حال پیدا کردن…</> : <><LocateFixed className="size-5" />مسجدهای نزدیکم را پیدا کن</>}</button>
           <button type="button" className="btn btn-ghost w-full" onClick={() => setMode('county')}>شهرستانم را دستی انتخاب می‌کنم</button>
@@ -122,12 +139,6 @@ export function MosqueStep({ value, onChange, onNext, onBack }: { value: MosqueC
                 {!near.isLoading && !list.length && <p className="px-4 py-4 text-sm text-muted">{q ? 'مسجدی با این نام نیست.' : 'این‌جا هنوز مسجدی ثبت نشده.'}</p>}
                 <button type="button" className="flex w-full items-center gap-3 px-4 py-3.5 text-start font-bold text-leaf-ink hover:bg-sunken" onClick={startAdd}><Plus className="size-5 shrink-0" />مسجدم در فهرست نیست</button>
               </div>
-              {value.mosqueId && (
-                <div className="grid gap-2">
-                  <span className="text-[13px] text-muted">نسبتت با این مسجد (اختیاری)</span>
-                  <div className="flex flex-wrap gap-2">{RELATIONS.map((r) => <button key={r} type="button" aria-pressed={value.relation === r} onClick={() => onChange({ ...value, relation: value.relation === r ? '' : r })} className={`h-9 rounded-full border px-3.5 text-[13px] font-bold transition-colors ${value.relation === r ? 'border-leaf bg-leaf-soft text-leaf-ink' : 'border-line bg-card text-body'}`}>{r}</button>)}</div>
-                </div>
-              )}
             </>
           )}
 
@@ -151,7 +162,7 @@ export function MosqueStep({ value, onChange, onNext, onBack }: { value: MosqueC
           <button className="btn btn-primary btn-lg flex-1" disabled={newName.trim().length < 3 || !pin || (needCounty && !newCounty) || add.isPending} onClick={() => add.mutate()}>{add.isPending ? <InlineSpinner /> : null}ثبت مسجد</button>
         </>) : (<>
           <button className="btn btn-ghost btn-lg" onClick={onBack}>برگرد</button>
-          <button className="btn btn-primary btn-lg flex-1" disabled={!canNext} onClick={next}>{value.mosqueId || !canNext ? 'ادامه' : 'بعداً می‌گویم'}</button>
+          {(mode !== 'ask' || value.mosqueId) && <button className="btn btn-primary btn-lg flex-1" disabled={!canNext || finishing} onClick={next}>{finishing ? <InlineSpinner /> : null}{value.mosqueId || !canNext ? 'شروع کن' : 'مسجد را بعداً می‌گویم'}</button>}
         </>)}
       </StepFooter>
     </section>

@@ -44,7 +44,7 @@ export function VerifyPage() {
           <article className="rise card overflow-hidden text-center">
             <div className="h-2" style={{ background: 'linear-gradient(90deg, var(--sprout), var(--leaf), var(--dome), var(--deep))' }} />
             <div className="grid justify-items-center gap-3 p-8">
-              <img src="/brand/logo-full.png" alt="" className="h-20 w-auto" />
+              <img src={`${import.meta.env.BASE_URL}brand/logo-full.png`} alt="" className="h-20 w-auto" />
               <span className="chip chip-leaf"><BadgeCheck className="size-4" />گواهی معتبر است</span>
               <p className="text-sm text-muted">گواهی پایان دوره</p>
               <h2 className="text-2xl font-extrabold">{q.data.courseTitle}</h2>

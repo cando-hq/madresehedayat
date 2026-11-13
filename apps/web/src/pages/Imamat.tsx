@@ -82,7 +82,7 @@ export default function ImamatPage() {
           <div className="flex flex-wrap items-end justify-between gap-3"><div><span className="text-sm font-bold text-flame">سطح شما</span><h2 className="text-2xl font-extrabold text-white">{LEVELS[im.level - 1].name}</h2></div>
             <span className="text-sm text-white/80">مرحله در مارپیچ رشد: <b className="text-white">{SPIRAL[im.spiral - 1]}</b></span></div>
           <LevelTrack level={im.level} dark />
-          <div className="flex flex-wrap items-center gap-5 rounded-2xl bg-white/10 p-4"><img src="/brand/spiral.jpg" alt="مارپیچ رشد امام" className="h-28 w-auto rounded-xl" /><p className="min-w-[220px] flex-1 text-sm leading-7 text-white/90">امام در پنج مرحله رشد می‌کند و در هر دور، همان کنش‌ها عمیق‌تر می‌شوند. مرکز ثابت مارپیچ در همهٔ مراحل: تربیت نفس، الگو بودن و رفتار مهربانانه.</p></div>
+          <div className="flex flex-wrap items-center gap-5 rounded-2xl bg-white/10 p-4"><img src={`${import.meta.env.BASE_URL}brand/spiral.jpg`} alt="مارپیچ رشد امام" className="h-28 w-auto rounded-xl" /><p className="min-w-[220px] flex-1 text-sm leading-7 text-white/90">امام در پنج مرحله رشد می‌کند و در هر دور، همان کنش‌ها عمیق‌تر می‌شوند. مرکز ثابت مارپیچ در همهٔ مراحل: تربیت نفس، الگو بودن و رفتار مهربانانه.</p></div>
         </section>
       )}
       <section className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">

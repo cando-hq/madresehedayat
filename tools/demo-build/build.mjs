@@ -11,6 +11,8 @@ await esbuild.build({
   plugins: [{ name: 'shim', setup(b) {
     b.onResolve({ filter: /^react(-dom)?(\/.*)?$/ }, (a) => ({ path: require_.resolve(a.path, { paths: ['/opt/npm-tools/node_modules'] }) }));
     b.onResolve({ filter: /^(react-router|@tanstack\/react-query|qrcode)$/ }, (a) => ({ path: alias[a.path] }));
+    // نمایشی بی‌کلید نشان است؛ بستهٔ نشان را بیرون نگه دار
+    b.onResolve({ filter: /neshanLeaflet$/ }, () => ({ path: 'neshan', namespace: 'nocss' }));
     b.onResolve({ filter: /\.css$/ }, (a) => ({ path: a.path, namespace: 'nocss' }));
     b.onLoad({ filter: /.*/, namespace: 'nocss' }, () => ({ contents: '', loader: 'js' }));
   } }],

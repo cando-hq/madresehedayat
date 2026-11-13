@@ -7,7 +7,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { CircleAlert, LocateFixed, Plus, Search } from 'lucide-react';
 import { lazy, Suspense, useState } from 'react';
-import { api } from '../lib/api';
+import { api, type ApiError } from '../lib/api';
 import { fa } from '../lib/fa';
 import { StepFooter } from './StepFooter';
 import { InlineSpinner, useToast } from './ui';
@@ -36,6 +36,7 @@ export function MosqueStep({ value, onChange, onNext, onBack }: { value: MosqueC
   const [pin, setPin] = useState<{ lat: number; lng: number } | null>(null);
   const [newCounty, setNewCounty] = useState('');
   const [newProv, setNewProv] = useState('');
+  const [needCounty, setNeedCounty] = useState(false); // فقط وقتی سرور نتوانست شهرستان را از روی نقشه بفهمد
 
   const provinces = useQuery({ queryKey: ['geo', 'provinces'], queryFn: () => api<Province[]>('/geo/provinces'), staleTime: Infinity });
   const params = mode === 'here' && here ? `lat=${here.lat}&lng=${here.lng}` : mode === 'county' && county ? `county=${county}&limit=30` : '';
@@ -61,11 +62,11 @@ export function MosqueStep({ value, onChange, onNext, onBack }: { value: MosqueC
   // مسجد تازه: شهرستانش پیش‌فرض همان شهرستان نزدیک‌ترین مسجد (یا شهرستان انتخاب‌شده)، قابل عوض کردن
   const guessCounty = mode === 'county' ? county : closeBy[0]?.countyId ?? '';
   const guessProv = mode === 'county' ? prov : closeBy[0]?.provinceId ?? '';
-  const startAdd = () => { setAdding(true); setPin(here ?? (list[0]?.lat != null ? { lat: list[0].lat!, lng: list[0].lng! } : null)); setNewCounty(guessCounty); setNewProv(guessProv); };
+  const startAdd = () => { setAdding(true); setNeedCounty(false); setPin(here ?? (list[0]?.lat != null ? { lat: list[0].lat!, lng: list[0].lng! } : null)); setNewCounty(mode === 'county' ? county : ''); setNewProv(mode === 'county' ? prov : ''); };
   const add = useMutation({
     mutationFn: () => api<Near>('/v2/mosques', { body: { name: newName.trim(), lat: pin?.lat, lng: pin?.lng, countyId: newCounty || undefined } }),
     onSuccess: (m) => { onChange({ ...value, mosqueId: m.id, mosqueName: newName.trim(), countyId: m.countyId }); setAdding(false); setNewName(''); qc.invalidateQueries({ queryKey: ['v2', 'near'] }); toast('مسجدت ثبت شد؛ ستاد یک بار نگاهش می‌کند'); },
-    onError: (e) => toast((e as Error).message, 'err'),
+    onError: (e) => { if ((e as ApiError).code === 'no_county') { setNeedCounty(true); setNewProv(guessProv); setNewCounty(guessCounty); } toast((e as Error).message, 'err'); },
   });
   // بدون انتخاب مسجد هم می‌شود رفت، به شرط این‌که شهرستان معلوم باشد
   const fallbackCounty = value.countyId ?? (mode === 'county' ? county || null : closeBy[0]?.countyId ?? null);
@@ -134,10 +135,10 @@ export function MosqueStep({ value, onChange, onNext, onBack }: { value: MosqueC
             <div className="grid gap-4">
               <p className="text-sm text-muted">روی نقشه، جای مسجد را بزن. ستاد یک بار تأییدش می‌کند.</p>
               <div className="field"><label htmlFor="nm">نام مسجد</label><input id="nm" className="input h-12" value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="مثلاً مسجد امام حسن (ع)" autoFocus /></div>
-              <div className="grid grid-cols-2 gap-3">
+              {needCounty && <div className="grid grid-cols-2 gap-3">
                 <div className="field"><label htmlFor="nm-prov">استان</label><select id="nm-prov" className="input h-12" value={newProv} onChange={(e) => { setNewProv(e.target.value); setNewCounty(''); }}><option value="">انتخاب کن</option>{provinces.data?.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div>
                 <div className="field"><label htmlFor="nm-county">شهرستان</label><select id="nm-county" className="input h-12" value={newCounty} disabled={!newProv} onChange={(e) => setNewCounty(e.target.value)}><option value="">انتخاب کن</option>{countiesOf(newProv).map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
-              </div>
+              </div>}
               {!pin && <p className="hint">هنوز جای مسجد روی نقشه مشخص نشده.</p>}
             </div>
           )}
@@ -147,7 +148,7 @@ export function MosqueStep({ value, onChange, onNext, onBack }: { value: MosqueC
       <StepFooter>
         {adding ? (<>
           <button className="btn btn-ghost btn-lg" onClick={() => setAdding(false)}>انصراف</button>
-          <button className="btn btn-primary btn-lg flex-1" disabled={newName.trim().length < 3 || !newCounty || !pin || add.isPending} onClick={() => add.mutate()}>{add.isPending ? <InlineSpinner /> : null}ثبت مسجد</button>
+          <button className="btn btn-primary btn-lg flex-1" disabled={newName.trim().length < 3 || !pin || (needCounty && !newCounty) || add.isPending} onClick={() => add.mutate()}>{add.isPending ? <InlineSpinner /> : null}ثبت مسجد</button>
         </>) : (<>
           <button className="btn btn-ghost btn-lg" onClick={onBack}>برگرد</button>
           <button className="btn btn-primary btn-lg flex-1" disabled={!canNext} onClick={next}>{value.mosqueId || !canNext ? 'ادامه' : 'بعداً می‌گویم'}</button>

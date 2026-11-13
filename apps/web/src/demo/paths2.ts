@@ -251,7 +251,9 @@ export function registerPaths2(X: Any) {
   });
   on('POST', '/v2/mosques', (_m: Any, b: Any) => {
     const u = me(); if (!b.name?.trim()) throw E(400, 'no_name', 'نام مسجد را بنویس');
-    const countyId = b.countyId || u.countyId; if (!countyId) throw E(400, 'no_county', 'شهرستان مسجد را انتخاب کن');
+    let countyId = b.countyId || null;
+    if (!countyId && b.lat != null) { const n = DB().mosques.filter((m: Any) => m.lat).map((m: Any) => ({ m, d: dist(b.lat, b.lng, m.lat, m.lng) })).sort((x: Any, y: Any) => x.d - y.d)[0]; if (n && n.d <= 25000) countyId = n.m.countyId; }
+    countyId ??= u.countyId; if (!countyId) throw E(400, 'no_county', 'شهرستان این مسجد را نتوانستیم بفهمیم؛ استان و شهرستانش را انتخاب کن');
     const m = { id: rid(), name: b.name.trim(), address: b.address?.trim() || null, countyId, lat: b.lat ?? null, lng: b.lng ?? null, verified: false, proposedBy: u.id, createdAt: now() };
     DB().mosques.push(m); return { id: m.id, name: m.name, address: m.address, verified: false, countyId, lat: m.lat, lng: m.lng, distance: 0 };
   });

@@ -107,6 +107,7 @@ services:
         <<: *images
         NGINX_IMAGE: ${NGINX_IMAGE:-nginx:1.27-alpine}
         VITE_MAP_TILES: ${MAP_TILES:-}
+        VITE_NESHAN_KEY: ${NESHAN_KEY:-}
     restart: unless-stopped
     depends_on:
       api: { condition: service_healthy }

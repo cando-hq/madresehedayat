@@ -141,10 +141,11 @@ export default function Login() {
                 {err ? <p className="err justify-center" role="alert"><CircleAlert className="size-4" />{err}</p> : info ? <p className="hint">{info}</p> : devCode ? <p className="hint">آزمایشی: کد <b className="tnum">{fa(devCode)}</b></p> : null}
               </div>
               <button className="btn btn-primary btn-lg mt-6 w-full" disabled={busy || digits.length < 5}>{busy ? 'در حال بررسی…' : isNew ? 'ادامه' : 'ورود'}</button>
-              <div className="mt-5 flex items-center justify-center gap-5 text-sm">
-                {wait > 0 ? <span className="tnum text-muted">کد تازه تا {fa(Math.floor(wait / 60))}:{fa(String(wait % 60).padStart(2, '0'))}</span>
+              <div className="mt-5 grid justify-items-center gap-1 text-sm">
+                {wait > 0 ? <span className="tnum py-2 text-muted">کد تازه تا {fa(Math.floor(wait / 60))}:{fa(String(wait % 60).padStart(2, '0'))}</span>
                   : <button type="button" className="py-2 font-bold text-leaf-ink" onClick={() => sendCode()} disabled={busy}>کد تازه بگیر</button>}
-                {alt && wait <= 0 && <button type="button" className="py-2 font-bold text-muted" onClick={() => sendCode(undefined, alt === 'BALE' ? 'bale' : 'sms')} disabled={busy}>{alt === 'BALE' ? 'در بله بفرست' : 'با پیامک بفرست'}</button>}
+                {/* اگر کد از یک راه نیامد، بعد از ده ثانیه می‌شود از راه دیگر گرفت (بی‌انتظار یک دقیقه) */}
+                {alt && wait <= 50 && <button type="button" className="py-2 font-bold text-muted" onClick={() => sendCode(undefined, alt === 'BALE' ? 'bale' : 'sms')} disabled={busy}>{alt === 'BALE' ? 'پیامک نیامد؟ در بله بفرست' : `در ${channel === 'EITAA' ? 'ایتا' : 'بله'} نیامد؟ با پیامک بفرست`}</button>}
               </div>
             </form>
           )}

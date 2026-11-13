@@ -55,7 +55,6 @@ export default function Onboard() {
                 </button>
               ))}
             </div>
-            {main && <p className="mt-5 text-sm text-muted">مسیر اصلی‌ات: <b className="text-ink">{main.title}</b> از {main.publisher}، {fa(main.steps)} پله. پیش‌فرض است، اجبار نیست.</p>}
             <StepFooter><button className="btn btn-primary btn-lg w-full" onClick={() => setStep(1)}>ادامه</button></StepFooter>
           </section>
         )}

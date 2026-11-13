@@ -266,9 +266,10 @@ export class Paths2Service {
     const me = (await this.db.query.users.findFirst({ where: eq(users.id, u.id), columns: { countyId: true } }))!;
     // شهرستان مسجد تازه: آنچه کاربر انتخاب کرده ← شهرستان نزدیک‌ترین مسجد به پین ← شهرستان خود کاربر
     let countyId = d.countyId && (await this.db.query.counties.findFirst({ where: eq(counties.id, d.countyId), columns: { id: true } })) ? d.countyId : null;
-    if (!countyId && d.lat != null && d.lng != null) countyId = (await this.near({ lat: String(d.lat), lng: String(d.lng), limit: '1' }))[0]?.countyId ?? null;
+    // شهرستان از نزدیک‌ترین مسجدِ ثبت‌شده در شعاع ۲۵ کیلومتری پین؛ دورتر از آن مطمئن نیست و از کاربر می‌پرسیم
+    if (!countyId && d.lat != null && d.lng != null) { const n = (await this.near({ lat: String(d.lat), lng: String(d.lng), limit: '1' }))[0]; if (n?.distance != null && n.distance <= 25_000) countyId = n.countyId; }
     countyId ??= me.countyId;
-    if (!countyId) throw new BadRequestException(err('no_county', 'شهرستان مسجد را انتخاب کن'));
+    if (!countyId) throw new BadRequestException(err('no_county', 'شهرستان این مسجد را نتوانستیم بفهمیم؛ استان و شهرستانش را انتخاب کن'));
     const [m] = await this.db.insert(mosques).values({ name: d.name.trim(), address: d.address?.trim() || null, countyId, lat: d.lat ?? null, lng: d.lng ?? null, verified: false, proposedBy: u.id }).returning();
     return { id: m.id, name: m.name, address: m.address, verified: false, countyId, lat: m.lat, lng: m.lng, distance: 0 };
   }

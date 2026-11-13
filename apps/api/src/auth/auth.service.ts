@@ -13,6 +13,8 @@ import { Messenger } from '../messenger/messenger';
 
 const OTP_TTL_MS = 2 * 60_000;
 const RESEND_MS = 60_000;
+/** عوض کردن راه (بله ↔ پیامک) لازم نیست یک دقیقه صبر کند؛ ده ثانیه کافی است (سقف ساعتی سر جایش است) */
+const SWITCH_MS = 10_000;
 const MAX_PER_HOUR = 5;
 const MAX_WRONG = 5;
 
@@ -46,8 +48,9 @@ export class AuthService {
     const recent = await this.db.select().from(otpRequests)
       .where(and(eq(otpRequests.mobile, mobileKey(mobile)), gt(otpRequests.createdAt, hourAgo)))
       .orderBy(desc(otpRequests.createdAt));
-    if (recent[0] && Date.now() - recent[0].createdAt.getTime() < RESEND_MS) {
-      const wait = Math.ceil((RESEND_MS - (Date.now() - recent[0].createdAt.getTime())) / 1000);
+    const gap = via ? SWITCH_MS : RESEND_MS;
+    if (recent[0] && Date.now() - recent[0].createdAt.getTime() < gap) {
+      const wait = Math.ceil((gap - (Date.now() - recent[0].createdAt.getTime())) / 1000);
       throw new HttpException({ code: 'otp_wait', message: `کد تازه تا ${wait} ثانیهٔ دیگر؛ اگر کد قبلی رسیده، همان را بزن`, wait }, HttpStatus.TOO_MANY_REQUESTS);
     }
     if (recent.length >= MAX_PER_HOUR) {

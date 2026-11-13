@@ -15,6 +15,8 @@ COPY apps/web apps/web
 COPY apps/api/src/tools/catalog.json apps/api/src/tools/catalog.json
 ARG VITE_MAP_TILES=
 ENV VITE_MAP_TILES=$VITE_MAP_TILES
+ARG VITE_NESHAN_KEY=
+ENV VITE_NESHAN_KEY=$VITE_NESHAN_KEY
 RUN npm run build -w apps/web
 
 FROM ${NGINX_IMAGE}

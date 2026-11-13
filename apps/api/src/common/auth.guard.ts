@@ -30,11 +30,11 @@ export class AuthGuard implements CanActivate {
       }
     }
     if (isPublic) return true;
-    if (!req.user) throw new UnauthorizedException({ code: 'unauthenticated', message: 'اول وارد شوید' });
+    if (!req.user) throw new UnauthorizedException({ code: 'unauthenticated', message: 'اول وارد شو' });
     const need = this.reflector.getAllAndOverride<RoleName[]>(ROLES, [ctx.getHandler(), ctx.getClass()]);
     if (need?.length && !need.some((r) => req.user!.roles.includes(r))) {
-      if (req.user.mfaPending && need.some((r) => STAFF.includes(r))) throw new ForbiddenException({ code: 'mfa_required', message: 'برای ورود به پنل ستاد، رمز دوم را وارد کنید' });
-      throw new ForbiddenException({ code: 'forbidden', message: 'به این بخش دسترسی ندارید' });
+      if (req.user.mfaPending && need.some((r) => STAFF.includes(r))) throw new ForbiddenException({ code: 'mfa_required', message: 'برای ورود به پنل ستاد، رمز دوم را بزن' });
+      throw new ForbiddenException({ code: 'forbidden', message: 'به این بخش دسترسی نداری' });
     }
     return true;
   }

@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { CircleAlert, KeyRound, LogOut, Moon, Sun, SunMoon } from 'lucide-react';
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
-import { useNavigate } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { useToast } from '../components/ui';
 import { api } from '../lib/api';
 import { useAuth } from '../lib/auth';
@@ -99,6 +99,7 @@ export default function Settings() {
       <section className="card grid gap-4 p-6">
         <h2 className="text-lg font-extrabold">حساب</h2>
         <div className="flex flex-wrap items-center justify-between gap-3"><div><b className="block text-ink">شمارهٔ موبایل</b><span dir="ltr" className="tnum text-muted">{maskMobile(me!.mobile)}</span></div></div>
+        <div className="flex flex-wrap items-center justify-between gap-3"><div><b className="block text-ink">نقش من در مسجد و مسجدم</b><span className="text-sm text-muted">{[me!.actorRole ? { IMAM: 'امام', SHARIK: 'شریکة‌الامام', BAZU: 'بازو', HASTEH: 'عضو هسته', OTHER: 'دیگر' }[me!.actorRole] : null, me!.mosque?.name].filter(Boolean).join('، ') || 'هنوز نگفته‌ای'}</span></div><Link to="/onboard" className="btn btn-secondary btn-sm">عوض کن</Link></div>
         {me!.roles.length > 0 && <div><b className="block text-ink">نقش‌ها</b><div className="mt-1 flex flex-wrap gap-2">{me!.roles.map((r) => <span key={r} className="chip chip-dome">{ROLE_LABEL[r]}</span>)}</div></div>}
         {me!.cores.length > 0 && <div><b className="block text-ink">هسته‌ها</b><div className="mt-1 flex flex-wrap gap-2">{me!.cores.map((c) => <span key={c.id} className="chip">{c.name}{c.isLeader ? ' · مسئول' : ''}</span>)}</div></div>}
         <div className="flex flex-wrap items-center justify-between gap-3"><div><b className="block text-ink">ورود با سامانهٔ پایه</b><span className="text-sm text-muted">{me!.ssoLinked ? 'حساب شما وصل است' : 'به‌زودی؛ هنوز راه نیفتاده'}</span></div><KeyRound className="size-5 text-muted" /></div>

@@ -28,6 +28,7 @@ export default function Login() {
   // کد ورود اگر بله یا ایتا وصل باشد رایگان همان‌جا می‌رود (مدل کسب‌وکار: کم کردن پیامک)
   const [channel, setChannel] = useState<'SMS' | 'BALE' | 'EITAA'>('SMS');
   const [alt, setAlt] = useState<'SMS' | 'BALE' | null>(null);
+  const [info, setInfo] = useState('');
   const welcome = useToast();
   const [isNew, setIsNew] = useState(false);
   const [regToken, setRegToken] = useState('');
@@ -55,7 +56,7 @@ export default function Login() {
     setErr(''); setBusy(true);
     try {
       const contact = await eitaaContact();
-      if (!contact) { setErr('شماره از ایتا دریافت نشد؛ با کد پیامکی وارد شوید.'); return; }
+      if (!contact) { setErr('شماره از ایتا نرسید؛ با کد پیامکی وارد شو.'); return; }
       const r = await api<{ needsRegistration: boolean; regToken?: string; user?: any }>('/auth/eitaa/contact', { body: { contact } });
       if (r.needsRegistration) { setRegToken(r.regToken!); setStep('register'); } else setMe(r.user);
     } catch (e) { setErr((e as Error).message); } finally { setBusy(false); }
@@ -65,15 +66,15 @@ export default function Login() {
   async function sendCode(e?: FormEvent, via?: 'sms' | 'bale') {
     e?.preventDefault();
     const m = normMobile(mobile);
-    if (!/^09\d{9}$/.test(m)) { setErr('شماره باید ۱۱ رقم باشد و با ۰۹ شروع شود.'); return; }
+    if (!/^09\d{9}$/.test(m)) { setErr('شماره ۱۱ رقم است و با ۰۹ شروع می‌شود؛ مثل ۰۹۱۲۳۴۵۶۷۸۹'); return; }
     setBusy(true); setErr('');
     try {
       const r = await api<{ resendIn: number; isNew: boolean; devCode?: string; channel: 'SMS' | 'BALE' | 'EITAA'; alt?: 'SMS' | 'BALE' | null }>('/auth/otp', { body: { mobile: m, ...(via ? { via } : {}) } });
-      setMobile(m); setIsNew(r.isNew); setChannel(r.channel ?? 'SMS'); setAlt(r.alt ?? (r.channel && r.channel !== 'SMS' ? 'SMS' : null)); setDevCode(r.devCode ?? null); setWait(r.resendIn); setCode(''); setStep('code');
+      setMobile(m); setIsNew(r.isNew); setChannel(r.channel ?? 'SMS'); setAlt(r.alt ?? (r.channel && r.channel !== 'SMS' ? 'SMS' : null)); setDevCode(r.devCode ?? null); setWait(r.resendIn); setCode(''); setInfo(''); setStep('code');
       setTimeout(() => codeRef.current?.focus(), 50);
     } catch (e) {
       const a = e as ApiError;
-      if (a.code === 'otp_wait' && step === 'mobile') { setStep('code'); setWait(a.data?.wait ?? 60); }
+      if (a.code === 'otp_wait') { setMobile(m); setStep('code'); setWait(a.data?.wait ?? 60); setInfo(a.message); setTimeout(() => codeRef.current?.focus(), 50); return; }
       setErr(a.message);
     } finally { setBusy(false); }
   }
@@ -81,7 +82,7 @@ export default function Login() {
   async function verify(e?: FormEvent) {
     e?.preventDefault();
     const c = toEn(code).replace(/\D/g, '');
-    if (c.length !== 5) { setErr('کد ۵ رقمی را کامل وارد کنید.'); return; }
+    if (c.length !== 5) { setErr('کد ۵ رقم است؛ همه‌اش را بزن.'); return; }
     setBusy(true); setErr('');
     try {
       const r = await api<{ needsRegistration: boolean; regToken?: string; user?: Me }>('/auth/verify', { body: { mobile, code: c } });
@@ -89,7 +90,7 @@ export default function Login() {
       else { setMe(r.user!); welcome(`خوش برگشتی، ${r.user!.firstName}`); nav(next, { replace: true }); }
     } catch (e) {
       const a = e as ApiError; const left = a.code === 'otp_wrong' ? Number(a.data?.left) : NaN;
-      setErr(Number.isFinite(left) && left > 0 ? `${a.message}؛ ${fa(left)} بار دیگر می‌توانید امتحان کنید.` : a.message); setCode(''); codeRef.current?.focus();
+      setErr(Number.isFinite(left) && left > 0 ? `${a.message} (${fa(left)} فرصت دیگر)` : a.message); setCode(''); codeRef.current?.focus();
     } finally { setBusy(false); }
   }
 
@@ -100,12 +101,16 @@ export default function Login() {
     <div className="grid min-h-dvh lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
       <div className="flex items-start justify-center px-4 py-10 sm:items-center" style={{ paddingTop: 'max(40px, env(safe-area-inset-top))' }}>
         <div className="w-full max-w-[440px]">
-          <img src="/brand/logo-full.png" alt="مدرسهٔ هدایت" className="mb-6 h-20 w-auto" />
+          <div className="mb-6 grid w-fit justify-items-center gap-2" role="img" aria-label="مدرسهٔ هدایت">
+            <img src="/brand/logo-mark.png" alt="" className="h-14 w-auto" />
+            <img src="/brand/logo-type-ink.png" alt="" className="h-4 w-auto dark:hidden" />
+            <img src="/brand/logo-type-white.png" alt="" className="hidden h-4 w-auto dark:block" />
+          </div>
           {step === 'mobile' && (
             <form onSubmit={sendCode} noValidate className="rise">
-              <h1 className="text-[clamp(24px,3vw,30px)] font-extrabold">به مدرسه خوش آمدید</h1>
-              {expired && <p className="mt-3 rounded-xl bg-flame-soft px-3 py-2 text-sm text-flame-ink" role="status">نشست شما تمام شده بود؛ برای امنیت حساب، دوباره وارد شوید. بعد از ورود به همان صفحه برمی‌گردید.</p>}
-              <p className="mt-1.5 text-muted">شمارهٔ موبایلتان را بنویسید. اگر بار اول است، حسابتان همین‌جا ساخته می‌شود.</p>
+              <h1 className="text-[clamp(24px,3vw,30px)] font-extrabold">ورود به مدرسهٔ هدایت</h1>
+              {expired && <p className="mt-3 rounded-xl bg-flame-soft px-3 py-2 text-sm text-flame-ink" role="status">برای امنیت حسابت، دوباره وارد شو؛ بعد از ورود به همان صفحه برمی‌گردی.</p>}
+              <p className="mt-1.5 text-muted">شمارهٔ موبایلت را بنویس تا کد ورود برایت بفرستیم. اگر بار اول است، حسابت همین‌جا ساخته می‌شود.</p>
               <div className="field mt-6">
                 <label htmlFor="mobile">شمارهٔ موبایل</label>
                 <div className="relative">
@@ -113,36 +118,36 @@ export default function Login() {
                   <input id="mobile" className="input ltr tnum h-[52px] !pr-11 text-lg tracking-wider" inputMode="numeric" autoComplete="tel" placeholder="۰۹۱۲ ۳۴۵ ۶۷۸۹"
                     value={mobile} onChange={(e) => { setMobile(e.target.value); setErr(''); }} autoFocus />
                 </div>
-                {err && <p className="err"><CircleAlert className="size-4" />{err}</p>}
+                {err && <p className="err" role="alert"><CircleAlert className="size-4" />{err}</p>}
               </div>
               {eitaa && <div className="mt-6 grid gap-2 rounded-2xl bg-leaf-soft p-4">
-                <b className="text-ink">سلام{eitaa.name ? ` ${eitaa.name}` : ''}! از ایتا آمده‌اید.</b>
-                <p className="text-sm text-body">با شمارهٔ حساب ایتایتان، بدون کد پیامکی وارد شوید. یک‌بار که وارد شوید، دفعه‌های بعد خودکار وارد می‌شوید و اعلان‌ها در ایتا هم می‌رسد.</p>
+                <b className="text-ink">سلام{eitaa.name ? ` ${eitaa.name}` : ''}! از ایتا آمده‌ای.</b>
+                <p className="text-sm text-body">با شمارهٔ حساب ایتایت، بدون کد وارد شو. بعد از این دفعه‌ها خودکار وارد می‌شوی و اعلان‌ها در ایتا هم می‌رسد.</p>
                 <button type="button" className="btn btn-primary" disabled={busy} onClick={withEitaaPhone}>ورود با شمارهٔ ایتا</button>
               </div>}
-              <button className={`btn btn-lg mt-6 w-full ${eitaa ? 'btn-secondary' : 'btn-primary'}`} disabled={busy}>{busy ? 'در حال ارسال…' : 'دریافت کد'}</button>
+              <button className={`btn btn-lg mt-6 w-full ${eitaa ? 'btn-secondary' : 'btn-primary'}`} disabled={busy}>{busy ? 'در حال فرستادن…' : 'کد را بفرست'}</button>
               <SsoButton />
-              <p className="mt-4 text-center text-sm text-muted">ادامه یعنی پذیرفتن <Link to="/terms" className="inline-block py-3 font-semibold text-leaf-ink">شرایط استفاده و حریم خصوصی</Link>.</p>
+              <p className="mt-4 text-center text-sm text-muted">با ادامه دادن، <Link to="/terms" className="inline-block py-3 font-semibold text-leaf-ink">شرایط استفاده و حریم خصوصی</Link> را می‌پذیری.</p>
             </form>
           )}
           {step === 'code' && (
             <form onSubmit={verify} noValidate className="rise">
               <button type="button" className="btn btn-ghost btn-sm -ms-3 mb-2" onClick={() => { setStep('mobile'); setErr(''); }}><ArrowRight className="size-4" />تغییر شماره</button>
-              <h1 className="text-[clamp(24px,3vw,30px)] font-extrabold">کد تأیید را وارد کنید</h1>
+              <h1 className="text-[clamp(24px,3vw,30px)] font-extrabold">کد را بزن</h1>
               {channel === 'SMS'
-                ? <p className="mt-1.5 text-muted">کد ۵ رقمی به <b dir="ltr" className="tnum text-ink">{maskMobile(mobile)}</b> پیامک شد.</p>
-                : <p className="mt-1.5 text-muted">کد ۵ رقمی در پیام‌رسان <b className="text-ink">{channel === 'BALE' ? 'بله' : 'ایتا'}</b> برای <b dir="ltr" className="tnum text-ink">{maskMobile(mobile)}</b> آمد؛ {channel === 'BALE' ? 'بله' : 'ایتا'} را باز کنید و کد را این‌جا بزنید.</p>}
+                ? <p className="mt-1.5 text-muted">کد ۵ رقمی به <b dir="ltr" className="tnum text-ink">{maskMobile(mobile)}</b> پیامک شد؛ تا ۲ دقیقه معتبر است.</p>
+                : <p className="mt-1.5 text-muted">کد ۵ رقمی در پیام‌رسان <b className="text-ink">{channel === 'BALE' ? 'بله' : 'ایتا'}</b> برای <b dir="ltr" className="tnum text-ink">{maskMobile(mobile)}</b> رفت؛ {channel === 'BALE' ? 'بله' : 'ایتا'} را باز کن و کد را این‌جا بزن.</p>}
               <div className="field mt-6">
-                <label htmlFor="code" className="sr-only">کد تأیید</label>
+                <label htmlFor="code" className="sr-only">کد ورود</label>
                 <input id="code" ref={codeRef} className="input ltr tnum h-16 text-center text-3xl font-extrabold tracking-[0.6em]" inputMode="numeric" autoComplete="one-time-code" maxLength={5}
                   placeholder="•••••" value={fa(toEn(code).replace(/\D/g, ''))} onChange={(e) => { setCode(toEn(e.target.value).replace(/\D/g, '').slice(0, 5)); setErr(''); }} />
-                {err && <p className="err justify-center"><CircleAlert className="size-4" />{err}</p>}
-                {devCode && <p className="hint text-center">نسخهٔ توسعه: کد <b className="tnum">{fa(devCode)}</b> است (پیامک واقعی خاموش است).</p>}
+                {err ? <p className="err justify-center" role="alert"><CircleAlert className="size-4" />{err}</p> : info ? <p className="hint text-center" role="status">{info}</p> : null}
+                {devCode && <p className="hint text-center">نسخهٔ آزمایشی (پیامک خاموش است): کد <b className="tnum">{fa(devCode)}</b></p>}
               </div>
-              <button className="btn btn-primary btn-lg mt-6 w-full" disabled={busy}>{busy ? 'در حال بررسی…' : isNew ? 'ادامهٔ ثبت‌نام' : 'ورود'}</button>
+              <button className="btn btn-primary btn-lg mt-6 w-full" disabled={busy}>{busy ? 'در حال بررسی…' : isNew ? 'ادامه' : 'ورود'}</button>
               <div className="mt-4 text-center text-sm">
-                {wait > 0 ? <span className="text-muted">ارسال دوباره تا <b className="tnum">{fa(wait)}</b> ثانیهٔ دیگر</span>
-                  : <button type="button" className="font-bold text-leaf-ink" onClick={() => sendCode()} disabled={busy}>ارسال دوبارهٔ کد</button>}
+                {wait > 0 ? <span className="text-muted">کد تازه تا <b className="tnum">{fa(wait)}</b> ثانیهٔ دیگر</span>
+                  : <button type="button" className="font-bold text-leaf-ink" onClick={() => sendCode()} disabled={busy}>کد تازه بگیر</button>}
                 {alt && wait <= 0 && <button type="button" className="ms-4 font-bold text-muted" onClick={() => sendCode(undefined, alt === 'BALE' ? 'bale' : 'sms')} disabled={busy}>{alt === 'BALE' ? 'کد را در بله بفرست' : 'با پیامک بفرست'}</button>}
               </div>
             </form>
@@ -183,9 +188,9 @@ function Register({ regToken, mobile, invite, onDone }: { regToken: string; mobi
   async function submit(e: FormEvent) {
     e.preventDefault();
     const er: Record<string, string> = {};
-    if (f.firstName.trim().length < 2) er.firstName = 'نام را بنویسید';
-    if (f.lastName.trim().length < 2) er.lastName = 'نام خانوادگی را بنویسید';
-    if (!f.gender) er.gender = 'یکی را انتخاب کنید';
+    if (f.firstName.trim().length < 2) er.firstName = 'نامت را بنویس';
+    if (f.lastName.trim().length < 2) er.lastName = 'نام خانوادگی‌ات را بنویس';
+    if (!f.gender) er.gender = 'برادر یا خواهر را انتخاب کن';
     setErrs(er); if (Object.keys(er).length) return;
     setBusy(true); setErr('');
     try {
@@ -197,12 +202,12 @@ function Register({ regToken, mobile, invite, onDone }: { regToken: string; mobi
     } catch (e) { setErr((e as Error).message); } finally { setBusy(false); }
   }
 
-  const E = ({ k }: { k: string }) => errs[k] ? <p className="err"><CircleAlert className="size-4" />{errs[k]}</p> : null;
+  const E = ({ k }: { k: string }) => errs[k] ? <p className="err" role="alert"><CircleAlert className="size-4" />{errs[k]}</p> : null;
   return (
     <form onSubmit={submit} noValidate className="rise">
-      <h1 className="text-[clamp(24px,3vw,30px)] font-extrabold">به مدرسهٔ هدایت خوش آمدید</h1>
-      <p className="mt-1.5 text-muted">سه چیز برای ساختن حسابتان. شماره: <b dir="ltr" className="tnum">{maskMobile(mobile)}</b></p>
-      {invite && <p className="mt-4 flex items-center gap-2 rounded-xl bg-leaf-soft px-3 py-2 text-sm text-leaf-ink"><ShieldCheck className="size-4 shrink-0" />با پیوند دعوت آمده‌اید؛ بعد از ثبت‌نام عضو همان هسته یا مسجد می‌شوید.</p>}
+      <h1 className="text-[clamp(24px,3vw,30px)] font-extrabold">خوش آمدی</h1>
+      <p className="mt-1.5 text-muted">سه چیز برای ساختن حسابت. شماره: <b dir="ltr" className="tnum">{maskMobile(mobile)}</b></p>
+      {invite && <p className="mt-4 flex items-center gap-2 rounded-xl bg-leaf-soft px-3 py-2 text-sm text-leaf-ink"><ShieldCheck className="size-4 shrink-0" />با پیوند دعوت آمده‌ای؛ بعد از ثبت‌نام عضو همان هسته یا مسجد می‌شوی.</p>}
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
         <div className="field"><label htmlFor="fn">نام</label><input id="fn" className="input" value={f.firstName} onChange={(e) => set('firstName', e.target.value)} autoComplete="given-name" autoFocus /><E k="firstName" /></div>
         <div className="field"><label htmlFor="ln">نام خانوادگی</label><input id="ln" className="input" value={f.lastName} onChange={(e) => set('lastName', e.target.value)} autoComplete="family-name" /><E k="lastName" /></div>
@@ -210,15 +215,15 @@ function Register({ regToken, mobile, invite, onDone }: { regToken: string; mobi
       <fieldset className="field mt-4">
         <legend className="mb-1.5 text-sm font-bold text-ink">جنسیت</legend>
         <div className="seg">{[['MALE', 'برادر'], ['FEMALE', 'خواهر']].map(([v, t]) => <button type="button" key={v} aria-pressed={f.gender === v} onClick={() => set('gender', v)}>{t}</button>)}</div>
-        <p className="hint">شبکهٔ راهیاری برادران و بانوان جداست؛ راهیارتان بر همین اساس تعیین می‌شود.</p><E k="gender" />
+        <p className="hint">راهیار برادران و خواهران جداست؛ راهیارت بر همین اساس تعیین می‌شود.</p><E k="gender" />
       </fieldset>
-      <p className="hint mt-4">مسجد و شهرستانت را در قدم بعد، از روی نقشه پیدا می‌کنیم.</p>
+      <p className="hint mt-4">مسجدت را قدم بعد روی نقشه پیدا می‌کنیم.</p>
       {showInvite
         ? <div className="field mt-4"><label htmlFor="inv">کد دعوت <span className="font-normal text-muted">(اختیاری)</span></label>
             <input id="inv" className="input ltr" value={f.inviteCode} onChange={(e) => set('inviteCode', e.target.value)} placeholder="کدی که امام محله یا مسئول هسته داده" /></div>
         : <button type="button" className="mt-3 inline-block py-2 text-sm font-bold text-leaf-ink" onClick={() => setShowInvite(true)}>کد دعوت دارم</button>}
-      {err && <p className="err mt-4"><CircleAlert className="size-4" />{err}</p>}
-      <button className="btn btn-primary btn-lg mt-6 w-full" disabled={busy}>{busy ? 'در حال ساخت حساب…' : 'ساخت حساب و ورود'}</button>
+      {err && <p className="err mt-4" role="alert"><CircleAlert className="size-4" />{err}</p>}
+      <button className="btn btn-primary btn-lg mt-6 w-full" disabled={busy}>{busy ? 'در حال ساختن حساب…' : 'حسابم را بساز'}</button>
     </form>
   );
 }

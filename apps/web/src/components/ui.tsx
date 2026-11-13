@@ -83,7 +83,7 @@ export function ErrorBox({ error, onRetry }: { error: unknown; onRetry?: () => v
   );
 }
 
-/** نوار «به اینترنت وصل نیستید» بالای همهٔ صفحه‌ها */
+/** نوار «اینترنت وصل نیست» بالای همهٔ صفحه‌ها */
 export function OfflineBar() {
   const [off, setOff] = useState(() => typeof navigator !== 'undefined' && navigator.onLine === false);
   useEffect(() => {
@@ -94,7 +94,7 @@ export function OfflineBar() {
   if (!off) return null;
   return (
     <div className="fixed inset-x-0 top-0 z-50 flex items-center justify-center gap-2 bg-ink px-4 py-2 text-sm font-semibold text-bg" style={{ paddingTop: 'calc(0.5rem + env(safe-area-inset-top, 0px))' }} role="status">
-      <WifiOff className="size-4" aria-hidden="true" />به اینترنت وصل نیستید؛ آنچه دیده‌اید می‌ماند و کارها بعد از وصل شدن انجام می‌شود.
+      <WifiOff className="size-4" aria-hidden="true" />اینترنت وصل نیست؛ آنچه دیده‌ای سر جایش می‌ماند و کارهایت بعد از وصل شدن انجام می‌شود.
     </div>
   );
 }

@@ -77,7 +77,7 @@ export function MosqueStep({ value, onChange, onNext, onBack }: { value: MosqueC
     <section className="rise grid gap-5">
       <div>
         <h1 className="text-[clamp(24px,3vw,32px)] font-extrabold">مسجد تو کجاست؟</h1>
-        <p className="mt-1 text-muted">برای گعده‌های نزدیک، تیم‌های همین مسجد و راهیار منطقه‌ات. مکانت فقط برای پیدا کردن مسجد است و به کسی نشان داده نمی‌شود.</p>
+        <p className="mt-1 text-muted">برای گعده‌های نزدیک، تیم‌های همین مسجد و راهیار منطقه‌ات. مکانت فقط برای پیدا کردن مسجدهای نزدیک به کار می‌رود و در حسابت ذخیره نمی‌شود.</p>
       </div>
 
       {mode === 'ask' && (

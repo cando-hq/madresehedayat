@@ -89,17 +89,17 @@ export function validationException(errors: ValidationError[]) {
 
 /* ───────── خطاهای پیش‌فرض Nest/Express که پیام انگلیسی دارند ───────── */
 const BY_STATUS: Record<number, [string, string]> = {
-  400: ['bad_request', 'درخواست شکل درستی نداشت؛ صفحه را تازه کنید و دوباره امتحان کنید'],
-  401: ['unauthenticated', 'اول وارد شوید'],
-  403: ['forbidden', 'به این بخش دسترسی ندارید'],
+  400: ['bad_request', 'درخواست شکل درستی نداشت؛ صفحه را تازه کن و دوباره امتحان کن'],
+  401: ['unauthenticated', 'اول وارد شو'],
+  403: ['forbidden', 'به این بخش دسترسی نداری'],
   404: ['not_found', 'این نشانی در سامانه نیست'],
   405: ['not_allowed', 'این کار از این راه انجام نمی‌شود'],
-  408: ['timeout', 'پاسخ دیر آمد؛ دوباره امتحان کنید'],
-  409: ['conflict', 'این کار با وضع فعلی جور نیست؛ صفحه را تازه کنید'],
-  413: ['too_large', 'حجم فرستاده‌شده بیش از اندازه است؛ فایل یا متن کوچک‌تری بفرستید'],
+  408: ['timeout', 'پاسخ دیر آمد؛ دوباره امتحان کن'],
+  409: ['conflict', 'این کار با وضع فعلی جور نیست؛ صفحه را تازه کن'],
+  413: ['too_large', 'حجم فرستاده‌شده بیش از اندازه است؛ فایل یا متن کوچک‌تری بفرست'],
   415: ['bad_type', 'نوع داده یا فایل پذیرفته نیست'],
-  429: ['too_many', 'درخواست‌ها پشت سر هم زیاد شد؛ یک دقیقه صبر کنید و دوباره امتحان کنید'],
-  503: ['unavailable', 'سامانه لحظه‌ای در دسترس نیست؛ چند دقیقهٔ دیگر دوباره امتحان کنید'],
+  429: ['too_many', 'درخواست‌ها پشت سر هم زیاد شد؛ یک دقیقه صبر کن و دوباره امتحان کن'],
+  503: ['unavailable', 'سامانه لحظه‌ای در دسترس نیست؛ چند دقیقهٔ دیگر دوباره امتحان کن'],
 };
 
 /* ───────── خطاهای پایگاه داده (کدهای Postgres) ───────── */
@@ -124,14 +124,14 @@ function pgError(e: any): { status: number; code: string; message: string } | nu
     switch (pg.code) {
       case '23505': return { status: 409, code: 'duplicate', message: 'این مورد پیش‌تر ثبت شده است؛ تکراری نمی‌شود' };
       case '23503': return pg.message?.includes('delete')
-        ? { status: 409, code: 'in_use', message: 'این مورد جای دیگری به کار رفته و پاک نمی‌شود؛ اول آن‌ها را بردارید' }
-        : { status: 400, code: 'missing_ref', message: 'یکی از موردهای انتخاب‌شده دیگر وجود ندارد؛ صفحه را تازه کنید' };
+        ? { status: 409, code: 'in_use', message: 'این مورد جای دیگری به کار رفته و پاک نمی‌شود؛ اول آن‌ها را بردار' }
+        : { status: 400, code: 'missing_ref', message: 'یکی از موردهای انتخاب‌شده دیگر وجود ندارد؛ صفحه را تازه کن' };
       case '23502': return { status: 400, code: 'invalid', message: 'یکی از خانه‌های لازم خالی مانده است' };
       case '22001': return { status: 400, code: 'too_long', message: 'یکی از نوشته‌ها بیش از اندازه بلند است' };
       case '22P02': case '22007': case '22008': return { status: 400, code: 'bad_input', message: 'یکی از مقدارها شکل درستی ندارد' };
       case '22003': return { status: 400, code: 'out_of_range', message: 'یکی از عددها بیش از اندازه بزرگ است' };
-      case '40001': case '40P01': return { status: 409, code: 'busy', message: 'هم‌زمان کار دیگری روی همین مورد انجام شد؛ دوباره امتحان کنید' };
-      case '57014': return { status: 503, code: 'timeout', message: 'کار بیش از اندازه طول کشید؛ دوباره امتحان کنید' };
+      case '40001': case '40P01': return { status: 409, code: 'busy', message: 'هم‌زمان کار دیگری روی همین مورد انجام شد؛ دوباره امتحان کن' };
+      case '57014': return { status: 503, code: 'timeout', message: 'کار بیش از اندازه طول کشید؛ دوباره امتحان کن' };
     }
     if (/^(08|53|57P)/.test(pg.code)) return { status: 503, ...{ code: 'db_unavailable', message: BY_STATUS[503][1] } };
   }
@@ -156,15 +156,15 @@ export class AllErrorsFilter implements ExceptionFilter {
       // خطاهای خود سامانه همین حالا { code, message } فارسی دارند
       if (body && typeof body === 'object' && typeof body.code === 'string' && typeof body.message === 'string') return res.status(status).json(body);
       const [code, message] = status === 400 && /JSON/i.test(String(body?.message ?? e.message))
-        ? ['bad_json', 'داده‌های فرستاده‌شده خراب بود؛ صفحه را تازه کنید و دوباره بفرستید']
-        : BY_STATUS[status] ?? (status >= 500 ? ['server_error', 'خطایی در سرور پیش آمد'] : ['error', 'این کار انجام نشد؛ دوباره امتحان کنید']);
+        ? ['bad_json', 'داده‌های فرستاده‌شده خراب بود؛ صفحه را تازه کن و دوباره بفرست']
+        : BY_STATUS[status] ?? (status >= 500 ? ['server_error', 'خطایی در سرور پیش آمد'] : ['error', 'این کار انجام نشد؛ دوباره امتحان کن']);
       return res.status(status).json({ code, message });
     }
 
     // خطاهای express پیش از رسیدن به Nest (body-parser) هم status دارند
     const any = e as any;
     if (any?.type === 'entity.too.large' || any?.status === 413) return res.status(413).json({ code: 'too_large', message: BY_STATUS[413][1] });
-    if (any?.type === 'entity.parse.failed') return res.status(400).json({ code: 'bad_json', message: 'داده‌های فرستاده‌شده خراب بود؛ صفحه را تازه کنید و دوباره بفرستید' });
+    if (any?.type === 'entity.parse.failed') return res.status(400).json({ code: 'bad_json', message: 'داده‌های فرستاده‌شده خراب بود؛ صفحه را تازه کن و دوباره بفرست' });
 
     const db = pgError(e);
     const ref = randomBytes(4).toString('hex').toUpperCase();

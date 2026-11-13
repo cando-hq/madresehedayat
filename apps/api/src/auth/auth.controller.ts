@@ -52,7 +52,7 @@ export class AuthController {
 
   private mobileOrThrow(m: string) {
     const v = normalizeMobile(m);
-    if (!v) throw new BadRequestException({ code: 'bad_mobile', message: 'شماره باید ۱۱ رقم باشد و با ۰۹ شروع شود' });
+    if (!v) throw new BadRequestException({ code: 'bad_mobile', message: 'شماره ۱۱ رقم است و با ۰۹ شروع می‌شود؛ مثل ۰۹۱۲۳۴۵۶۷۸۹' });
     return v;
   }
 
@@ -117,7 +117,7 @@ export class AuthController {
     if (!eitaaEnabled()) throw new BadRequestException({ code: 'eitaa_off', message: 'برنامهٔ ایتا هنوز راه نیفتاده است' });
     const p = verifyEitaa(String(d.initData ?? ''));
     const eu = p && eitaaUser(p);
-    if (!eu) throw new BadRequestException({ code: 'eitaa_bad', message: 'اطلاعات ایتا معتبر نیست؛ برنامه را از داخل ایتا دوباره باز کنید' });
+    if (!eu) throw new BadRequestException({ code: 'eitaa_bad', message: 'اطلاعات ایتا معتبر نیست؛ برنامه را از داخل ایتا دوباره باز کن' });
     if (me) {
       // کسی که در همین‌جا وارد شده: حساب ایتایش را وصل می‌کنیم
       await this.db.delete(messengerLinks).where(and(eq(messengerLinks.provider, 'EITAA'), eq(messengerLinks.chatId, eu.id)));
@@ -142,7 +142,7 @@ export class AuthController {
     const p = verifyEitaa(String(d.contact ?? ''), 10 * 60);
     const phone = p && contactPhone(p);
     const mobile = phone ? normalizeMobile(phone) : null;
-    if (!mobile) throw new BadRequestException({ code: 'eitaa_contact', message: 'شماره از ایتا دریافت نشد؛ با کد پیامکی وارد شوید' });
+    if (!mobile) throw new BadRequestException({ code: 'eitaa_contact', message: 'شماره از ایتا نرسید؛ با کد پیامکی وارد شو' });
     // ورود بی‌کد فقط اگر سرور ایتا هم این امضا را یک‌بار تأیید کند
     if (!(await eitaaVerifyOnce(new URLSearchParams(String(d.contact)).get('hash') ?? '', req.ip ?? ''))) throw new BadRequestException({ code: 'eitaa_contact', message: 'تأیید ایتا انجام نشد؛ با کد پیامکی وارد شوید' });
     const r = await this.auth.loginByVerifiedMobile(mobile);
@@ -191,8 +191,8 @@ export class AuthController {
   async mfaVerify(@CurrentUser() u: AuthUser, @Body() d: { code?: string }, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
     const me = await this.staffUser(u);
     const secret = dec(me.totpSecret);
-    if (!secret) throw new BadRequestException({ code: 'mfa_not_setup', message: 'اول رمز دوم را راه بیندازید' });
-    if (!verifyTotp(secret, toEnDigits(String(d.code ?? '')))) throw new BadRequestException({ code: 'mfa_wrong', message: 'کد درست نیست؛ کد تازهٔ برنامه را وارد کنید' });
+    if (!secret) throw new BadRequestException({ code: 'mfa_not_setup', message: 'اول رمز دوم را راه بینداز' });
+    if (!verifyTotp(secret, toEnDigits(String(d.code ?? '')))) throw new BadRequestException({ code: 'mfa_wrong', message: 'کد درست نیست؛ کد تازهٔ برنامه را بزن' });
     if (!me.totpEnabledAt) await this.db.update(users).set({ totpEnabledAt: new Date() }).where(eq(users.id, u.id));
     this.setCookies(res, await this.auth.upgradeMfa(req.cookies?.[REFRESH_COOKIE] ?? '', req.headers['user-agent']));
     return { ok: true };

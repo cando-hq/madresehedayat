@@ -28,7 +28,7 @@ export default function Onboard() {
   const [role, setRole] = useState<ActorRole>(me?.actorRole ?? 'IMAM');
   const [mq, setMq] = useState<MosqueChoice>({ mosqueId: me?.mosque?.id ?? null, mosqueName: me?.mosque?.name ?? null, countyId: null, lat: me?.location?.lat ?? null, lng: me?.location?.lng ?? null, relation: '' });
   const finish = useMutation({
-    mutationFn: () => api<{ main: { slug: string } | null }>('/v2/onboard', { body: { actorRole: role, mosqueId: mq.mosqueId, countyId: mq.countyId ?? undefined, ...(mq.lat != null && mq.lng != null ? { lat: mq.lat, lng: mq.lng } : {}), relation: mq.relation || undefined } }),
+    mutationFn: () => api<{ main: { slug: string } | null }>('/v2/onboard', { body: { actorRole: role, mosqueId: mq.mosqueId, countyId: mq.countyId ?? undefined, relation: mq.relation || undefined } }),
     onSuccess: async () => { const m = await api('/auth/me'); setMe(m); qc.invalidateQueries({ queryKey: ['v2'] }); nav('/', { replace: true }); },
     onError: (e) => toast((e as Error).message, 'err'),
   });

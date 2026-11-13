@@ -5,22 +5,22 @@ export class ApiError extends Error {
 
 /** پیام فارسی برای وقتی پاسخ سرور JSON نیست (مثلاً صفحهٔ خطای nginx هنگام به‌روزرسانی) */
 const BY_STATUS: Record<number, [string, string]> = {
-  0: ['offline', 'اتصال برقرار نشد؛ اینترنت را بررسی کنید'],
-  401: ['unauthenticated', 'اول وارد شوید'],
-  403: ['forbidden', 'به این بخش دسترسی ندارید'],
+  0: ['offline', 'اتصال برقرار نشد؛ اینترنت را بررسی کن'],
+  401: ['unauthenticated', 'اول وارد شو'],
+  403: ['forbidden', 'به این بخش دسترسی نداری'],
   404: ['not_found', 'پیدا نشد'],
-  408: ['timeout', 'پاسخ دیر آمد؛ دوباره امتحان کنید'],
-  413: ['too_large', 'حجم فرستاده‌شده بیش از اندازه است؛ فایل یا متن کوچک‌تری بفرستید'],
-  429: ['too_many', 'درخواست‌ها پشت سر هم زیاد شد؛ یک دقیقه صبر کنید و دوباره امتحان کنید'],
-  500: ['server_error', 'خطایی در سرور پیش آمد؛ کمی بعد دوباره امتحان کنید'],
-  502: ['unavailable', 'سامانه در حال به‌روزرسانی یا لحظه‌ای در دسترس نیست؛ چند دقیقهٔ دیگر دوباره امتحان کنید'],
-  503: ['unavailable', 'سامانه در حال به‌روزرسانی یا لحظه‌ای در دسترس نیست؛ چند دقیقهٔ دیگر دوباره امتحان کنید'],
-  504: ['timeout', 'سامانه دیر پاسخ داد؛ چند دقیقهٔ دیگر دوباره امتحان کنید'],
+  408: ['timeout', 'پاسخ دیر آمد؛ دوباره امتحان کن'],
+  413: ['too_large', 'حجم فرستاده‌شده بیش از اندازه است؛ فایل یا متن کوچک‌تری بفرست'],
+  429: ['too_many', 'درخواست‌ها پشت سر هم زیاد شد؛ یک دقیقه صبر کن و دوباره امتحان کن'],
+  500: ['server_error', 'خطایی در سرور پیش آمد؛ کمی بعد دوباره امتحان کن'],
+  502: ['unavailable', 'سامانه در حال به‌روزرسانی یا لحظه‌ای در دسترس نیست؛ چند دقیقهٔ دیگر دوباره امتحان کن'],
+  503: ['unavailable', 'سامانه در حال به‌روزرسانی یا لحظه‌ای در دسترس نیست؛ چند دقیقهٔ دیگر دوباره امتحان کن'],
+  504: ['timeout', 'سامانه دیر پاسخ داد؛ چند دقیقهٔ دیگر دوباره امتحان کن'],
 };
-export const statusError = (status: number): [string, string] => BY_STATUS[status] ?? (status >= 500 ? BY_STATUS[500] : ['error', 'این کار انجام نشد؛ دوباره امتحان کنید']);
+export const statusError = (status: number): [string, string] => BY_STATUS[status] ?? (status >= 500 ? BY_STATUS[500] : ['error', 'این کار انجام نشد؛ دوباره امتحان کن']);
 
 /** پیام یک خطا برای نمایش؛ هر چیزی که ApiError نباشد پیام عمومی می‌گیرد */
-export const errorText = (e: unknown) => (e instanceof ApiError ? e.message : 'خطایی پیش آمد؛ دوباره امتحان کنید');
+export const errorText = (e: unknown) => (e instanceof ApiError ? e.message : 'خطایی پیش آمد؛ دوباره امتحان کن');
 /** پیام هر خانه از خطای اعتبارسنجی سرور: { title: '«عنوان» لازم است' } */
 export const fieldErrors = (e: unknown): Record<string, string> => (e instanceof ApiError && e.code === 'invalid' && e.data?.fields && !Array.isArray(e.data.fields) ? e.data.fields : {});
 
@@ -42,17 +42,17 @@ export async function api<T = any>(path: string, opts: { method?: string; body?:
   let res: Response;
   try { res = await fetch('/api' + path, init); } catch {
     const [code, message] = BY_STATUS[0];
-    throw new ApiError(0, code, typeof navigator !== 'undefined' && navigator.onLine === false ? 'به اینترنت وصل نیستید؛ بعد از وصل شدن دوباره امتحان کنید' : message);
+    throw new ApiError(0, code, typeof navigator !== 'undefined' && navigator.onLine === false ? 'اینترنت وصل نیست؛ وصل که شد دوباره امتحان کن' : message);
   }
   // ‌/auth/me هم تازه می‌شود (وگرنه بعد از ۱۵ دقیقه دوری، کاربر بیرون افتاده دیده می‌شد)
   if (res.status === 401 && opts.retry !== false && (!path.startsWith('/auth/') || path.startsWith('/auth/me') || path.startsWith('/auth/mfa'))) {
     const data = await res.clone().json().catch(() => ({}));
     if (data.code === 'token_expired' || data.code === 'unauthenticated') {
       if (await refresh()) return api<T>(path, { ...opts, retry: false });
-      if (path === '/auth/me') throw new ApiError(401, 'unauthenticated', 'اول وارد شوید');
+      if (path === '/auth/me') throw new ApiError(401, 'unauthenticated', 'اول وارد شو');
       // نشست تمام شده: برنامه به صفحهٔ ورود می‌رود و پیام می‌دهد
       window.dispatchEvent(new CustomEvent('mh:session-expired'));
-      throw new ApiError(401, 'session_expired', 'نشست شما تمام شده است؛ دوباره وارد شوید');
+      throw new ApiError(401, 'session_expired', 'نشست شما تمام شده است؛ دوباره وارد شو');
     }
   }
   const text = await res.text();

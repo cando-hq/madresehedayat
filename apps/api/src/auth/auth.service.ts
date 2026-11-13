@@ -48,21 +48,21 @@ export class AuthService {
       .orderBy(desc(otpRequests.createdAt));
     if (recent[0] && Date.now() - recent[0].createdAt.getTime() < RESEND_MS) {
       const wait = Math.ceil((RESEND_MS - (Date.now() - recent[0].createdAt.getTime())) / 1000);
-      throw new HttpException({ code: 'otp_wait', message: `${wait} ثانیهٔ دیگر دوباره امتحان کنید`, wait }, HttpStatus.TOO_MANY_REQUESTS);
+      throw new HttpException({ code: 'otp_wait', message: `کد تازه تا ${wait} ثانیهٔ دیگر؛ اگر کد قبلی رسیده، همان را بزن`, wait }, HttpStatus.TOO_MANY_REQUESTS);
     }
     if (recent.length >= MAX_PER_HOUR) {
-      throw new HttpException({ code: 'otp_limit', message: 'تعداد درخواست کد زیاد شد؛ یک ساعت دیگر امتحان کنید' }, HttpStatus.TOO_MANY_REQUESTS);
+      throw new HttpException({ code: 'otp_limit', message: 'در این یک ساعت کد زیادی خواستی؛ یک ساعت دیگر دوباره امتحان کن' }, HttpStatus.TOO_MANY_REQUESTS);
     }
-    if (via === 'bale' && !this.safir.enabled) throw new BadRequestException({ code: 'bale_off', message: 'ارسال کد در بله فعلاً روشن نیست؛ با پیامک بگیرید' });
+    if (via === 'bale' && !this.safir.enabled) throw new BadRequestException({ code: 'bale_off', message: 'فرستادن کد در بله فعلاً روشن نیست؛ با پیامک بگیر' });
     const code = String(randomInt(10000, 100000)); // هیچ‌وقت با صفر شروع نمی‌شود (بله کد را عدد می‌خواند)
     const [row] = await this.db.insert(otpRequests).values({ mobile: mobileKey(mobile), codeHash: this.otpHash(mobile, code), expiresAt: new Date(Date.now() + OTP_TTL_MS) }).returning({ id: otpRequests.id });
     const user = await this.db.query.users.findFirst({ where: eq(users.mobile, mobileKey(mobile)), columns: { id: true } });
     let channel: 'SMS' | 'BALE' | 'EITAA' | null = null;
-    if (via !== 'sms' && user) channel = await this.messenger.sendDirect(user.id, `کد ورود به مدرسهٔ هدایت: ${code}\nاین کد را به کسی ندهید.`);
+    if (via !== 'sms' && user) channel = await this.messenger.sendDirect(user.id, `مدرسهٔ هدایت: کد ورود ${code}\nتا ۲ دقیقه معتبر است؛ آن را به کسی نده.`);
     if (!channel && via !== 'sms' && (await this.safir.sendOtp(mobile, code))) channel = 'BALE';
     if (!channel && via === 'bale') {
       await this.db.delete(otpRequests).where(eq(otpRequests.id, row.id));
-      throw new BadRequestException({ code: 'bale_failed', message: 'کد در بله نرفت؛ شاید این شماره در بله حساب ندارد. با پیامک بگیرید.' });
+      throw new BadRequestException({ code: 'bale_failed', message: 'کد در بله نرفت؛ شاید این شماره در بله حساب ندارد. با پیامک بگیر.' });
     }
     if (!channel) { await this.sms.sendOtp(mobile, code); channel = 'SMS'; }
     return {
@@ -85,12 +85,14 @@ export class AuthService {
     const [otp] = await this.db.select().from(otpRequests)
       .where(and(eq(otpRequests.mobile, mobileKey(mobile)), isNull(otpRequests.usedAt), gt(otpRequests.expiresAt, new Date())))
       .orderBy(desc(otpRequests.createdAt)).limit(1);
-    if (!otp) throw new BadRequestException({ code: 'otp_expired', message: 'کد منقضی شده؛ کد تازه بگیرید' });
-    if (otp.attempts >= MAX_WRONG) throw new BadRequestException({ code: 'otp_locked', message: 'چند بار اشتباه وارد شد؛ کد تازه بگیرید' });
+    if (!otp) throw new BadRequestException({ code: 'otp_expired', message: 'وقت این کد تمام شده؛ کد تازه بگیر' });
+    if (otp.attempts >= MAX_WRONG) throw new BadRequestException({ code: 'otp_locked', message: 'کد پنج بار اشتباه زده شد و دیگر کار نمی‌کند؛ کد تازه بگیر' });
     const a = Buffer.from(otp.codeHash, 'hex'), b = Buffer.from(this.otpHash(mobile, code), 'hex');
     if (a.length !== b.length || !timingSafeEqual(a, b)) {
       await this.db.update(otpRequests).set({ attempts: otp.attempts + 1 }).where(eq(otpRequests.id, otp.id));
-      throw new BadRequestException({ code: 'otp_wrong', message: 'کد درست نیست', left: MAX_WRONG - otp.attempts - 1 });
+      const left = MAX_WRONG - otp.attempts - 1;
+      if (left <= 0) throw new BadRequestException({ code: 'otp_locked', message: 'کد پنج بار اشتباه زده شد و دیگر کار نمی‌کند؛ کد تازه بگیر' });
+      throw new BadRequestException({ code: 'otp_wrong', message: 'کد درست نیست. دوباره ببین یا کد تازه بگیر', left });
     }
     await this.db.update(otpRequests).set({ usedAt: new Date() }).where(eq(otpRequests.id, otp.id));
     const user = await this.db.query.users.findFirst({ where: eq(users.mobile, mobileKey(mobile)) });
@@ -109,7 +111,7 @@ export class AuthService {
       if (p.purpose !== 'register') throw new Error();
       mobile = p.mobile;
     } catch {
-      throw new BadRequestException({ code: 'reg_expired', message: 'زمان ثبت‌نام تمام شد؛ دوباره شماره را وارد کنید' });
+      throw new BadRequestException({ code: 'reg_expired', message: 'وقت ثبت‌نام تمام شد؛ دوباره شماره‌ات را بزن' });
     }
     const existing = await this.db.query.users.findFirst({ where: eq(users.mobile, mobileKey(mobile)) });
     if (existing) return { userId: existing.id, notice: null as string | null };
@@ -129,11 +131,12 @@ export class AuthService {
       // هستهٔ سازمان مشترک: سقف اشتراک همین‌جا هم رعایت می‌شود؛ حساب ساخته می‌شود ولی عضو هسته نمی‌شود
       const net = core?.networkId ? await this.db.query.networks.findFirst({ where: eq(networks.id, core.networkId) }) : null;
       const full = net?.kind === 'ORGANIZATION' ? await this.business.assertSeats(net.id, [u.id]).then(() => false, () => true) : false;
-      if (core && full) notice = `حسابتان ساخته شد، ولی ظرفیت «${net!.name}» پر است و به هستهٔ «${core.name}» اضافه نشدید. به مسئول هسته خبر بدهید.`;
+      if (core && full) notice = `حسابت ساخته شد، ولی ظرفیت «${net!.name}» پر است و به هستهٔ «${core.name}» اضافه نشدی. به مسئول هسته خبر بده.`;
       else if (core) await this.db.insert(coreMemberships).values({ coreId: core.id, userId: u.id }).onConflictDoNothing();
       else {
         const m = await this.db.query.mosques.findFirst({ where: eq(mosques.inviteCode, code) });
         if (m) await this.db.update(users).set({ mosqueId: m.id, nearMosque: null, ...(u.countyId ? {} : { countyId: m.countyId }) }).where(eq(users.id, u.id));
+        else notice = `حسابت ساخته شد، ولی کد دعوت «${input.inviteCode.trim()}» پیدا نشد. کد درست را از مسئول هسته بگیر؛ بعداً از «همتایان» هم می‌شود پیوست.`;
       }
     }
     return { userId: u.id, notice };
@@ -163,7 +166,7 @@ export class AuthService {
 
   async refresh(refreshToken: string, userAgent?: string) {
     const s = await this.db.query.sessions.findFirst({ where: eq(sessions.tokenHash, sha(refreshToken)) });
-    if (!s || s.revokedAt || s.expiresAt < new Date()) throw new UnauthorizedException({ code: 'session_ended', message: 'دوباره وارد شوید' });
+    if (!s || s.revokedAt || s.expiresAt < new Date()) throw new UnauthorizedException({ code: 'session_ended', message: 'برای امنیت حساب، دوباره وارد شو' });
     const u = await this.db.query.users.findFirst({ where: eq(users.id, s.userId), columns: { isActive: true } });
     if (!u?.isActive) throw new UnauthorizedException({ code: 'inactive', message: 'این حساب غیرفعال است' });
     await this.db.update(sessions).set({ revokedAt: new Date() }).where(eq(sessions.id, s.id));
@@ -173,7 +176,7 @@ export class AuthService {
   /** رمز دوم تأیید شد: نشست فعلی را با نشانهٔ تأیید دوباره صادر می‌کند */
   async upgradeMfa(refreshToken: string, userAgent?: string) {
     const s = await this.db.query.sessions.findFirst({ where: eq(sessions.tokenHash, sha(refreshToken)) });
-    if (!s || s.revokedAt || s.expiresAt < new Date()) throw new UnauthorizedException({ code: 'session_ended', message: 'دوباره وارد شوید' });
+    if (!s || s.revokedAt || s.expiresAt < new Date()) throw new UnauthorizedException({ code: 'session_ended', message: 'برای امنیت حساب، دوباره وارد شو' });
     await this.db.update(sessions).set({ revokedAt: new Date() }).where(eq(sessions.id, s.id));
     return this.issueTokens(s.userId, userAgent, new Date());
   }

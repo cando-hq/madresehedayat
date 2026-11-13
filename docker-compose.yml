@@ -1,5 +1,6 @@
 # مدرسهٔ هدایت — اجرای کامل: پایگاه داده، ذخیره‌ساز فایل، API و وب
 # راه‌اندازی:  cp .env.example .env  →  مقدارها را عوض کنید  →  docker compose up -d --build
+# nginx خود سرور را دارید؟ DEPLOY.md بخش ۵ (deploy/nginx/madrese.conf)
 name: madrese
 
 x-images: &images
@@ -76,6 +77,9 @@ services:
       BBB_URL: ${BBB_URL:-}
       BBB_SECRET: ${BBB_SECRET:-}
       BBB_CHECKSUM: ${BBB_CHECKSUM:-sha1}
+    # فقط روی خود سرور (127.0.0.1)؛ برای nginx خود سرور. از بیرون دیده نمی‌شود
+    ports:
+      - "127.0.0.1:${API_PORT:-3000}:3000"
 
   # پشتیبان روزانهٔ پایگاه داده روی همان سرور (۷ روز آخر). برای خاموش کردن: BACKUP_KEEP_DAYS=0
   backup:
@@ -99,7 +103,10 @@ services:
           sleep 86400
         done
 
+  # وب با nginx داخل کانتینر. اگر nginx خود سرور را دارید، در .env بگذارید COMPOSE_PROFILES=
+  # تا این سرویس ساخته نشود، و deploy/nginx/madrese.conf و deploy/build-web.sh را به کار ببرید
   web:
+    profiles: ["web"]
     build:
       context: .
       dockerfile: apps/web/Dockerfile

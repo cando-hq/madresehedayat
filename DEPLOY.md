@@ -93,7 +93,37 @@ EOF
 systemctl restart caddy
 ```
 
-(اگر nginx دارید: `proxy_pass http://127.0.0.1:8080;` با `client_max_body_size 520m;`.)
+### اگر nginx روی خود سرور دارید (بدون کانتینر وب)
+
+در این حالت کانتینر وب ساخته نمی‌شود: nginx سرور فایل‌های وب را مستقیم می‌دهد و `/api/` را به کانتینر API روی `127.0.0.1:3000` می‌فرستد.
+
+۱. در `.env`:
+
+```bash
+COMPOSE_PROFILES=          # خالی: سرویس web ساخته نمی‌شود
+API_PORT=3000              # اگر 3000 روی سرور گرفته است، عوضش کنید (و در madrese.conf هم)
+```
+
+۲. بالا آوردن پایگاه داده و API، و ساخت فایل‌های وب در `/var/www/madrese`:
+
+```bash
+docker compose up -d --build
+./deploy/build-web.sh                     # یا: ./deploy/build-web.sh /مسیر/دیگر
+curl -s http://127.0.0.1:3000/api/health  # {"ok":true,...}
+```
+
+۳. پیکربندی nginx: فایل `deploy/nginx/madrese.conf`. دامنه را در آن عوض کنید، بعد:
+
+```bash
+cp deploy/nginx/madrese.conf /etc/nginx/sites-available/madrese.conf
+ln -s /etc/nginx/sites-available/madrese.conf /etc/nginx/sites-enabled/
+certbot certonly --nginx -d madresehedayat.ir     # اگر گواهی ندارید
+nginx -t && systemctl reload nginx
+```
+
+نکته‌ها: `client_max_body_size 520m` برای بارگذاری ویدیو لازم است؛ `X-Forwarded-Proto` باید بماند (کوکی امن به آن نیاز دارد)؛ `X-Frame-Options` نگذارید چون برنامهٔ ایتا مدرسه را در قاب باز می‌کند. خط‌های IPv6 در فایل خاموش‌اند؛ اگر سرور IPv6 دارد بازشان کنید.
+
+**به‌روزرسانی در این حالت** یک خط بیشتر دارد: بعد از `docker compose up -d --build`، `./deploy/build-web.sh` را هم بزنید. با تغییر `NESHAN_KEY` یا `MAP_TILES` هم همین اسکریپت را دوباره اجرا کنید.
 
 در `.env` حتماً `COOKIE_SECURE=true` و `PUBLIC_URL` با https باشد، بعد `docker compose up -d` دوباره.
 
@@ -124,6 +154,7 @@ systemctl restart caddy
 cd madresehedayat
 git pull                                  # یا: git fetch && git checkout v1.1.0
 docker compose up -d --build              # می‌سازد، مهاجرت دیتابیس را خودش می‌زند، بالا می‌آورد
+./deploy/build-web.sh                     # فقط اگر nginx خود سرور را دارید (بخش ۵)
 curl -s https://madresehedayat.ir/api/health   # باید {"ok":true,"version":"1.1.0"} بدهد
 ```
 

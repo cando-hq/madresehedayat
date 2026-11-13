@@ -8,3 +8,4 @@ dist-demo
 *.tsbuildinfo
 tests/ui/out/
 __pycache__/
+.web-out/

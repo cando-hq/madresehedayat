@@ -9,5 +9,5 @@ const c = await compile(css, { base: TW, loadStylesheet: async (id, base) => {
 const cand = new Set();
 (function walk(d) { for (const f of fs.readdirSync(d)) { const p = path.join(d, f); if (fs.statSync(p).isDirectory()) walk(p); else if (/\.(tsx?|html)$/.test(f)) for (const m of fs.readFileSync(p, 'utf8').matchAll(/[^\s"'`]+/g)) cand.add(m[0]); } })('/home/claude/full/r/apps/web/src');
 fs.readFileSync('/home/claude/full/r/apps/web/index.html','utf8').match(/[^\s"'`<>=]+/g).forEach((x)=>cand.add(x));
-fs.writeFileSync('out/app.css', c.build([...cand]));
+fs.writeFileSync('out/app.css', c.build([...cand]) + '\n' + fs.readFileSync('/home/claude/full/r/node_modules/leaflet/dist/leaflet.css', 'utf8'));
 console.log('candidates', cand.size, 'css bytes', fs.statSync('out/app.css').size);

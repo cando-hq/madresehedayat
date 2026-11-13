@@ -13,6 +13,8 @@ RUN npm config set registry ${NPM_REGISTRY} && npm ci --workspace apps/web --inc
 COPY apps/web apps/web
 # فهرست ابزارها مشترک وب و API است (نسخهٔ نمایشی آن را از apps/api می‌خواند)
 COPY apps/api/src/tools/catalog.json apps/api/src/tools/catalog.json
+ARG VITE_MAP_TILES=
+ENV VITE_MAP_TILES=$VITE_MAP_TILES
 RUN npm run build -w apps/web
 
 FROM ${NGINX_IMAGE}

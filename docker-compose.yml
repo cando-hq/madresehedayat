@@ -68,6 +68,8 @@ services:
       STAFF_MFA: ${STAFF_MFA:-on}
       BALE_BOT_TOKEN: ${BALE_BOT_TOKEN:-}
       BALE_BOT_USERNAME: ${BALE_BOT_USERNAME:-}
+      BALE_SAFIR_API_KEY: ${BALE_SAFIR_API_KEY:-}
+      BALE_SAFIR_BOT_ID: ${BALE_SAFIR_BOT_ID:-}
       EITAA_APP_TOKEN: ${EITAA_APP_TOKEN:-}
       EITAA_APP_URL: ${EITAA_APP_URL:-}
       COOKIE_SAMESITE: ${COOKIE_SAMESITE:-lax}
@@ -104,6 +106,7 @@ services:
       args:
         <<: *images
         NGINX_IMAGE: ${NGINX_IMAGE:-nginx:1.27-alpine}
+        VITE_MAP_TILES: ${MAP_TILES:-}
     restart: unless-stopped
     depends_on:
       api: { condition: service_healthy }

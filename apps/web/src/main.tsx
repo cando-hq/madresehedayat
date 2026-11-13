@@ -6,47 +6,97 @@ import { Shell } from './components/Shell';
 import { OfflineBar, Spinner, ToastProvider } from './components/ui';
 import { ApiError, errorText } from './lib/api';
 import { AuthProvider, useAuth } from './lib/auth';
-import AdminShell from './pages/admin/AdminShell';
-import CourseEditor from './pages/admin/CourseEditor';
-import Courses from './pages/admin/Courses';
-import Dashboard from './pages/admin/Dashboard';
-import { Audit, Certificates, Grants, Mosques, Paths, UsersPage } from './pages/admin/Manage';
-import Course from './pages/Course';
-import Home from './pages/Home';
-import Learn, { PathPage } from './pages/Learn';
-import Lesson from './pages/Lesson';
-import Review from './pages/Review';
-import CohortPage from './pages/Cohort';
 import Login from './pages/Login';
-import Me from './pages/Me';
 import { NotFound, RouteError, TermsPage, VerifyPage } from './pages/Public';
 import Settings, { applyTheme, savedTheme } from './pages/Settings';
-import Events, { EventPage } from './pages/Events';
-import { CheckIn, EventEditor, ManageEvent, ManageEventList } from './pages/ManageEvents';
-import { RahyarAssign, RahyarConversation, RahyarHome, RahyarLearner, RahyarLearners, RahyarMessages, RahyarReport, RahyarReports } from './pages/Rahyar';
-import { CorePage, ImamPage, JoinPage, Messages, MyCores, Notifications, OrgList, OrgPage } from './pages/Social';
-import RahyarTree from './pages/admin/RahyarTree';
-import { AdminSupport, Help, TicketPage } from './pages/Support';
-import { AdminBroadcasts, BroadcastPage } from './pages/Broadcast';
-import { AccessLogPage, Samples, ToolsAdmin } from './pages/admin/Extra';
-import { AdminBusiness } from './pages/Business';
-import FeedbackAdmin from './pages/admin/Feedback';
-import CampaignList, { CampaignEditor, CampaignPage, ManageCampaign, ManageCampaigns } from './pages/Campaigns';
-import Toolbox, { BoardPage, PublicBoard, ToolPage } from './pages/Tools';
-import { PathExam } from './pages/Learn';
-import PeersPage, { GaadePage, QuestionPage } from './pages/Peers';
-import Field from './pages/Field';
-import Onboard from './pages/Onboard';
-import { PubHome, PubImpact, PubLibrary, PubPathBuilder, PubRahyars, PubShell } from './pages/Pub';
-import { Publishers, ReviewQueue } from './pages/admin/Review';
-import { StudioAnalytics, StudioCourses, StudioLives, StudioQuestions, StudioShell } from './pages/Studio';
-import ImamatPage from './pages/Imamat';
 import './styles/app.css';
-import { DemoBar } from './demo/DemoBar';
+
+// همهٔ صفحه‌ها جدا بار می‌شوند تا صفحهٔ ورود روی اینترنت ضعیف سبک باشد (فقط ورود، صفحه‌های عمومی و تنظیمات در بستهٔ اول‌اند)
+const AdminShell = lazy(() => import('./pages/admin/AdminShell'));
+const CourseEditor = lazy(() => import('./pages/admin/CourseEditor'));
+const Courses = lazy(() => import('./pages/admin/Courses'));
+const Dashboard = lazy(() => import('./pages/admin/Dashboard'));
+const Audit = lazy(() => import('./pages/admin/Manage').then((m) => ({ default: m.Audit })));
+const Certificates = lazy(() => import('./pages/admin/Manage').then((m) => ({ default: m.Certificates })));
+const Grants = lazy(() => import('./pages/admin/Manage').then((m) => ({ default: m.Grants })));
+const Mosques = lazy(() => import('./pages/admin/Manage').then((m) => ({ default: m.Mosques })));
+const Paths = lazy(() => import('./pages/admin/Manage').then((m) => ({ default: m.Paths })));
+const UsersPage = lazy(() => import('./pages/admin/Manage').then((m) => ({ default: m.UsersPage })));
+const Course = lazy(() => import('./pages/Course'));
+const Home = lazy(() => import('./pages/Home'));
+const Learn = lazy(() => import('./pages/Learn'));
+const PathPage = lazy(() => import('./pages/Learn').then((m) => ({ default: m.PathPage })));
+const Lesson = lazy(() => import('./pages/Lesson'));
+const Review = lazy(() => import('./pages/Review'));
+const CohortPage = lazy(() => import('./pages/Cohort'));
+const Me = lazy(() => import('./pages/Me'));
+const Events = lazy(() => import('./pages/Events'));
+const EventPage = lazy(() => import('./pages/Events').then((m) => ({ default: m.EventPage })));
+const CheckIn = lazy(() => import('./pages/ManageEvents').then((m) => ({ default: m.CheckIn })));
+const EventEditor = lazy(() => import('./pages/ManageEvents').then((m) => ({ default: m.EventEditor })));
+const ManageEvent = lazy(() => import('./pages/ManageEvents').then((m) => ({ default: m.ManageEvent })));
+const ManageEventList = lazy(() => import('./pages/ManageEvents').then((m) => ({ default: m.ManageEventList })));
+const RahyarAssign = lazy(() => import('./pages/Rahyar').then((m) => ({ default: m.RahyarAssign })));
+const RahyarConversation = lazy(() => import('./pages/Rahyar').then((m) => ({ default: m.RahyarConversation })));
+const RahyarHome = lazy(() => import('./pages/Rahyar').then((m) => ({ default: m.RahyarHome })));
+const RahyarLearner = lazy(() => import('./pages/Rahyar').then((m) => ({ default: m.RahyarLearner })));
+const RahyarLearners = lazy(() => import('./pages/Rahyar').then((m) => ({ default: m.RahyarLearners })));
+const RahyarMessages = lazy(() => import('./pages/Rahyar').then((m) => ({ default: m.RahyarMessages })));
+const RahyarReport = lazy(() => import('./pages/Rahyar').then((m) => ({ default: m.RahyarReport })));
+const RahyarReports = lazy(() => import('./pages/Rahyar').then((m) => ({ default: m.RahyarReports })));
+const CorePage = lazy(() => import('./pages/Social').then((m) => ({ default: m.CorePage })));
+const ImamPage = lazy(() => import('./pages/Social').then((m) => ({ default: m.ImamPage })));
+const JoinPage = lazy(() => import('./pages/Social').then((m) => ({ default: m.JoinPage })));
+const Messages = lazy(() => import('./pages/Social').then((m) => ({ default: m.Messages })));
+const MyCores = lazy(() => import('./pages/Social').then((m) => ({ default: m.MyCores })));
+const Notifications = lazy(() => import('./pages/Social').then((m) => ({ default: m.Notifications })));
+const OrgList = lazy(() => import('./pages/Social').then((m) => ({ default: m.OrgList })));
+const OrgPage = lazy(() => import('./pages/Social').then((m) => ({ default: m.OrgPage })));
+const RahyarTree = lazy(() => import('./pages/admin/RahyarTree'));
+const AdminSupport = lazy(() => import('./pages/Support').then((m) => ({ default: m.AdminSupport })));
+const Help = lazy(() => import('./pages/Support').then((m) => ({ default: m.Help })));
+const TicketPage = lazy(() => import('./pages/Support').then((m) => ({ default: m.TicketPage })));
+const AdminBroadcasts = lazy(() => import('./pages/Broadcast').then((m) => ({ default: m.AdminBroadcasts })));
+const BroadcastPage = lazy(() => import('./pages/Broadcast').then((m) => ({ default: m.BroadcastPage })));
+const AccessLogPage = lazy(() => import('./pages/admin/Extra').then((m) => ({ default: m.AccessLogPage })));
+const Samples = lazy(() => import('./pages/admin/Extra').then((m) => ({ default: m.Samples })));
+const ToolsAdmin = lazy(() => import('./pages/admin/Extra').then((m) => ({ default: m.ToolsAdmin })));
+const AdminBusiness = lazy(() => import('./pages/Business').then((m) => ({ default: m.AdminBusiness })));
+const FeedbackAdmin = lazy(() => import('./pages/admin/Feedback'));
+const CampaignList = lazy(() => import('./pages/Campaigns'));
+const CampaignEditor = lazy(() => import('./pages/Campaigns').then((m) => ({ default: m.CampaignEditor })));
+const CampaignPage = lazy(() => import('./pages/Campaigns').then((m) => ({ default: m.CampaignPage })));
+const ManageCampaign = lazy(() => import('./pages/Campaigns').then((m) => ({ default: m.ManageCampaign })));
+const ManageCampaigns = lazy(() => import('./pages/Campaigns').then((m) => ({ default: m.ManageCampaigns })));
+const Toolbox = lazy(() => import('./pages/Tools'));
+const BoardPage = lazy(() => import('./pages/Tools').then((m) => ({ default: m.BoardPage })));
+const PublicBoard = lazy(() => import('./pages/Tools').then((m) => ({ default: m.PublicBoard })));
+const ToolPage = lazy(() => import('./pages/Tools').then((m) => ({ default: m.ToolPage })));
+const PathExam = lazy(() => import('./pages/Learn').then((m) => ({ default: m.PathExam })));
+const PeersPage = lazy(() => import('./pages/Peers'));
+const GaadePage = lazy(() => import('./pages/Peers').then((m) => ({ default: m.GaadePage })));
+const QuestionPage = lazy(() => import('./pages/Peers').then((m) => ({ default: m.QuestionPage })));
+const Field = lazy(() => import('./pages/Field'));
+const Onboard = lazy(() => import('./pages/Onboard'));
+const PubHome = lazy(() => import('./pages/Pub').then((m) => ({ default: m.PubHome })));
+const PubImpact = lazy(() => import('./pages/Pub').then((m) => ({ default: m.PubImpact })));
+const PubLibrary = lazy(() => import('./pages/Pub').then((m) => ({ default: m.PubLibrary })));
+const PubPathBuilder = lazy(() => import('./pages/Pub').then((m) => ({ default: m.PubPathBuilder })));
+const PubRahyars = lazy(() => import('./pages/Pub').then((m) => ({ default: m.PubRahyars })));
+const PubShell = lazy(() => import('./pages/Pub').then((m) => ({ default: m.PubShell })));
+const Publishers = lazy(() => import('./pages/admin/Review').then((m) => ({ default: m.Publishers })));
+const ReviewQueue = lazy(() => import('./pages/admin/Review').then((m) => ({ default: m.ReviewQueue })));
+const StudioAnalytics = lazy(() => import('./pages/Studio').then((m) => ({ default: m.StudioAnalytics })));
+const StudioCourses = lazy(() => import('./pages/Studio').then((m) => ({ default: m.StudioCourses })));
+const StudioLives = lazy(() => import('./pages/Studio').then((m) => ({ default: m.StudioLives })));
+const StudioQuestions = lazy(() => import('./pages/Studio').then((m) => ({ default: m.StudioQuestions })));
+const StudioShell = lazy(() => import('./pages/Studio').then((m) => ({ default: m.StudioShell })));
+const ImamatPage = lazy(() => import('./pages/Imamat'));
 
 if (savedTheme() !== 'system') applyTheme(savedTheme());
 
 // فقط نسخهٔ نمایشی: اتاق کلاس زندهٔ شبیه‌سازی‌شده (در سامانه، کلاس روی BigBlueButton باز می‌شود)
+const DemoBar = import.meta.env.VITE_DEMO ? lazy(() => import('./demo/DemoBar').then((m) => ({ default: m.DemoBar }))) : null;
 const DemoLiveRoom = import.meta.env.VITE_DEMO ? lazy(() => import('./demo/LiveRoom')) : null;
 
 const qc = new QueryClient({
@@ -223,8 +273,8 @@ createRoot(document.getElementById('root')!).render(
       <AuthProvider>
         <ToastProvider>
           <OfflineBar />
-          <RouterProvider router={router} />
-          {import.meta.env.VITE_DEMO && <DemoBar />}
+          <Suspense fallback={<Spinner />}><RouterProvider router={router} /></Suspense>
+          {DemoBar && <Suspense fallback={null}><DemoBar /></Suspense>}
         </ToastProvider>
       </AuthProvider>
     </QueryClientProvider>

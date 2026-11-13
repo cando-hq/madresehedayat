@@ -45,7 +45,15 @@ nano .env
 - برای **آزمایش** همان `SMS_PROVIDER=console` بماند؛ کد ورود در لاگ API چاپ می‌شود: `docker compose logs -f api | grep کد`
 - برای **واقعی**: `SMS_PROVIDER=kavenegar` و `KAVENEGAR_API_KEY=...` و نام قالب در `KAVENEGAR_OTP_TEMPLATE`.
 
-بقیهٔ متغیرها (بله، ایتا، BigBlueButton) اختیاری‌اند؛ خالی بمانند آن امکان خاموش است و بقیهٔ سامانه کار می‌کند.
+کد ورود در **بله** (پیشنهادی؛ رایگان یا ارزان‌تر از پیامک):
+
+- `BALE_SAFIR_API_KEY` و `BALE_SAFIR_BOT_ID` را از پنل «سفیر» بله بگیرید و در `.env` بگذارید.
+- از آن به بعد کد ورود اول در پیام‌رسان بله به همان شماره می‌رود (حتی برای کاربر تازه). اگر شماره در بله حساب نداشت، خودکار پیامک می‌رود. کاربر در صفحهٔ کد دکمهٔ «با پیامک بفرست» یا «کد را در بله بفرست» هم دارد.
+- برای آزمایش بدون پنل سفیر: `python3 tests/fakesafir.py` و `BALE_SAFIR_URL=http://127.0.0.1:9310/api/v3`.
+
+نقشهٔ انتخاب مسجد از کاشی‌های OpenStreetMap استفاده می‌کند و تنظیمی نمی‌خواهد. اگر OSM از ایران کند بود، نشانی یک آینهٔ کاشی را در `MAP_TILES` بگذارید و دوباره بیلد کنید. صفحهٔ انتخاب مسجد فقط روی HTTPS می‌تواند مکان کاربر را بگیرد.
+
+بقیهٔ متغیرها (بات اعلان بله، ایتا، BigBlueButton) اختیاری‌اند؛ خالی بمانند آن امکان خاموش است و بقیهٔ سامانه کار می‌کند.
 
 اگر Docker Hub یا npm از سرور باز نمی‌شود، چهار خط آخر `.env.example` (آینهٔ آروان) را از کامنت درآورید.
 
@@ -64,7 +72,7 @@ docker compose up -d --build
 
 ```bash
 docker compose ps            # همه باید healthy/running باشند
-curl -s http://localhost:8080/api/health        # {"ok":true,"version":"1.0.0"}
+curl -s http://localhost:8080/api/health        # {"ok":true,"version":"1.1.0"}
 curl -s http://localhost:8080/api/v2/paths | head -c 300   # باید مسیرها را برگرداند
 ```
 

@@ -38,5 +38,9 @@ export const config = {
   /** lax (پیش‌فرض) یا none — none فقط وقتی لازم است که مدرسه در نسخهٔ وب ایتا (داخل iframe) باز شود */
   cookieSameSite: (process.env.COOKIE_SAMESITE === 'none' ? 'none' : 'lax') as 'lax' | 'none',
   baleBotUsername: process.env.BALE_BOT_USERNAME ?? '',
+  /** سفیر بله (ارسال کد ورود به شمارهٔ موبایل در بله، حتی برای کاربر تازه). کلید و شناسهٔ بات از پنل سفیر بله */
+  baleSafirKey: process.env.BALE_SAFIR_API_KEY ?? '',
+  baleSafirBotId: process.env.BALE_SAFIR_BOT_ID ?? '',
+  baleSafirUrl: env('BALE_SAFIR_URL', 'https://safir.bale.ai/api/v3'),
   get isDev() { return this.nodeEnv !== 'production'; },
 };

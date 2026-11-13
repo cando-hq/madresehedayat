@@ -30,7 +30,7 @@ async def login(pg, mobile, first=None, last=None):
     await pg.keyboard.type(codes['c']); await pg.wait_for_timeout(1800)
     if first and (await pg.locator('input').count())>=2 and '/login' in pg.url:
         ins=pg.locator('input'); await ins.nth(0).fill(first); await ins.nth(1).fill(last)
-        sel=pg.locator('select'); await sel.nth(0).select_option(index=1); await pg.wait_for_timeout(400); await sel.nth(1).select_option(index=1)
+        # از ۱.۱ استان و شهرستان در فرم ثبت‌نام نیست؛ از مسجد در آشنایی گرفته می‌شود
         await pg.get_by_role('button', name='برادر', exact=True).click()
         await pg.get_by_role('button', name='ساخت حساب و ورود').click(); await pg.wait_for_timeout(2000)
     pg.remove_listener('response', on_resp)
@@ -41,24 +41,19 @@ ONLY=os.environ.get('ONLY','')
 async def main():
     async with async_playwright() as p:
         b=await p.chromium.launch(executable_path='/usr/bin/google-chrome', args=['--no-sandbox'])
-        ctx=await b.new_context(viewport={'width':1280,'height':900}); pg=await ctx.new_page()
+        ctx=await b.new_context(viewport={'width':1280,'height':900}, geolocation={'latitude':33.9842,'longitude':51.4370}, permissions=['geolocation']); pg=await ctx.new_page()
         pg.on('pageerror', lambda e: print('PAGEERROR', str(e)[:300]))
         pg.on('response', lambda r: print('HTTP', r.status, r.url.replace(B,'')) if r.status>=500 else None)
         # ── 1 کنشگر تازه: ثبت‌نام → آنبورد با نقشه → خانه
         if ONLY: pass
-        print('1) کنشگر تازه'); await login(pg,'09125550021','رضا','امینی')
+        print('1) کنشگر تازه'); await login(pg,'09125550031','رضا','امینی')
         if '/onboard' in pg.url:
             await pg.get_by_role('radio', name='امام', exact=True).click(); await pg.get_by_role('button', name='ادامه').click(); await pg.wait_for_timeout(1200)
-            await shot(pg,'onboard_map')
-            svg=pg.locator('svg').filter(has=pg.locator('path')).nth(0)
-            bb=await pg.locator('[data-map], svg.map, svg').first.bounding_box()
-            if bb: await pg.mouse.click(bb['x']+bb['width']/2, bb['y']+bb['height']/2); await pg.wait_for_timeout(1200)
-            t=await txt(pg); print('  near list shown:', 'مسجد' in t)
-            r=pg.get_by_role('radio'); 
+            await shot(pg,'onboard_mosque')
+            await pg.get_by_role('button', name='مکانم را پیدا کن').click(); await pg.wait_for_timeout(2500)
+            t=await txt(pg); print('  near list shown:', 'نزدیک تو' in t)
+            r=pg.get_by_role('radio')
             if await r.count(): await r.first.click()
-            else:
-                prop=pg.get_by_role('button', name=re.compile('مسجدم اینجا نیست|پیشنهاد|اضافه'))
-                if await prop.count(): await prop.first.click(); await pg.wait_for_timeout(500); await pg.locator('input').last.fill('مسجد تست محله'); 
             await pg.get_by_role('button', name='ادامه').click(); await pg.wait_for_timeout(800)
             await pg.get_by_role('button', name='شروع کن').click(); await pg.wait_for_timeout(2500)
         print('  after onboard ->', pg.url.replace(B,'')); await shot(pg,'home')

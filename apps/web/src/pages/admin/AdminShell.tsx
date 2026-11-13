@@ -1,6 +1,7 @@
+import { Suspense } from 'react';
 import { Flag, Award, BadgeDollarSign, MessageSquarePlus, BookOpen, BookOpenCheck, CalendarDays, Compass, House, KeyRound, LayoutDashboard, Landmark, LifeBuoy, Megaphone, Route, ScrollText, ShieldCheck, Users, Wrench } from 'lucide-react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router';
-import { TopLoader } from '../../components/ui';
+import { TopLoader, Spinner } from '../../components/ui';
 import { Brand } from '../../components/Shell';
 import { MfaGate } from './MfaGate';
 import { useAuth } from '../../lib/auth';
@@ -52,7 +53,7 @@ export default function AdminShell() {
           </div>
         </div>
       </aside>
-      <main className="min-w-0 px-4 py-6 md:px-8 md:py-8"><TopLoader /><div className="mx-auto max-w-6xl"><MfaGate><div key={loc.pathname} className="page"><Outlet /></div></MfaGate></div></main>
+      <main className="min-w-0 px-4 py-6 md:px-8 md:py-8"><TopLoader /><div className="mx-auto max-w-6xl"><MfaGate><div key={loc.pathname} className="page"><Suspense fallback={<Spinner />}><Outlet /></Suspense></div></MfaGate></div></main>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { ArrowRight, CircleAlert, KeyRound, ShieldCheck, Smartphone } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { eitaaApp, eitaaContact, inEitaa } from '../lib/eitaa';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import { api, ApiError } from '../lib/api';
@@ -10,7 +10,6 @@ import type { Me } from '../lib/types';
 import { useToast } from '../components/ui';
 
 type Step = 'mobile' | 'code' | 'register';
-interface Province { id: string; name: string; counties: { id: string; name: string }[] }
 
 const normMobile = (v: string) => {
   const s = toEn(v).replace(/[\s\-()]/g, '').replace(/^\+98/, '0').replace(/^0098/, '0');
@@ -28,6 +27,8 @@ export default function Login() {
   const [devCode, setDevCode] = useState<string | null>(null);
   // کد ورود اگر بله یا ایتا وصل باشد رایگان همان‌جا می‌رود (مدل کسب‌وکار: کم کردن پیامک)
   const [channel, setChannel] = useState<'SMS' | 'BALE' | 'EITAA'>('SMS');
+  const [alt, setAlt] = useState<'SMS' | 'BALE' | null>(null);
+  const welcome = useToast();
   const [isNew, setIsNew] = useState(false);
   const [regToken, setRegToken] = useState('');
   const [err, setErr] = useState('');
@@ -61,14 +62,14 @@ export default function Login() {
   }
   useEffect(() => { if (wait <= 0) return; const t = setTimeout(() => setWait((w) => w - 1), 1000); return () => clearTimeout(t); }, [wait]);
 
-  async function sendCode(e?: FormEvent, via?: 'sms') {
+  async function sendCode(e?: FormEvent, via?: 'sms' | 'bale') {
     e?.preventDefault();
     const m = normMobile(mobile);
     if (!/^09\d{9}$/.test(m)) { setErr('شماره باید ۱۱ رقم باشد و با ۰۹ شروع شود.'); return; }
     setBusy(true); setErr('');
     try {
-      const r = await api<{ resendIn: number; isNew: boolean; devCode?: string; channel: 'SMS' | 'BALE' | 'EITAA' }>('/auth/otp', { body: { mobile: m, ...(via ? { via } : {}) } });
-      setMobile(m); setIsNew(r.isNew); setChannel(r.channel ?? 'SMS'); setDevCode(r.devCode ?? null); setWait(r.resendIn); setCode(''); setStep('code');
+      const r = await api<{ resendIn: number; isNew: boolean; devCode?: string; channel: 'SMS' | 'BALE' | 'EITAA'; alt?: 'SMS' | 'BALE' | null }>('/auth/otp', { body: { mobile: m, ...(via ? { via } : {}) } });
+      setMobile(m); setIsNew(r.isNew); setChannel(r.channel ?? 'SMS'); setAlt(r.alt ?? (r.channel && r.channel !== 'SMS' ? 'SMS' : null)); setDevCode(r.devCode ?? null); setWait(r.resendIn); setCode(''); setStep('code');
       setTimeout(() => codeRef.current?.focus(), 50);
     } catch (e) {
       const a = e as ApiError;
@@ -85,8 +86,11 @@ export default function Login() {
     try {
       const r = await api<{ needsRegistration: boolean; regToken?: string; user?: Me }>('/auth/verify', { body: { mobile, code: c } });
       if (r.needsRegistration) { setRegToken(r.regToken!); setStep('register'); }
-      else { setMe(r.user!); nav(next, { replace: true }); }
-    } catch (e) { setErr((e as Error).message); setCode(''); codeRef.current?.focus(); } finally { setBusy(false); }
+      else { setMe(r.user!); welcome(`خوش برگشتی، ${r.user!.firstName}`); nav(next, { replace: true }); }
+    } catch (e) {
+      const a = e as ApiError; const left = a.code === 'otp_wrong' ? Number(a.data?.left) : NaN;
+      setErr(Number.isFinite(left) && left > 0 ? `${a.message}؛ ${fa(left)} بار دیگر می‌توانید امتحان کنید.` : a.message); setCode(''); codeRef.current?.focus();
+    } finally { setBusy(false); }
   }
 
   useEffect(() => { if (step === 'code' && toEn(code).replace(/\D/g, '').length === 5) verify(); /* ارسال خودکار وقتی ۵ رقم کامل شد */ // eslint-disable-next-line
@@ -118,7 +122,7 @@ export default function Login() {
               </div>}
               <button className={`btn btn-lg mt-6 w-full ${eitaa ? 'btn-secondary' : 'btn-primary'}`} disabled={busy}>{busy ? 'در حال ارسال…' : 'دریافت کد'}</button>
               <SsoButton />
-              <p className="mt-6 text-center text-sm text-muted">ادامه یعنی پذیرفتن <Link to="/terms" className="font-semibold text-leaf-ink">شرایط استفاده و حریم خصوصی</Link>.</p>
+              <p className="mt-4 text-center text-sm text-muted">ادامه یعنی پذیرفتن <Link to="/terms" className="inline-block py-3 font-semibold text-leaf-ink">شرایط استفاده و حریم خصوصی</Link>.</p>
             </form>
           )}
           {step === 'code' && (
@@ -127,7 +131,7 @@ export default function Login() {
               <h1 className="text-[clamp(24px,3vw,30px)] font-extrabold">کد تأیید را وارد کنید</h1>
               {channel === 'SMS'
                 ? <p className="mt-1.5 text-muted">کد ۵ رقمی به <b dir="ltr" className="tnum text-ink">{maskMobile(mobile)}</b> پیامک شد.</p>
-                : <p className="mt-1.5 text-muted">کد ۵ رقمی در <b className="text-ink">{channel === 'BALE' ? 'بله' : 'ایتا'}</b> برایتان فرستاده شد (گفت‌وگو با بات مدرسه).</p>}
+                : <p className="mt-1.5 text-muted">کد ۵ رقمی در پیام‌رسان <b className="text-ink">{channel === 'BALE' ? 'بله' : 'ایتا'}</b> برای <b dir="ltr" className="tnum text-ink">{maskMobile(mobile)}</b> آمد؛ {channel === 'BALE' ? 'بله' : 'ایتا'} را باز کنید و کد را این‌جا بزنید.</p>}
               <div className="field mt-6">
                 <label htmlFor="code" className="sr-only">کد تأیید</label>
                 <input id="code" ref={codeRef} className="input ltr tnum h-16 text-center text-3xl font-extrabold tracking-[0.6em]" inputMode="numeric" autoComplete="one-time-code" maxLength={5}
@@ -139,7 +143,7 @@ export default function Login() {
               <div className="mt-4 text-center text-sm">
                 {wait > 0 ? <span className="text-muted">ارسال دوباره تا <b className="tnum">{fa(wait)}</b> ثانیهٔ دیگر</span>
                   : <button type="button" className="font-bold text-leaf-ink" onClick={() => sendCode()} disabled={busy}>ارسال دوبارهٔ کد</button>}
-                {channel !== 'SMS' && wait <= 0 && <button type="button" className="ms-4 font-bold text-muted" onClick={() => sendCode(undefined, 'sms')} disabled={busy}>با پیامک بفرست</button>}
+                {alt && wait <= 0 && <button type="button" className="ms-4 font-bold text-muted" onClick={() => sendCode(undefined, alt === 'BALE' ? 'bale' : 'sms')} disabled={busy}>{alt === 'BALE' ? 'کد را در بله بفرست' : 'با پیامک بفرست'}</button>}
               </div>
             </form>
           )}
@@ -153,6 +157,8 @@ export default function Login() {
 
 function SsoButton() {
   const [msg, setMsg] = useState('');
+  const opts = useQuery({ queryKey: ['auth-options'], queryFn: () => api<{ sso: boolean; bale: boolean }>('/auth/options'), staleTime: 3600_000, retry: false });
+  if (!opts.data?.sso) return null; // تا «ورود با سامانهٔ پایه» وصل نشده، دکمه‌اش هم نیست
   return (
     <>
       <div className="my-5 flex items-center gap-3 text-xs text-muted"><span className="h-px flex-1 bg-line" />یا<span className="h-px flex-1 bg-line" /></div>
@@ -165,13 +171,13 @@ function SsoButton() {
 }
 
 function Register({ regToken, mobile, invite, onDone }: { regToken: string; mobile: string; invite: string; onDone: (u: Me) => void }) {
-  const geo = useQuery({ queryKey: ['provinces'], queryFn: () => api<Province[]>('/geo/provinces'), staleTime: Infinity });
-  const [f, setF] = useState({ firstName: '', lastName: '', gender: '', provinceId: '', countyId: '', mosqueId: '', mosqueMode: 'none' as 'list' | 'other' | 'none', nearMosque: '', inviteCode: invite });
+  // فقط سه چیز: نام، نام خانوادگی، برادر یا خواهر. شهرستان در قدم بعد از مسجدِ روی نقشه گرفته می‌شود.
+  const [f, setF] = useState({ firstName: '', lastName: '', gender: '', inviteCode: invite });
+  const [showInvite, setShowInvite] = useState(!!invite);
   const [errs, setErrs] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
   const toast = useToast();
-  const counties = useMemo(() => geo.data?.find((p) => p.id === f.provinceId)?.counties ?? [], [geo.data, f.provinceId]);
   const set = (k: keyof typeof f, v: string) => { setF((x) => ({ ...x, [k]: v })); setErrs((e) => ({ ...e, [k]: '' })); };
 
   async function submit(e: FormEvent) {
@@ -180,14 +186,11 @@ function Register({ regToken, mobile, invite, onDone }: { regToken: string; mobi
     if (f.firstName.trim().length < 2) er.firstName = 'نام را بنویسید';
     if (f.lastName.trim().length < 2) er.lastName = 'نام خانوادگی را بنویسید';
     if (!f.gender) er.gender = 'یکی را انتخاب کنید';
-    if (!f.countyId) er.countyId = 'شهرستان را انتخاب کنید';
     setErrs(er); if (Object.keys(er).length) return;
     setBusy(true); setErr('');
     try {
       const r = await api<{ user: Me; notice?: string | null }>('/auth/register', { body: {
-        regToken, firstName: f.firstName, lastName: f.lastName, gender: f.gender, countyId: f.countyId,
-        mosqueId: f.mosqueMode === 'list' ? f.mosqueId : undefined, nearMosque: f.mosqueMode !== 'list' && f.nearMosque ? f.nearMosque : undefined,
-        inviteCode: f.inviteCode || undefined,
+        regToken, firstName: f.firstName, lastName: f.lastName, gender: f.gender, inviteCode: f.inviteCode.trim() || undefined,
       } });
       if (r.notice) toast(r.notice, 'err');
       onDone(r.user);
@@ -198,29 +201,22 @@ function Register({ regToken, mobile, invite, onDone }: { regToken: string; mobi
   return (
     <form onSubmit={submit} noValidate className="rise">
       <h1 className="text-[clamp(24px,3vw,30px)] font-extrabold">به مدرسهٔ هدایت خوش آمدید</h1>
-      <p className="mt-1.5 text-muted">چند مشخصه برای ساختن حسابتان؛ کمتر از یک دقیقه طول می‌کشد. شماره: <b dir="ltr" className="tnum">{maskMobile(mobile)}</b></p>
+      <p className="mt-1.5 text-muted">سه چیز برای ساختن حسابتان. شماره: <b dir="ltr" className="tnum">{maskMobile(mobile)}</b></p>
+      {invite && <p className="mt-4 flex items-center gap-2 rounded-xl bg-leaf-soft px-3 py-2 text-sm text-leaf-ink"><ShieldCheck className="size-4 shrink-0" />با پیوند دعوت آمده‌اید؛ بعد از ثبت‌نام عضو همان هسته یا مسجد می‌شوید.</p>}
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
-        <div className="field"><label htmlFor="fn">نام</label><input id="fn" className="input" value={f.firstName} onChange={(e) => set('firstName', e.target.value)} autoComplete="given-name" /><E k="firstName" /></div>
+        <div className="field"><label htmlFor="fn">نام</label><input id="fn" className="input" value={f.firstName} onChange={(e) => set('firstName', e.target.value)} autoComplete="given-name" autoFocus /><E k="firstName" /></div>
         <div className="field"><label htmlFor="ln">نام خانوادگی</label><input id="ln" className="input" value={f.lastName} onChange={(e) => set('lastName', e.target.value)} autoComplete="family-name" /><E k="lastName" /></div>
       </div>
       <fieldset className="field mt-4">
         <legend className="mb-1.5 text-sm font-bold text-ink">جنسیت</legend>
         <div className="seg">{[['MALE', 'برادر'], ['FEMALE', 'خواهر']].map(([v, t]) => <button type="button" key={v} aria-pressed={f.gender === v} onClick={() => set('gender', v)}>{t}</button>)}</div>
-        <p className="hint">شبکهٔ راهیاری برادران و بانور جداست؛ راهیارتان بر همین اساس تعیین می‌شود.</p><E k="gender" />
+        <p className="hint">شبکهٔ راهیاری برادران و بانوان جداست؛ راهیارتان بر همین اساس تعیین می‌شود.</p><E k="gender" />
       </fieldset>
-      <div className="mt-4 grid gap-4 sm:grid-cols-2">
-        <div className="field"><label htmlFor="pr">استان</label>
-          <select id="pr" className="input" value={f.provinceId} onChange={(e) => { set('provinceId', e.target.value); set('countyId', ''); set('mosqueId', ''); }}>
-            <option value="">انتخاب کنید</option>{geo.data?.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-          </select></div>
-        <div className="field"><label htmlFor="ct">شهرستان</label>
-          <select id="ct" className="input" value={f.countyId} disabled={!f.provinceId} onChange={(e) => { set('countyId', e.target.value); set('mosqueId', ''); }}>
-            <option value="">انتخاب کنید</option>{counties.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-          </select><E k="countyId" /></div>
-      </div>
-      <p className="hint mt-4">مسجدت را در قدم بعد روی نقشه انتخاب می‌کنی.</p>
-      <div className="field mt-4"><label htmlFor="inv">کد دعوت هسته <span className="font-normal text-muted">(اختیاری)</span></label>
-        <input id="inv" className="input ltr" value={f.inviteCode} onChange={(e) => set('inviteCode', e.target.value)} placeholder="اگر امام محله یا مسئول هسته کدی داده" /></div>
+      <p className="hint mt-4">مسجد و شهرستانت را در قدم بعد، از روی نقشه پیدا می‌کنیم.</p>
+      {showInvite
+        ? <div className="field mt-4"><label htmlFor="inv">کد دعوت <span className="font-normal text-muted">(اختیاری)</span></label>
+            <input id="inv" className="input ltr" value={f.inviteCode} onChange={(e) => set('inviteCode', e.target.value)} placeholder="کدی که امام محله یا مسئول هسته داده" /></div>
+        : <button type="button" className="mt-3 inline-block py-2 text-sm font-bold text-leaf-ink" onClick={() => setShowInvite(true)}>کد دعوت دارم</button>}
       {err && <p className="err mt-4"><CircleAlert className="size-4" />{err}</p>}
       <button className="btn btn-primary btn-lg mt-6 w-full" disabled={busy}>{busy ? 'در حال ساخت حساب…' : 'ساخت حساب و ورود'}</button>
     </form>

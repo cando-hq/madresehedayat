@@ -8,7 +8,7 @@ import { Db, InjectDb } from '../db/db.module';
 import { coreMemberships, cores, mosques, networks, otpRequests, roleGrants, sessions, users } from '../db/schema';
 import { Business } from '../business/business';
 import { RoleName } from '../common/auth.decorators';
-import { SmsSender } from '../sms/sms';
+import { BaleSafir, SmsSender } from '../sms/sms';
 import { Messenger } from '../messenger/messenger';
 
 const OTP_TTL_MS = 2 * 60_000;
@@ -22,7 +22,7 @@ export interface RegisterInput {
   firstName: string;
   lastName: string;
   gender: 'MALE' | 'FEMALE';
-  countyId: string;
+  countyId?: string;
   mosqueId?: string;
   nearMosque?: string;
   inviteCode?: string;
@@ -30,17 +30,18 @@ export interface RegisterInput {
 
 @Injectable()
 export class AuthService {
-  constructor(@InjectDb() private readonly db: Db, private readonly jwt: JwtService, private readonly sms: SmsSender, private readonly messenger: Messenger, private readonly business: Business) {}
+  constructor(@InjectDb() private readonly db: Db, private readonly jwt: JwtService, private readonly sms: SmsSender, private readonly messenger: Messenger, private readonly business: Business, private readonly safir: BaleSafir) {}
 
   private otpHash(mobile: string, code: string) {
     return createHmac('sha256', config.otpSecret).update(`${mobile}:${code}`).digest('hex');
   }
 
   /**
-   * کد ورود: اگر کاربر بله یا ایتا را وصل کرده، کد رایگان از همان‌جا می‌رود (کم کردن هزینهٔ پیامک —
-   * مدل کسب‌وکار ۱۶). با via = 'sms' یا اگر ارسال پیام‌رسان نشد، پیامک فرستاده می‌شود.
+   * کد ورود. ترتیب پیش‌فرض: پیام‌رسانی که کاربر قبلاً وصل کرده (بات بله / ایتا) ← بله با سفیر (حتی کاربر تازه) ← پیامک.
+   * هزینهٔ پیامک کم می‌شود (مدل کسب‌وکار ۱۶). via = 'sms' یعنی فقط پیامک؛ via = 'bale' یعنی فقط بله، و اگر نرفت
+   * درخواست ثبت نمی‌شود تا کاربر بی‌انتظار پیامک بگیرد و کد قبلی‌اش هم باطل نشود.
    */
-  async requestOtp(mobile: string, via?: 'sms') {
+  async requestOtp(mobile: string, via?: 'sms' | 'bale') {
     const hourAgo = new Date(Date.now() - 3600_000);
     const recent = await this.db.select().from(otpRequests)
       .where(and(eq(otpRequests.mobile, mobileKey(mobile)), gt(otpRequests.createdAt, hourAgo)))
@@ -52,13 +53,24 @@ export class AuthService {
     if (recent.length >= MAX_PER_HOUR) {
       throw new HttpException({ code: 'otp_limit', message: 'تعداد درخواست کد زیاد شد؛ یک ساعت دیگر امتحان کنید' }, HttpStatus.TOO_MANY_REQUESTS);
     }
-    const code = String(randomInt(10000, 100000));
-    await this.db.insert(otpRequests).values({ mobile: mobileKey(mobile), codeHash: this.otpHash(mobile, code), expiresAt: new Date(Date.now() + OTP_TTL_MS) });
+    if (via === 'bale' && !this.safir.enabled) throw new BadRequestException({ code: 'bale_off', message: 'ارسال کد در بله فعلاً روشن نیست؛ با پیامک بگیرید' });
+    const code = String(randomInt(10000, 100000)); // هیچ‌وقت با صفر شروع نمی‌شود (بله کد را عدد می‌خواند)
+    const [row] = await this.db.insert(otpRequests).values({ mobile: mobileKey(mobile), codeHash: this.otpHash(mobile, code), expiresAt: new Date(Date.now() + OTP_TTL_MS) }).returning({ id: otpRequests.id });
     const user = await this.db.query.users.findFirst({ where: eq(users.mobile, mobileKey(mobile)), columns: { id: true } });
-    let channel: 'SMS' | 'BALE' | 'EITAA' = 'SMS';
-    if (user && via !== 'sms') channel = (await this.messenger.sendDirect(user.id, `کد ورود به مدرسهٔ هدایت: ${code}\nاین کد را به کسی ندهید.`)) ?? 'SMS';
-    if (channel === 'SMS') await this.sms.sendOtp(mobile, code);
-    return { sent: true, channel, resendIn: RESEND_MS / 1000, isNew: !user, ...(config.isDev && config.smsProvider === 'console' ? { devCode: code } : {}) };
+    let channel: 'SMS' | 'BALE' | 'EITAA' | null = null;
+    if (via !== 'sms' && user) channel = await this.messenger.sendDirect(user.id, `کد ورود به مدرسهٔ هدایت: ${code}\nاین کد را به کسی ندهید.`);
+    if (!channel && via !== 'sms' && (await this.safir.sendOtp(mobile, code))) channel = 'BALE';
+    if (!channel && via === 'bale') {
+      await this.db.delete(otpRequests).where(eq(otpRequests.id, row.id));
+      throw new BadRequestException({ code: 'bale_failed', message: 'کد در بله نرفت؛ شاید این شماره در بله حساب ندارد. با پیامک بگیرید.' });
+    }
+    if (!channel) { await this.sms.sendOtp(mobile, code); channel = 'SMS'; }
+    return {
+      sent: true, channel, resendIn: RESEND_MS / 1000, isNew: !user,
+      /** راه دیگری که کاربر می‌تواند همان لحظه انتخاب کند */
+      alt: channel === 'SMS' ? (this.safir.enabled ? 'BALE' : null) : 'SMS',
+      ...(config.isDev && config.smsProvider === 'console' ? { devCode: code } : {}),
+    };
   }
 
   /** شماره‌ای که منبع مطمئن دیگری (ایتا) تأییدش کرده */
@@ -106,7 +118,7 @@ export class AuthService {
       firstName: input.firstName.trim(),
       lastName: input.lastName.trim(),
       gender: input.gender,
-      countyId: input.countyId,
+      countyId: input.countyId || null,
       mosqueId: input.mosqueId || null,
       nearMosque: input.mosqueId ? null : input.nearMosque?.trim() || null,
     }).returning();
@@ -121,7 +133,7 @@ export class AuthService {
       else if (core) await this.db.insert(coreMemberships).values({ coreId: core.id, userId: u.id }).onConflictDoNothing();
       else {
         const m = await this.db.query.mosques.findFirst({ where: eq(mosques.inviteCode, code) });
-        if (m) await this.db.update(users).set({ mosqueId: m.id, nearMosque: null }).where(eq(users.id, u.id));
+        if (m) await this.db.update(users).set({ mosqueId: m.id, nearMosque: null, ...(u.countyId ? {} : { countyId: m.countyId }) }).where(eq(users.id, u.id));
       }
     }
     return { userId: u.id, notice };

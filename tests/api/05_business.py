@@ -95,7 +95,7 @@ ok(admin.get(f'{B}/org').json()[0]['subscription']['active'] is False, 'فهرس
 
 print('ورود')
 psql('delete from otp_requests')
-r = requests.post(f'{B}/auth/otp', json={'mobile': '09126000002'}, headers={'X-Forwarded-For': '10.77.1.1'}).json(); ok(r.get('channel') == 'SMS', 'بی پیام‌رسان: پیامک', r)
+r = requests.post(f'{B}/auth/otp', json={'mobile': '09126000002'}, headers={'X-Forwarded-For': '10.77.1.1'}).json(); exp = 'BALE' if requests.get(f'{B}/auth/options').json().get('bale') else 'SMS'; ok(r.get('channel') == exp, f'بی پیام‌رسانِ وصل‌شده: {"بله (سفیر)" if exp == "BALE" else "پیامک"}', r)
 exp = psql("select max(expires_at) - now() > interval '80 days' from sessions s join users u on u.id=s.user_id where u.first_name='عضو'"); ok(exp == 't', 'نشست کنشگر ۹۰ روزه')
 exp = psql("select max(expires_at) - now() < interval '31 days' from sessions s join role_grants g on g.user_id=s.user_id and g.role='HQ_ADMIN'"); ok(exp == 't', 'نشست ستاد ۳۰ روزه')
 print('\nنتیجه:', 'همه درست' if not h.fails else f'{h.fails} خطا'); sys.exit(1 if h.fails else 0)

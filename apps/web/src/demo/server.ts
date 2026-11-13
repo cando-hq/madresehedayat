@@ -281,7 +281,8 @@ const wrap = (method: string, re: string, f: (orig: H) => H) => { const src = ne
 const HOOK: Any = { subscribedCourseIds: () => [], certOrgName: () => null, eventScopeBlock: () => null };
 
 // احراز هویت
-on('POST', '/auth/otp', (_m, b) => { const mob = normMobile(b.mobile); if (!mob) throw E(400, 'bad_mobile', 'شماره باید ۱۱ رقم باشد و با ۰۹ شروع شود'); DBV.otpMobile = mob; return { sent: true, resendIn: 60, isNew: !DBV.users.some((u) => u.mobile === mob), devCode: DEMO_CODE }; });
+on('POST', '/auth/otp', (_m, b) => { const mob = normMobile(b.mobile); if (!mob) throw E(400, 'bad_mobile', 'شماره باید ۱۱ رقم باشد و با ۰۹ شروع شود'); DBV.otpMobile = mob; const ch = b.via === 'sms' ? 'SMS' : 'BALE'; return { sent: true, channel: ch, alt: ch === 'SMS' ? 'BALE' : 'SMS', resendIn: 60, isNew: !DBV.users.some((u) => u.mobile === mob), devCode: DEMO_CODE }; });
+on('GET', '/auth/options', () => ({ sso: false, bale: true }));
 on('POST', '/auth/verify', (_m, b) => {
   const mob = normMobile(b.mobile);
   if (String(b.code) !== DEMO_CODE) throw E(400, 'otp_wrong', 'کد درست نیست؛ در نسخهٔ نمایشی کد ۱۲۳۴۵ است');
@@ -291,7 +292,7 @@ on('POST', '/auth/verify', (_m, b) => {
 });
 on('POST', '/auth/register', (_m, b) => {
   const mob = String(b.regToken).replace('demo:', '');
-  const u = { id: rid(), mobile: mob, firstName: b.firstName.trim(), lastName: b.lastName.trim(), gender: b.gender, countyId: b.countyId, mosqueId: b.mosqueId || null, nearMosque: b.mosqueId ? null : b.nearMosque || null, nationalId: null, isActive: true, createdAt: now() };
+  const u = { id: rid(), mobile: mob, firstName: b.firstName.trim(), lastName: b.lastName.trim(), gender: b.gender, countyId: b.countyId || null, mosqueId: b.mosqueId || null, nearMosque: b.mosqueId ? null : b.nearMosque || null, nationalId: null, isActive: true, createdAt: now() };
   DBV.users.push(u);
   if (mob === DEMO_ADMIN) DBV.roles.push({ userId: u.id, role: 'HQ_ADMIN' });
   DBV.session = u.id; return { user: profile(u) };

@@ -4,7 +4,7 @@
  */
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { BookOpen, ChevronLeft, Compass, Library, Plus, Radio, Route, Trash2, TrendingUp } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { Link, NavLink, Outlet, useNavigate, useParams } from 'react-router';
 import { Brand } from '../components/Shell';
 import { ROLE_FA } from '../components/Path2';
@@ -35,7 +35,7 @@ export function PubShell() {
           <Link to="/" className="mt-2 flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm text-white/70 no-underline hover:bg-white/10"><ChevronLeft className="size-4" />نمای کنشگر</Link>
         </nav>
       </aside>
-      <main className="wrap py-6 md:py-10"><Outlet /></main>
+      <main className="wrap py-6 md:py-10"><Suspense fallback={<Spinner />}><Outlet /></Suspense></main>
     </div>
   );
 }

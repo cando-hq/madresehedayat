@@ -18,14 +18,15 @@ import { contactPhone, eitaaEnabled, eitaaUser, eitaaVerifyOnce, verifyEitaa } f
 const REFRESH_COOKIE = 'mh_rt';
 const EITAA_COOKIE = 'mh_eitaa';
 
-class OtpDto { @IsString() mobile: string; @IsOptional() @IsIn(['sms']) via?: 'sms'; }
+class OtpDto { @IsString() mobile: string; @IsOptional() @IsIn(['sms', 'bale']) via?: 'sms' | 'bale'; }
 class VerifyDto { @IsString() mobile: string; @IsString() @Length(4, 8) code: string; }
 class RegisterDto {
   @IsString() regToken: string;
   @IsString() @Length(2, 40) firstName: string;
   @IsString() @Length(2, 60) lastName: string;
   @IsIn(['MALE', 'FEMALE']) gender: 'MALE' | 'FEMALE';
-  @IsString() countyId: string;
+  /** از ۱.۱ اختیاری: شهرستان در «آشنایی» از مسجد انتخاب‌شده (یا انتخاب دستی) گرفته می‌شود */
+  @IsOptional() @IsString() countyId?: string;
   @IsOptional() @IsString() mosqueId?: string;
   @IsOptional() @IsString() @MaxLength(120) nearMosque?: string;
   @IsOptional() @IsString() @MaxLength(40) inviteCode?: string;
@@ -152,6 +153,10 @@ export class AuthController {
   }
 
   /** «ورود با سامانهٔ پایه» (OAuth2/OIDC) — منتظر اطلاعات اتصال از تیم سامانهٔ پایه */
+  /** راه‌های ورودی که روی این سرور روشن است؛ صفحهٔ ورود فقط همین‌ها را نشان می‌دهد */
+  @Public() @Get('options')
+  options() { return { sso: false, bale: !!(config.baleSafirKey && config.baleSafirBotId) }; }
+
   @Public() @Get('sso/core')
   sso() {
     throw new NotImplementedException({ code: 'sso_not_configured', message: 'ورود با سامانهٔ پایه هنوز راه نیفتاده است' });

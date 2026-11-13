@@ -35,7 +35,7 @@ import { SupportController } from './support/support';
 import { ToolsController, ToolsService } from './tools/tools';
 import { GrowthController, GrowthService } from './growth/growth';
 import { CohortsController, CohortsService } from './cohorts/cohorts';
-import { ConsoleSms, KavenegarSms, SmsSender } from './sms/sms';
+import { BaleSafir, ConsoleSms, KavenegarSms, SmsSender } from './sms/sms';
 
 /** نسخهٔ برنامه، از package.json؛ در /api/health دیده می‌شود تا بعد از هر به‌روزرسانی معلوم باشد چه نسخه‌ای بالاست */
 const APP_VERSION: string = (() => { try { return require('../package.json').version; } catch { return 'dev'; } })();
@@ -62,7 +62,7 @@ class HealthController {
   providers: [
     AuthService, LearningService, AdminService, FileStore,
     Notifier, RahyarService, MissionsService, EventsService, Scheduler, Messenger, AccessLog, Broadcasts, ToolsService, Campaigns, Business, FeedbackService, BbbClient, LiveService, GrowthService, CohortsService, Paths2Service, PeersService,
-    { provide: SmsSender, useClass: config.smsProvider === 'kavenegar' ? KavenegarSms : ConsoleSms },
+    { provide: SmsSender, useClass: config.smsProvider === 'kavenegar' ? KavenegarSms : ConsoleSms }, BaleSafir,
     { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_GUARD, useClass: AuthGuard },
   ],

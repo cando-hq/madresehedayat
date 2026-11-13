@@ -1,6 +1,6 @@
 {
   "name": "@madrese/web",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -10,7 +10,9 @@
   },
   "dependencies": {
     "@tanstack/react-query": "5.90.2",
+    "@types/leaflet": "^1.9.22",
     "html-to-image": "1.11.11",
+    "leaflet": "^1.9.4",
     "lucide-react": "0.544.0",
     "qrcode": "1.5.4",
     "react": "19.1.1",

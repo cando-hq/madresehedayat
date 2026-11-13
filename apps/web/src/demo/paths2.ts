@@ -244,22 +244,27 @@ export function registerPaths2(X: Any) {
   // ── مسجد روی نقشه
   const dist = (a: number, b: number, c: number, d: number) => { const R = 6371e3, p1 = a * Math.PI / 180, p2 = c * Math.PI / 180, dp = (c - a) * Math.PI / 180, dl = (d - b) * Math.PI / 180; const h = Math.sin(dp / 2) ** 2 + Math.cos(p1) * Math.cos(p2) * Math.sin(dl / 2) ** 2; return 2 * R * Math.asin(Math.sqrt(h)); };
   on('GET', '/v2/mosques/near', (_m: Any, _b: Any, q: URLSearchParams) => {
-    const lat = Number(q.get('lat')), lng = Number(q.get('lng')); const s = (q.get('q') ?? '').trim();
-    return DB().mosques.filter((m: Any) => !s || m.name.includes(s)).map((m: Any) => ({ id: m.id, name: m.name, address: m.address ?? null, lat: m.lat, lng: m.lng, verified: m.verified !== false, distance: isFinite(lat) && isFinite(lng) && m.lat ? Math.round(dist(lat, lng, m.lat, m.lng)) : null })).sort((a: Any, b: Any) => (a.distance ?? 1e9) - (b.distance ?? 1e9)).slice(0, 6);
+    const lat = Number(q.get('lat')), lng = Number(q.get('lng')); const s = (q.get('q') ?? '').trim(); const county = q.get('county'); const here = q.get('lat') != null && q.get('lng') != null;
+    const cn = (id: string) => DB().counties?.find((c: Any) => c.id === id);
+    return DB().mosques.filter((m: Any) => (!s || m.name.includes(s)) && (!county || m.countyId === county)).map((m: Any) => ({ id: m.id, name: m.name, address: m.address ?? null, lat: m.lat, lng: m.lng, verified: m.verified !== false, countyId: m.countyId, county: cn(m.countyId)?.name ?? '', provinceId: cn(m.countyId)?.provinceId ?? '', distance: here && isFinite(lat) && isFinite(lng) && m.lat ? Math.round(dist(lat, lng, m.lat, m.lng)) : null }))
+      .sort((a: Any, b: Any) => (a.distance ?? 1e12) - (b.distance ?? 1e12)).slice(0, Number(q.get('limit')) || 8);
   });
   on('POST', '/v2/mosques', (_m: Any, b: Any) => {
     const u = me(); if (!b.name?.trim()) throw E(400, 'no_name', 'نام مسجد را بنویس');
-    const m = { id: rid(), name: b.name.trim(), address: b.address?.trim() || null, countyId: u.countyId, lat: b.lat ?? null, lng: b.lng ?? null, verified: false, proposedBy: u.id, createdAt: now() };
-    DB().mosques.push(m); return { id: m.id, name: m.name, address: m.address, verified: false };
+    const countyId = b.countyId || u.countyId; if (!countyId) throw E(400, 'no_county', 'شهرستان مسجد را انتخاب کن');
+    const m = { id: rid(), name: b.name.trim(), address: b.address?.trim() || null, countyId, lat: b.lat ?? null, lng: b.lng ?? null, verified: false, proposedBy: u.id, createdAt: now() };
+    DB().mosques.push(m); return { id: m.id, name: m.name, address: m.address, verified: false, countyId, lat: m.lat, lng: m.lng, distance: 0 };
   });
   // ── نخستین ورود
   on('POST', '/v2/onboard', (_m: Any, b: Any) => {
     const u = me();
     if (b.firstName?.trim()) u.firstName = b.firstName.trim(); if (b.lastName?.trim()) u.lastName = b.lastName.trim();
     if (b.actorRole) u.actorRole = b.actorRole;
-    if (b.mosqueId !== undefined) { u.mosqueId = b.mosqueId || null; const mq = DB().mosques.find((m: Any) => m.id === b.mosqueId); if (mq) { u.lat = mq.lat; u.lng = mq.lng; } }
+    if (b.mosqueId !== undefined) { u.mosqueId = b.mosqueId || null; const mq = DB().mosques.find((m: Any) => m.id === b.mosqueId); if (mq) { u.lat = mq.lat; u.lng = mq.lng; u.countyId = mq.countyId; } }
     if (b.lat != null && b.lng != null) { u.lat = b.lat; u.lng = b.lng; }
     if (b.relation) u.mosqueRelation = b.relation;
+    if (!u.countyId && b.countyId) u.countyId = b.countyId;
+    if (!u.countyId) throw E(400, 'no_county', 'مسجدت را انتخاب کن یا دست‌کم شهرستانت را بگو');
     const main = mainFor(u.actorRole);
     u.mainPathId = main?.id ?? null;
     if (main && b.enrollMain !== false && !penr(u.id, main.id)) DB().pathEnr.push({ userId: u.id, pathId: main.id, enrolledAt: now(), completedAt: null });

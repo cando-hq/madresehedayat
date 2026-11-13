@@ -13,7 +13,7 @@ import { decJson, mobileKey } from '../common/crypto';
 import { normalizeMobile } from '../common/mobile';
 import { Db, InjectDb } from '../db/db.module';
 import { createId } from '../db/id';
-import { answers, auditLogs, courses, enrollments, events, lessonProgress, lessons, modules, mosques, pathAssessments, pathEnrollments, pathRahyars, paths2, publisherAdmins, publishers, questions, registrations, roleGrants, users, type PathStep } from '../db/schema';
+import { answers, auditLogs, counties, courses, enrollments, events, lessonProgress, lessons, modules, mosques, pathAssessments, pathEnrollments, pathRahyars, paths2, publisherAdmins, publishers, questions, registrations, roleGrants, users, type PathStep } from '../db/schema';
 import { Notifier } from '../notifications/notifications';
 
 type ActorRole = 'IMAM' | 'SHARIK' | 'BAZU' | 'HASTEH' | 'OTHER';
@@ -39,12 +39,13 @@ class OnboardDto {
   @IsOptional() @IsString() @Length(2, 40) lastName?: string;
   @IsOptional() @IsIn(ROLES) actorRole?: ActorRole;
   @IsOptional() @IsString() mosqueId?: string | null;
+  @IsOptional() @IsString() countyId?: string;
   @IsOptional() @IsNumber() lat?: number;
   @IsOptional() @IsNumber() lng?: number;
   @IsOptional() @IsString() @Length(0, 30) relation?: string;
   @IsOptional() @IsBoolean() enrollMain?: boolean;
 }
-class MosqueDto { @IsString() @Length(3, 80) name: string; @IsOptional() @IsString() @Length(0, 160) address?: string; @IsOptional() @IsNumber() lat?: number; @IsOptional() @IsNumber() lng?: number }
+class MosqueDto { @IsString() @Length(3, 80) name: string; @IsOptional() @IsString() countyId?: string; @IsOptional() @IsString() @Length(0, 160) address?: string; @IsOptional() @IsNumber() lat?: number; @IsOptional() @IsNumber() lng?: number }
 class ReviewDto { @IsIn(['publish', 'return']) action: 'publish' | 'return'; @IsOptional() @IsString() @Length(0, 500) note?: string }
 class InviteDto { @IsString() mobile: string; @IsString() pathId: string }
 class InviteMobileDto { @IsString() mobile: string }
@@ -250,17 +251,26 @@ export class Paths2Service {
   }
 
   // ───────── مسجد روی نقشه و نخستین ورود
-  async near(q: { lat?: string; lng?: string; q?: string }) {
-    const lat = Number(q.lat), lng = Number(q.lng); const s = (q.q ?? '').trim();
-    const rows = await this.db.select({ id: mosques.id, name: mosques.name, address: mosques.address, lat: mosques.lat, lng: mosques.lng, verified: mosques.verified }).from(mosques).where(s ? sql`${mosques.name} ilike ${'%' + s + '%'}` : sql`true`).limit(400);
+  /** مسجدهای نزدیک یک نقطه (یا یک شهرستان)، نزدیک‌ترین اول؛ شهرستان هر مسجد هم می‌آید تا شهرستان کاربر از مسجدش معلوم شود */
+  async near(q: { lat?: string; lng?: string; q?: string; county?: string; limit?: string }) {
+    const lat = Number(q.lat), lng = Number(q.lng); const s = (q.q ?? '').trim(); const limit = Math.min(Math.max(Number(q.limit) || 8, 1), 30);
+    const conds = [s ? sql`${mosques.name} ilike ${'%' + s + '%'}` : undefined, q.county ? eq(mosques.countyId, q.county) : undefined].filter(Boolean) as any[];
+    const rows = await this.db.select({ id: mosques.id, name: mosques.name, address: mosques.address, lat: mosques.lat, lng: mosques.lng, verified: mosques.verified, countyId: mosques.countyId, county: counties.name, provinceId: counties.provinceId })
+      .from(mosques).innerJoin(counties, eq(counties.id, mosques.countyId)).where(conds.length ? and(...conds) : undefined).limit(2000);
     const dist = (a: number, b: number, c: number, d: number) => { const R = 6371e3, p1 = a * Math.PI / 180, p2 = c * Math.PI / 180, dp = (c - a) * Math.PI / 180, dl = (d - b) * Math.PI / 180; const h = Math.sin(dp / 2) ** 2 + Math.cos(p1) * Math.cos(p2) * Math.sin(dl / 2) ** 2; return 2 * R * Math.asin(Math.sqrt(h)); };
-    return rows.map((m) => ({ ...m, distance: isFinite(lat) && isFinite(lng) && m.lat != null && m.lng != null ? Math.round(dist(lat, lng, m.lat, m.lng)) : null })).sort((a, b) => (a.distance ?? 1e12) - (b.distance ?? 1e12)).slice(0, 6);
+    const here = isFinite(lat) && isFinite(lng) && q.lat != null && q.lng != null;
+    return rows.map((m) => ({ ...m, distance: here && m.lat != null && m.lng != null ? Math.round(dist(lat, lng, m.lat, m.lng)) : null }))
+      .sort((a, b) => (a.distance ?? 1e12) - (b.distance ?? 1e12) || a.name.localeCompare(b.name, 'fa')).slice(0, limit);
   }
   async proposeMosque(u: AuthUser, d: MosqueDto) {
     const me = (await this.db.query.users.findFirst({ where: eq(users.id, u.id), columns: { countyId: true } }))!;
-    if (!me.countyId) throw new BadRequestException(err('no_county', 'اول شهرستانت را در تنظیمات مشخص کن'));
-    const [m] = await this.db.insert(mosques).values({ name: d.name.trim(), address: d.address?.trim() || null, countyId: me.countyId, lat: d.lat ?? null, lng: d.lng ?? null, verified: false, proposedBy: u.id }).returning();
-    return { id: m.id, name: m.name, address: m.address, verified: false };
+    // شهرستان مسجد تازه: آنچه کاربر انتخاب کرده ← شهرستان نزدیک‌ترین مسجد به پین ← شهرستان خود کاربر
+    let countyId = d.countyId && (await this.db.query.counties.findFirst({ where: eq(counties.id, d.countyId), columns: { id: true } })) ? d.countyId : null;
+    if (!countyId && d.lat != null && d.lng != null) countyId = (await this.near({ lat: String(d.lat), lng: String(d.lng), limit: '1' }))[0]?.countyId ?? null;
+    countyId ??= me.countyId;
+    if (!countyId) throw new BadRequestException(err('no_county', 'شهرستان مسجد را انتخاب کن'));
+    const [m] = await this.db.insert(mosques).values({ name: d.name.trim(), address: d.address?.trim() || null, countyId, lat: d.lat ?? null, lng: d.lng ?? null, verified: false, proposedBy: u.id }).returning();
+    return { id: m.id, name: m.name, address: m.address, verified: false, countyId, lat: m.lat, lng: m.lng, distance: 0 };
   }
   async onboardInfo(u: AuthUser) {
     const me = (await this.db.query.users.findFirst({ where: eq(users.id, u.id) }))!;
@@ -273,9 +283,15 @@ export class Paths2Service {
     const patch: Partial<typeof users.$inferInsert> = { onboardedAt: new Date() };
     if (d.firstName) patch.firstName = d.firstName.trim(); if (d.lastName) patch.lastName = d.lastName.trim();
     if (d.actorRole) patch.actorRole = d.actorRole;
-    if (d.mosqueId !== undefined) { patch.mosqueId = d.mosqueId || null; if (d.mosqueId) { const m = await this.db.query.mosques.findFirst({ where: eq(mosques.id, d.mosqueId) }); if (!m) throw new NotFoundException(err('no_mosque', 'مسجد پیدا نشد')); patch.lat = m.lat; patch.lng = m.lng; patch.nearMosque = null; } }
+    if (d.mosqueId !== undefined) { patch.mosqueId = d.mosqueId || null; if (d.mosqueId) { const m = await this.db.query.mosques.findFirst({ where: eq(mosques.id, d.mosqueId) }); if (!m) throw new NotFoundException(err('no_mosque', 'مسجد پیدا نشد')); patch.lat = m.lat; patch.lng = m.lng; patch.countyId = m.countyId; patch.nearMosque = null; } }
     if (d.lat != null && d.lng != null) { patch.lat = d.lat; patch.lng = d.lng; }
     if (d.relation) patch.mosqueRelation = d.relation;
+    if (!patch.countyId && d.countyId) {
+      if (!(await this.db.query.counties.findFirst({ where: eq(counties.id, d.countyId), columns: { id: true } }))) throw new BadRequestException(err('bad_county', 'شهرستان پیدا نشد'));
+      patch.countyId = d.countyId;
+    }
+    // شهرستان برای شبکهٔ راهیاری لازم است: از مسجد، یا انتخاب دستی
+    if (!patch.countyId && !(await this.db.query.users.findFirst({ where: eq(users.id, u.id), columns: { countyId: true } }))?.countyId) throw new BadRequestException(err('no_county', 'مسجدت را انتخاب کن یا دست‌کم شهرستانت را بگو'));
     const role = d.actorRole ?? (await this.db.query.users.findFirst({ where: eq(users.id, u.id), columns: { actorRole: true } }))?.actorRole;
     const main = await this.mainFor(role);
     patch.mainPathId = main?.id ?? null;

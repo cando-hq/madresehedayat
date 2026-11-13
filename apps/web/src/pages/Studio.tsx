@@ -4,7 +4,7 @@
  */
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { BookOpen, ChevronLeft, MessageCircle, Plus, Radio, TrendingUp } from 'lucide-react';
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { Link, NavLink, Outlet, useNavigate } from 'react-router';
 import { Brand } from '../components/Shell';
 import { Dialog, Empty, ErrorBox, Spinner, useToast } from '../components/ui';
@@ -36,7 +36,7 @@ export function StudioShell() {
           <Link to="/" className="mt-2 flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm text-white/70 no-underline hover:bg-white/10"><ChevronLeft className="size-4" />نمای کنشگر</Link>
         </nav>
       </aside>
-      <main className="wrap py-6 md:py-10"><Outlet /></main>
+      <main className="wrap py-6 md:py-10"><Suspense fallback={<Spinner />}><Outlet /></Suspense></main>
     </div>
   );
 }

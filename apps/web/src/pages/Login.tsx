@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { ArrowRight, CircleAlert, KeyRound, ShieldCheck, Smartphone } from 'lucide-react';
+import { CircleAlert, KeyRound, ShieldCheck } from 'lucide-react';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { eitaaApp, eitaaContact, inEitaa } from '../lib/eitaa';
 import { Link, useNavigate, useSearchParams } from 'react-router';
@@ -97,58 +97,54 @@ export default function Login() {
   useEffect(() => { if (step === 'code' && toEn(code).replace(/\D/g, '').length === 5) verify(); /* ارسال خودکار وقتی ۵ رقم کامل شد */ // eslint-disable-next-line
   }, [code]);
 
+  const digits = toEn(code).replace(/\D/g, '');
+  const back = () => { setStep('mobile'); setErr(''); setInfo(''); };
   return (
     <div className="grid min-h-dvh lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
-      <div className="flex items-start justify-center px-4 py-10 sm:items-center" style={{ paddingTop: 'max(40px, env(safe-area-inset-top))' }}>
-        <div className="w-full max-w-[440px]">
-          <div className="mb-6 grid w-fit justify-items-center gap-2" role="img" aria-label="مدرسهٔ هدایت">
-            <img src="/brand/logo-mark.png" alt="" className="h-14 w-auto" />
-            <img src="/brand/logo-type-ink.png" alt="" className="h-4 w-auto dark:hidden" />
-            <img src="/brand/logo-type-white.png" alt="" className="hidden h-4 w-auto dark:block" />
+      <div className="flex justify-center px-6 sm:items-center" style={{ paddingTop: 'max(48px, env(safe-area-inset-top))', paddingBottom: 'max(32px, env(safe-area-inset-bottom))' }}>
+        <div className="flex w-full max-w-[400px] flex-col">
+          <div className="mb-10 flex items-center gap-3" role="img" aria-label="مدرسهٔ هدایت">
+            <img src="/brand/logo-mark.png" alt="" className="h-10 w-auto" />
+            <img src="/brand/logo-type-ink.png" alt="" className="h-3.5 w-auto dark:hidden" />
+            <img src="/brand/logo-type-white.png" alt="" className="hidden h-3.5 w-auto dark:block" />
           </div>
           {step === 'mobile' && (
-            <form onSubmit={sendCode} noValidate className="rise">
-              <h1 className="text-[clamp(24px,3vw,30px)] font-extrabold">ورود به مدرسهٔ هدایت</h1>
-              {expired && <p className="mt-3 rounded-xl bg-flame-soft px-3 py-2 text-sm text-flame-ink" role="status">برای امنیت حسابت، دوباره وارد شو؛ بعد از ورود به همان صفحه برمی‌گردی.</p>}
-              <p className="mt-1.5 text-muted">شمارهٔ موبایلت را بنویس تا کد ورود برایت بفرستیم. اگر بار اول است، حسابت همین‌جا ساخته می‌شود.</p>
-              <div className="field mt-6">
-                <label htmlFor="mobile">شمارهٔ موبایل</label>
-                <div className="relative">
-                  <Smartphone className="pointer-events-none absolute right-3.5 top-1/2 size-5 -translate-y-1/2 text-muted" />
-                  <input id="mobile" className="input ltr tnum h-[52px] !pr-11 text-lg tracking-wider" inputMode="numeric" autoComplete="tel" placeholder="۰۹۱۲ ۳۴۵ ۶۷۸۹"
-                    value={mobile} onChange={(e) => { setMobile(e.target.value); setErr(''); }} autoFocus />
-                </div>
-                {err && <p className="err" role="alert"><CircleAlert className="size-4" />{err}</p>}
+            <form onSubmit={sendCode} noValidate className="rise flex flex-1 flex-col sm:flex-none">
+              <h1 className="text-[26px] font-extrabold leading-tight">ورود به مدرسه</h1>
+              <p className="mt-2 text-[15px] text-muted">شماره‌ات را بزن تا کد ورود برایت بفرستیم.</p>
+              {expired && <p className="mt-4 rounded-xl bg-flame-soft px-3 py-2 text-sm text-flame-ink" role="status">برای امنیت حسابت دوباره وارد شو؛ بعد به همان صفحه برمی‌گردی.</p>}
+              <div className="field mt-8">
+                <label htmlFor="mobile" className="sr-only">شمارهٔ موبایل</label>
+                <input id="mobile" className="input ltr tnum h-14 text-center text-xl tracking-[0.12em]" inputMode="numeric" autoComplete="tel" placeholder="۰۹۱۲ ۳۴۵ ۶۷۸۹"
+                  value={mobile} onChange={(e) => { setMobile(e.target.value); setErr(''); }} autoFocus aria-describedby={err ? 'mobile-err' : undefined} />
+                {err && <p id="mobile-err" className="err justify-center" role="alert"><CircleAlert className="size-4" />{err}</p>}
               </div>
-              {eitaa && <div className="mt-6 grid gap-2 rounded-2xl bg-leaf-soft p-4">
-                <b className="text-ink">سلام{eitaa.name ? ` ${eitaa.name}` : ''}! از ایتا آمده‌ای.</b>
-                <p className="text-sm text-body">با شمارهٔ حساب ایتایت، بدون کد وارد شو. بعد از این دفعه‌ها خودکار وارد می‌شوی و اعلان‌ها در ایتا هم می‌رسد.</p>
+              {eitaa && <div className="mt-6 grid gap-3 rounded-2xl bg-leaf-soft p-4">
+                <p className="text-sm text-body"><b className="text-ink">سلام{eitaa.name ? ` ${eitaa.name}` : ''}!</b> از ایتا آمده‌ای؛ با شمارهٔ ایتایت بدون کد وارد شو.</p>
                 <button type="button" className="btn btn-primary" disabled={busy} onClick={withEitaaPhone}>ورود با شمارهٔ ایتا</button>
               </div>}
               <button className={`btn btn-lg mt-6 w-full ${eitaa ? 'btn-secondary' : 'btn-primary'}`} disabled={busy}>{busy ? 'در حال فرستادن…' : 'کد را بفرست'}</button>
               <SsoButton />
-              <p className="mt-4 text-center text-sm text-muted">با ادامه دادن، <Link to="/terms" className="inline-block py-3 font-semibold text-leaf-ink">شرایط استفاده و حریم خصوصی</Link> را می‌پذیری.</p>
+              <p className="mt-auto pt-10 text-center text-[13px] text-muted sm:mt-8 sm:pt-0">ورود یعنی پذیرفتن <Link to="/terms" className="inline-block py-2 font-semibold text-leaf-ink">شرایط و حریم خصوصی</Link></p>
             </form>
           )}
           {step === 'code' && (
             <form onSubmit={verify} noValidate className="rise">
-              <button type="button" className="btn btn-ghost btn-sm -ms-3 mb-2" onClick={() => { setStep('mobile'); setErr(''); }}><ArrowRight className="size-4" />تغییر شماره</button>
-              <h1 className="text-[clamp(24px,3vw,30px)] font-extrabold">کد را بزن</h1>
-              {channel === 'SMS'
-                ? <p className="mt-1.5 text-muted">کد ۵ رقمی به <b dir="ltr" className="tnum text-ink">{maskMobile(mobile)}</b> پیامک شد؛ تا ۲ دقیقه معتبر است.</p>
-                : <p className="mt-1.5 text-muted">کد ۵ رقمی در پیام‌رسان <b className="text-ink">{channel === 'BALE' ? 'بله' : 'ایتا'}</b> برای <b dir="ltr" className="tnum text-ink">{maskMobile(mobile)}</b> رفت؛ {channel === 'BALE' ? 'بله' : 'ایتا'} را باز کن و کد را این‌جا بزن.</p>}
-              <div className="field mt-6">
-                <label htmlFor="code" className="sr-only">کد ورود</label>
-                <input id="code" ref={codeRef} className="input ltr tnum h-16 text-center text-3xl font-extrabold tracking-[0.6em]" inputMode="numeric" autoComplete="one-time-code" maxLength={5}
-                  placeholder="•••••" value={fa(toEn(code).replace(/\D/g, ''))} onChange={(e) => { setCode(toEn(e.target.value).replace(/\D/g, '').slice(0, 5)); setErr(''); }} />
-                {err ? <p className="err justify-center" role="alert"><CircleAlert className="size-4" />{err}</p> : info ? <p className="hint text-center" role="status">{info}</p> : null}
-                {devCode && <p className="hint text-center">نسخهٔ آزمایشی (پیامک خاموش است): کد <b className="tnum">{fa(devCode)}</b></p>}
+              <h1 className="text-[26px] font-extrabold leading-tight">کد را بزن</h1>
+              <p className="mt-2 text-[15px] text-muted">
+                {channel === 'SMS' ? 'پیامک شد به ' : `در ${channel === 'BALE' ? 'بله' : 'ایتا'} رفت برای `}
+                <b dir="ltr" className="tnum text-ink">{maskMobile(mobile)}</b>
+                <button type="button" className="ms-2 inline-block py-1 font-bold text-leaf-ink" onClick={back}>عوض کن</button>
+              </p>
+              <OtpBoxes inputRef={codeRef} value={digits} invalid={!!err} onChange={(v) => { setCode(v); setErr(''); }} />
+              <div className="mt-3 min-h-6 text-center" aria-live="polite">
+                {err ? <p className="err justify-center" role="alert"><CircleAlert className="size-4" />{err}</p> : info ? <p className="hint">{info}</p> : devCode ? <p className="hint">آزمایشی: کد <b className="tnum">{fa(devCode)}</b></p> : null}
               </div>
-              <button className="btn btn-primary btn-lg mt-6 w-full" disabled={busy}>{busy ? 'در حال بررسی…' : isNew ? 'ادامه' : 'ورود'}</button>
-              <div className="mt-4 text-center text-sm">
-                {wait > 0 ? <span className="text-muted">کد تازه تا <b className="tnum">{fa(wait)}</b> ثانیهٔ دیگر</span>
-                  : <button type="button" className="font-bold text-leaf-ink" onClick={() => sendCode()} disabled={busy}>کد تازه بگیر</button>}
-                {alt && wait <= 0 && <button type="button" className="ms-4 font-bold text-muted" onClick={() => sendCode(undefined, alt === 'BALE' ? 'bale' : 'sms')} disabled={busy}>{alt === 'BALE' ? 'کد را در بله بفرست' : 'با پیامک بفرست'}</button>}
+              <button className="btn btn-primary btn-lg mt-6 w-full" disabled={busy || digits.length < 5}>{busy ? 'در حال بررسی…' : isNew ? 'ادامه' : 'ورود'}</button>
+              <div className="mt-5 flex items-center justify-center gap-5 text-sm">
+                {wait > 0 ? <span className="tnum text-muted">کد تازه تا {fa(Math.floor(wait / 60))}:{fa(String(wait % 60).padStart(2, '0'))}</span>
+                  : <button type="button" className="py-2 font-bold text-leaf-ink" onClick={() => sendCode()} disabled={busy}>کد تازه بگیر</button>}
+                {alt && wait <= 0 && <button type="button" className="py-2 font-bold text-muted" onClick={() => sendCode(undefined, alt === 'BALE' ? 'bale' : 'sms')} disabled={busy}>{alt === 'BALE' ? 'در بله بفرست' : 'با پیامک بفرست'}</button>}
               </div>
             </form>
           )}
@@ -156,6 +152,25 @@ export default function Login() {
         </div>
       </div>
       <Art />
+    </div>
+  );
+}
+
+/** پنج خانهٔ کد: یک input واقعی (برای پر شدن خودکار کد پیامکی و صفحه‌خوان) روی پنج خانهٔ نمایشی */
+function OtpBoxes({ value, onChange, invalid, inputRef }: { value: string; onChange: (v: string) => void; invalid: boolean; inputRef: React.RefObject<HTMLInputElement | null> }) {
+  const [focus, setFocus] = useState(false);
+  return (
+    <div className="relative mt-8" dir="ltr">
+      <label htmlFor="code" className="sr-only">کد ۵ رقمی ورود</label>
+      <input id="code" ref={inputRef} inputMode="numeric" autoComplete="one-time-code" maxLength={5} value={value}
+        onChange={(e) => onChange(toEn(e.target.value).replace(/\D/g, '').slice(0, 5))} onFocus={() => setFocus(true)} onBlur={() => setFocus(false)}
+        className="absolute inset-0 z-10 h-full w-full cursor-text opacity-0" aria-invalid={invalid} />
+      <div className="grid grid-cols-5 gap-2.5" aria-hidden="true">
+        {[0, 1, 2, 3, 4].map((i) => {
+          const on = focus && (i === value.length || (i === 4 && value.length === 5));
+          return <div key={i} className={`grid h-14 place-items-center rounded-xl border bg-card text-2xl font-extrabold tnum text-ink transition-colors ${invalid ? 'border-rose' : on ? 'border-leaf ring-2 ring-leaf/25' : value[i] ? 'border-line-strong' : 'border-line'}`}>{value[i] ? fa(value[i]) : on ? <span className="h-6 w-0.5 animate-pulse bg-leaf" /> : ''}</div>;
+        })}
+      </div>
     </div>
   );
 }
@@ -175,7 +190,7 @@ function SsoButton() {
   );
 }
 
-function Register({ regToken, mobile, invite, onDone }: { regToken: string; mobile: string; invite: string; onDone: (u: Me) => void }) {
+function Register({ regToken, invite, onDone }: { regToken: string; mobile: string; invite: string; onDone: (u: Me) => void }) {
   // فقط سه چیز: نام، نام خانوادگی، برادر یا خواهر. شهرستان در قدم بعد از مسجدِ روی نقشه گرفته می‌شود.
   const [f, setF] = useState({ firstName: '', lastName: '', gender: '', inviteCode: invite });
   const [showInvite, setShowInvite] = useState(!!invite);
@@ -205,42 +220,37 @@ function Register({ regToken, mobile, invite, onDone }: { regToken: string; mobi
   const E = ({ k }: { k: string }) => errs[k] ? <p className="err" role="alert"><CircleAlert className="size-4" />{errs[k]}</p> : null;
   return (
     <form onSubmit={submit} noValidate className="rise">
-      <h1 className="text-[clamp(24px,3vw,30px)] font-extrabold">خوش آمدی</h1>
-      <p className="mt-1.5 text-muted">سه چیز برای ساختن حسابت. شماره: <b dir="ltr" className="tnum">{maskMobile(mobile)}</b></p>
-      {invite && <p className="mt-4 flex items-center gap-2 rounded-xl bg-leaf-soft px-3 py-2 text-sm text-leaf-ink"><ShieldCheck className="size-4 shrink-0" />با پیوند دعوت آمده‌ای؛ بعد از ثبت‌نام عضو همان هسته یا مسجد می‌شوی.</p>}
-      <div className="mt-6 grid gap-4 sm:grid-cols-2">
-        <div className="field"><label htmlFor="fn">نام</label><input id="fn" className="input" value={f.firstName} onChange={(e) => set('firstName', e.target.value)} autoComplete="given-name" autoFocus /><E k="firstName" /></div>
-        <div className="field"><label htmlFor="ln">نام خانوادگی</label><input id="ln" className="input" value={f.lastName} onChange={(e) => set('lastName', e.target.value)} autoComplete="family-name" /><E k="lastName" /></div>
+      <h1 className="text-[26px] font-extrabold leading-tight">خوش آمدی</h1>
+      <p className="mt-2 text-[15px] text-muted">سه چیز برای ساختن حسابت.</p>
+      {invite && <p className="mt-4 flex items-center gap-2 rounded-xl bg-leaf-soft px-3 py-2 text-sm text-leaf-ink"><ShieldCheck className="size-4 shrink-0" />با دعوت آمده‌ای؛ بعد از ثبت‌نام عضو همان هسته یا مسجد می‌شوی.</p>}
+      <div className="mt-8 grid gap-4">
+        <div className="field"><label htmlFor="fn">نام</label><input id="fn" className="input h-12" value={f.firstName} onChange={(e) => set('firstName', e.target.value)} autoComplete="given-name" autoFocus /><E k="firstName" /></div>
+        <div className="field"><label htmlFor="ln">نام خانوادگی</label><input id="ln" className="input h-12" value={f.lastName} onChange={(e) => set('lastName', e.target.value)} autoComplete="family-name" /><E k="lastName" /></div>
+        <fieldset className="field">
+          <legend className="mb-2 text-sm font-bold text-ink">برادر هستی یا خواهر؟</legend>
+          <div className="grid grid-cols-2 gap-2.5">{[['MALE', 'برادر'], ['FEMALE', 'خواهر']].map(([v, t]) => (
+            <button type="button" key={v} aria-pressed={f.gender === v} onClick={() => set('gender', v)} className={`h-12 rounded-xl border text-[15px] font-bold transition-colors ${f.gender === v ? 'border-leaf bg-leaf-soft text-leaf-ink' : 'border-line bg-card text-body hover:border-line-strong'}`}>{t}</button>
+          ))}</div>
+          <E k="gender" />
+        </fieldset>
+        {showInvite && <div className="field"><label htmlFor="inv">کد دعوت</label><input id="inv" className="input ltr h-12" value={f.inviteCode} onChange={(e) => set('inviteCode', e.target.value)} placeholder="از امام محله یا مسئول هسته" /></div>}
       </div>
-      <fieldset className="field mt-4">
-        <legend className="mb-1.5 text-sm font-bold text-ink">جنسیت</legend>
-        <div className="seg">{[['MALE', 'برادر'], ['FEMALE', 'خواهر']].map(([v, t]) => <button type="button" key={v} aria-pressed={f.gender === v} onClick={() => set('gender', v)}>{t}</button>)}</div>
-        <p className="hint">راهیار برادران و خواهران جداست؛ راهیارت بر همین اساس تعیین می‌شود.</p><E k="gender" />
-      </fieldset>
-      <p className="hint mt-4">مسجدت را قدم بعد روی نقشه پیدا می‌کنیم.</p>
-      {showInvite
-        ? <div className="field mt-4"><label htmlFor="inv">کد دعوت <span className="font-normal text-muted">(اختیاری)</span></label>
-            <input id="inv" className="input ltr" value={f.inviteCode} onChange={(e) => set('inviteCode', e.target.value)} placeholder="کدی که امام محله یا مسئول هسته داده" /></div>
-        : <button type="button" className="mt-3 inline-block py-2 text-sm font-bold text-leaf-ink" onClick={() => setShowInvite(true)}>کد دعوت دارم</button>}
       {err && <p className="err mt-4" role="alert"><CircleAlert className="size-4" />{err}</p>}
-      <button className="btn btn-primary btn-lg mt-6 w-full" disabled={busy}>{busy ? 'در حال ساختن حساب…' : 'حسابم را بساز'}</button>
+      <button className="btn btn-primary btn-lg mt-8 w-full" disabled={busy}>{busy ? 'در حال ساختن حساب…' : 'حسابم را بساز'}</button>
+      {!showInvite && <button type="button" className="mx-auto mt-4 block py-2 text-sm font-bold text-muted" onClick={() => setShowInvite(true)}>کد دعوت دارم</button>}
     </form>
   );
 }
 
 function Art() {
+  // تصویر آزاد نفس بکشد؛ نوشته پایین، روی سایهٔ ملایم، دور از گنبد و نشان
   return (
-    <div className="relative hidden overflow-hidden bg-[#1B2150] lg:block">
-      <img src="/brand/poster.jpg" alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: '50% 40%' }} />
-      <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgb(20 36 110 / .8), rgb(20 36 110 / .15) 55%, rgb(20 36 110 / .6))' }} />
-      <div className="absolute inset-x-12 top-14 z-10 grid gap-3 stagger">
-        <b className="text-[clamp(28px,3vw,40px)] font-extrabold leading-snug text-white">فَلیُبَلِّغِ الحاضِرُ الغائبَ</b>
-        <p className="text-base leading-loose text-white/85">مدرسهٔ آموزش مجازی امامان، شریکة‌الامام‌ها و بازوان مسجد؛ از درس تا میدان، همراه راهیار و همتایان.</p>
-        <ul className="mt-2 flex flex-wrap gap-4">
-          {([[ShieldCheck, 'گواهی با شناسهٔ استعلام'], [Smartphone, 'روی هر گوشی، بدون نصب']] as const).map(([I, t]) => (
-            <li key={t} className="flex items-center gap-2 text-sm text-white/85"><I className="size-5 shrink-0 text-flame" />{t}</li>
-          ))}
-        </ul>
+    <div className="relative m-3 hidden overflow-hidden rounded-[28px] bg-[#1B2150] lg:block">
+      <img src="/brand/poster.jpg" alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: '50% 45%' }} />
+      <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, transparent 45%, rgb(16 24 72 / .88))' }} />
+      <div className="absolute inset-x-12 bottom-12 z-10 grid max-w-[460px] gap-2">
+        <b className="text-[34px] font-extrabold leading-snug text-white">فَلیُبَلِّغِ الحاضِرُ الغائبَ</b>
+        <p className="text-[15px] leading-loose text-white/80">مدرسهٔ امامان، شریکة‌الامام‌ها و بازوان مسجد؛ از درس تا میدان، همراه راهیار و همتایان.</p>
       </div>
     </div>
   );

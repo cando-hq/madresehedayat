@@ -3,11 +3,10 @@
  * قدم مسجد در components/MosqueStep.tsx است: مکان کاربر → مسجدهای نزدیک → انتخاب یا ثبت مسجد تازه.
  */
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ChevronLeft } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { Brand } from '../components/Shell';
 import { MosqueStep, type MosqueChoice } from '../components/MosqueStep';
+import { StepFooter } from '../components/StepFooter';
 import { ROLE_FA } from '../components/Path2';
 import { InlineSpinner, useToast } from '../components/ui';
 import { api } from '../lib/api';
@@ -33,34 +32,47 @@ export default function Onboard() {
     onError: (e) => toast((e as Error).message, 'err'),
   });
   const main = info.data?.mains.find((m) => m.role === role)?.path ?? null;
-  const stepsUi = ['نقش تو', 'مسجد تو', 'شروع'];
+  const ROLE_HINT: Record<ActorRole, string> = { IMAM: 'امام جماعت یا امام محله', SHARIK: 'همسر امام و همراه او در مسجد', BAZU: 'دست‌یار امام در کارهای مسجد', HASTEH: 'عضو هستهٔ نوجوانان یا جوانان', OTHER: 'نمازگزار یا هر نقش دیگر' };
   return (
-    <div className="min-h-dvh bg-bg">
-      <header className="wrap flex h-16 items-center justify-between"><Brand /><ol className="flex shrink-0 items-center gap-1.5 text-[13px]" aria-label="قدم‌ها">{stepsUi.map((t, i) => <li key={t} aria-current={i === step ? 'step' : undefined} className={`whitespace-nowrap rounded-full py-1 font-bold ${i === step ? 'bg-deep px-3 text-white' : i < step ? 'bg-deep-soft px-2.5 text-deep' : 'bg-sunken px-2.5 text-muted'}`}>{fa(i + 1)}<span className={i === step ? 'ms-1' : 'ms-1 max-sm:hidden'}>{t}</span></li>)}</ol></header>
-      <main className="wrap grid max-w-3xl gap-8 py-8">
+    <div className="flex min-h-dvh flex-col bg-bg">
+      <header className="wrap flex h-16 max-w-xl items-center gap-4" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+        <img src="/brand/logo-mark.png" alt="مدرسهٔ هدایت" className="h-8 w-auto" />
+        <div className="flex flex-1 gap-1.5" role="progressbar" aria-valuemin={1} aria-valuemax={3} aria-valuenow={step + 1} aria-label={`قدم ${fa(step + 1)} از ۳`}>
+          {[0, 1, 2].map((i) => <span key={i} className={`h-1.5 flex-1 rounded-full transition-colors duration-300 ${i <= step ? 'bg-leaf' : 'bg-line'}`} />)}
+        </div>
+        <span className="tnum text-sm text-muted">{fa(step + 1)} از ۳</span>
+      </header>
+      <main className="wrap flex w-full max-w-xl flex-1 flex-col pb-6 pt-6">
         {step === 0 && (
-          <section className="rise grid gap-6">
-            <div><h1 className="text-[clamp(24px,3vw,32px)] font-extrabold">خوش آمدی، {me?.firstName}. نقشت در مسجد چیست؟</h1><p className="mt-1 text-muted">برای این‌که مسیر مناسب‌تر را اول نشانت بدهیم. بعداً از تنظیمات عوض می‌شود.</p></div>
-            <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="نقش">{ROLES.map((r) => <button key={r} type="button" role="radio" aria-checked={role === r} onClick={() => setRole(r)} className={`h-12 rounded-full border px-5 text-[15px] font-bold transition-colors ${role === r ? 'border-deep bg-deep-soft text-deep' : 'border-line bg-card text-body hover:border-line-strong'}`}>{ROLE_FA[r]}</button>)}</div>
-            <div className="card grid gap-3 p-5" style={main ? { borderInlineStartWidth: 8, borderInlineStartColor: main.color } : undefined}>
-              <span className="text-[13px] font-bold text-deep">مسیر اصلی برای تو</span>
-              {main ? (<><b className="text-2xl font-extrabold text-ink">{main.title}</b><p className="text-body">{main.description}</p><span className="text-sm text-muted">{main.publisher}، {fa(main.steps)} پله. پیش‌فرض است، اجبار نیست؛ از «کاوش» هر چیز دیگری را برمی‌داری.</span></>)
-                : (<><b className="text-xl font-extrabold text-ink">بی مسیر اصلی</b><p className="text-body">از کاوش شروع کن؛ هر وقت نقشت را گفتی، مسیر اصلی پیشنهاد می‌شود.</p></>)}
+          <section className="rise flex flex-1 flex-col">
+            <h1 className="text-[26px] font-extrabold leading-tight">سلام {me?.firstName}، نقشت در مسجد چیست؟</h1>
+            <p className="mt-2 text-[15px] text-muted">مسیر مناسب‌تر را اول نشانت می‌دهیم.</p>
+            <div className="mt-8 grid gap-2.5" role="radiogroup" aria-label="نقش">
+              {ROLES.map((r) => (
+                <button key={r} type="button" role="radio" aria-checked={role === r} onClick={() => setRole(r)} className={`flex items-center gap-3 rounded-2xl border px-4 py-3.5 text-start transition-colors ${role === r ? 'border-leaf bg-leaf-soft' : 'border-line bg-card hover:border-line-strong'}`}>
+                  <span className={`grid size-5 shrink-0 place-items-center rounded-full border-2 ${role === r ? 'border-leaf' : 'border-line-strong'}`}>{role === r && <span className="size-2.5 rounded-full bg-leaf" />}</span>
+                  <span className="grid"><b className="text-[15px] text-ink">{ROLE_FA[r]}</b><span className="text-[13px] text-muted">{ROLE_HINT[r]}</span></span>
+                </button>
+              ))}
             </div>
-            <div className="flex items-center gap-3"><button className="btn btn-primary btn-lg" onClick={() => setStep(1)}>ادامه<ChevronLeft className="size-5" /></button><button className="btn btn-ghost" onClick={() => { setRole('OTHER'); setStep(1); }}>نقشم را بعداً می‌گویم</button></div>
+            {main && <p className="mt-5 text-sm text-muted">مسیر اصلی‌ات: <b className="text-ink">{main.title}</b> از {main.publisher}، {fa(main.steps)} پله. پیش‌فرض است، اجبار نیست.</p>}
+            <StepFooter><button className="btn btn-primary btn-lg w-full" onClick={() => setStep(1)}>ادامه</button></StepFooter>
           </section>
         )}
         {step === 1 && <MosqueStep value={mq} onChange={setMq} onNext={() => setStep(2)} onBack={() => setStep(0)} />}
         {step === 2 && (
-          <section className="rise grid gap-6">
-            <h1 className="text-[clamp(24px,3vw,32px)] font-extrabold">همه‌چیز آماده است</h1>
-            <div className="card grid gap-3 p-5">
-              <div className="flex items-center justify-between gap-3"><span className="text-muted">نقش</span><b className="text-ink">{ROLE_FA[role]}</b></div>
-              <div className="flex items-center justify-between gap-3"><span className="text-muted">مسجد</span><b className="text-ink">{mq.mosqueName ?? 'بعداً می‌گویم'}</b></div>
-              <div className="flex items-center justify-between gap-3"><span className="text-muted">مسیر اصلی</span><b className="text-ink">{main?.title ?? 'بی مسیر اصلی'}</b></div>
-            </div>
-            <p className="text-body">{main ? `با «${main.title}» شروع می‌کنی؛ اولین درس آماده است. هر وقت خواستی از «یادگیری» مسیرهای کوتاه‌تر هم برمی‌داری.` : 'از «کاوش» یک مسیر کوتاه بردار؛ یک تا چهار هفته.'}</p>
-            <div className="flex items-center gap-3"><button className="btn btn-primary btn-lg" disabled={finish.isPending} onClick={() => finish.mutate()}>{finish.isPending ? <InlineSpinner /> : null}شروع کن</button><button className="btn btn-ghost" onClick={() => setStep(1)}>برگرد</button></div>
+          <section className="rise flex flex-1 flex-col">
+            <h1 className="text-[26px] font-extrabold leading-tight">آماده‌ای</h1>
+            <p className="mt-2 text-[15px] text-muted">{main ? `با «${main.title}» شروع می‌کنی؛ اولین درس آماده است.` : 'از «کاوش» یک مسیر کوتاه برمی‌داری.'}</p>
+            <dl className="mt-8 divide-y divide-line rounded-2xl border border-line bg-card">
+              {[['نقش', ROLE_FA[role]], ['مسجد', mq.mosqueName ?? 'بعداً می‌گویم'], ['مسیر اصلی', main?.title ?? 'ندارد']].map(([k, v]) => (
+                <div key={k} className="flex items-center justify-between gap-3 px-4 py-3.5"><dt className="text-sm text-muted">{k}</dt><dd className="font-bold text-ink">{v}</dd></div>
+              ))}
+            </dl>
+            <StepFooter>
+              <button className="btn btn-ghost btn-lg" onClick={() => setStep(1)}>برگرد</button>
+              <button className="btn btn-primary btn-lg flex-1" disabled={finish.isPending} onClick={() => finish.mutate()}>{finish.isPending ? <InlineSpinner /> : null}شروع کن</button>
+            </StepFooter>
           </section>
         )}
       </main>

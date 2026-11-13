@@ -62,5 +62,5 @@ export default function MosqueMap({ center, zoom = 15, me, mosques, selected, on
     if (pin) L.circleMarker([pin.lat, pin.lng], { radius: 11, color: '#fff', weight: 3, fillColor: flame, fillOpacity: 1 }).bindTooltip('مسجد تازه', { permanent: true, direction: 'top', offset: [0, -10] }).addTo(g);
   }, [mosques, selected, me, pin]);
 
-  return <div ref={box} dir="ltr" className="h-[300px] w-full overflow-hidden rounded-[22px] border border-line bg-[#EEF1F6] dark:bg-[#1A1F33]" role="application" aria-label="نقشهٔ مسجدهای نزدیک؛ روی نقطهٔ هر مسجد بزن تا انتخاب شود" />;
+  return <div ref={box} dir="ltr" className="h-52 w-full overflow-hidden rounded-2xl bg-[#EEF1F6] sm:h-64 dark:bg-[#1A1F33]" role="application" aria-label="نقشهٔ مسجدهای نزدیک؛ روی نقطهٔ هر مسجد بزن تا انتخاب شود" />;
 }

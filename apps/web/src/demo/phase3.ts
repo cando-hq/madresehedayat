@@ -185,7 +185,21 @@ export function registerPhase3(X: Any) {
   wrap('POST', '/auth/otp', (orig: Any) => (m: Any, b: Any, q: Any) => {
     const r = orig(m, b, q); const n = normMobile(b.mobile); const u = n && DB().users.find((x: Any) => x.mobile === n);
     const link = u && b.via !== 'sms' && DB().mlinks.find((l: Any) => l.userId === u.id);
-    return { ...r, channel: link ? link.provider : 'SMS' };
+    // مثل سایت اصلی امروز: پیامک خاموش، کد از بات «احراز هویت بنیاد هدایت»؛ کسی که بله‌اش وصل است کد را مستقیم می‌گیرد
+    if (!link) DB().botPending = n;
+    return link ? { ...r, channel: link.provider, alt: null } : { ...r, channel: 'BALE_BOT', botUrl: 'https://ble.ir/bonyadehedayatbot?start=login', alt: null, resendIn: 0 };
+  });
+
+  // کسی که کد را از بات گرفت، بله‌اش به حساب وصل می‌شود (همان رفتار سایت اصلی)؛ ورود بعدی کد مستقیم در بله می‌آید
+  wrap('POST', '/auth/verify', (orig: Any) => (m: Any, b: Any, q: Any) => {
+    const r = orig(m, b, q); const n = normMobile(b.mobile);
+    if (n && DB().botPending === n && r?.user) { DB().botPending = null; if (!DB().mlinks.some((l: Any) => l.userId === r.user.id && l.provider === 'BALE')) DB().mlinks.push({ userId: r.user.id, provider: 'BALE', chatId: 'demo' }); }
+    return r;
+  });
+  wrap('POST', '/auth/register', (orig: Any) => (m: Any, b: Any, q: Any) => {
+    const r = orig(m, b, q); const n = DB().otpMobile;
+    if (n && DB().botPending === n && r?.user) { DB().botPending = null; DB().mlinks.push({ userId: r.user.id, provider: 'BALE', chatId: 'demo' }); }
+    return r;
   });
 
   // ── دوره: حامی و امتیاز
@@ -304,7 +318,7 @@ export function registerPhase3(X: Any) {
   on('GET', '/me/messenger', () => { const u = me(); const l = DB().mlinks.filter((x: Any) => x.userId === u.id);
     return { bale: { available: true, linked: l.some((x: Any) => x.provider === 'BALE'), botUrl: 'https://ble.ir/madrese_bot', botName: 'madrese_bot' }, eitaa: { available: true, linked: l.some((x: Any) => x.provider === 'EITAA'), appUrl: null }, notifyMessenger: u.notifyMessenger !== false }; });
   on('POST', '/me/messenger/bale/code', () => {
-    const u = me(); setTimeout(() => { if (!DB().mlinks.some((x: Any) => x.userId === u.id && x.provider === 'BALE')) { DB().mlinks.push({ userId: u.id, provider: 'BALE', chatId: 'demo' }); notify(u.id, { kind: 'messenger', title: 'بله وصل شد (نمایشی)', body: 'در نسخهٔ واقعی، این پیام وقتی می‌آید که کد را برای بات بفرستید.', link: '/settings' }); try { localStorage.setItem('mh-demo-v3', JSON.stringify(DB())); } catch { /* */ } } }, 4000);
+    const u = me(); setTimeout(() => { if (!DB().mlinks.some((x: Any) => x.userId === u.id && x.provider === 'BALE')) { DB().mlinks.push({ userId: u.id, provider: 'BALE', chatId: 'demo' }); notify(u.id, { kind: 'messenger', title: 'بله وصل شد (نمایشی)', body: 'در نسخهٔ واقعی، این پیام وقتی می‌آید که کد را برای بات بفرستی.', link: '/settings' }); } }, 4000);
     return { code: 'D7K2QX', expiresIn: 600, botUrl: 'https://ble.ir/madrese_bot' }; });
   on('DELETE', '/me/messenger/bale', () => { const u = me(); DB().mlinks = DB().mlinks.filter((x: Any) => !(x.userId === u.id && x.provider === 'BALE')); return { ok: true }; });
   on('DELETE', '/me/messenger/eitaa', () => { const u = me(); DB().mlinks = DB().mlinks.filter((x: Any) => !(x.userId === u.id && x.provider === 'EITAA')); return { ok: true }; });

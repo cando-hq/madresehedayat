@@ -65,3 +65,34 @@ export async function api<T = any>(path: string, opts: { method?: string; body?:
   if (text && data === null) throw new ApiError(502, 'unavailable', BY_STATUS[502][1]);
   return data as T;
 }
+
+/**
+ * بارگذاری یک فایل با درصد پیشرفت (fetch درصد بارگذاری نمی‌دهد).
+ * پیش از شروع نشست را تازه می‌کند تا بارگذاری چنددقیقه‌ای وسط کار با «اول وارد شو» نیفتد.
+ */
+export async function uploadFile<T = any>(path: string, file: File, onProgress: (sent: number, total: number) => void, signal?: AbortSignal): Promise<T> {
+  if (import.meta.env.VITE_DEMO) {
+    for (let i = 1; i <= 10; i++) { if (signal?.aborted) throw new ApiError(0, 'aborted', 'بارگذاری لغو شد'); await new Promise((r) => setTimeout(r, 120)); onProgress((file.size * i) / 10, file.size); }
+    return { key: `demo-${Date.now()}`, name: file.name, size: file.size, type: file.type } as T;
+  }
+  await api('/auth/me').catch(() => {});
+  return new Promise<T>((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', '/api' + path);
+    xhr.withCredentials = true;
+    xhr.upload.onprogress = (e) => { if (e.lengthComputable) onProgress(e.loaded, e.total); };
+    xhr.onerror = () => { const [code, message] = BY_STATUS[0]; reject(new ApiError(0, code, navigator.onLine === false ? 'اینترنت قطع شد؛ وصل که شد دوباره بارگذاری کن' : message)); };
+    xhr.onabort = () => reject(new ApiError(0, 'aborted', 'بارگذاری لغو شد'));
+    xhr.onload = () => {
+      let data: any = null;
+      try { data = xhr.responseText ? JSON.parse(xhr.responseText) : null; } catch { data = null; }
+      if (xhr.status >= 200 && xhr.status < 300 && data) return resolve(data as T);
+      if (xhr.status === 401) window.dispatchEvent(new CustomEvent('mh:session-expired'));
+      const [code, message] = statusError(xhr.status);
+      reject(new ApiError(xhr.status, typeof data?.code === 'string' ? data.code : code, typeof data?.message === 'string' ? data.message : message, data ?? {}));
+    };
+    signal?.addEventListener('abort', () => xhr.abort());
+    const fd = new FormData(); fd.append('file', file);
+    xhr.send(fd);
+  });
+}

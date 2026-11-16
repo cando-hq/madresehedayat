@@ -1,9 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowDown, ArrowUp, CircleAlert, ExternalLink, Pencil, Plus, Trash2, Upload, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router';
 import { CourseIcon, Dialog, ErrorBox, ICONS, LESSON_ICON, Spinner, useToast } from '../../components/ui';
-import { api, ApiError } from '../../lib/api';
+import { api, ApiError, uploadFile } from '../../lib/api';
 import { useTools } from '../Tools';
 import { fa, jDate, LESSON_LABEL, minutes, STATUS_LABEL } from '../../lib/fa';
 import type { LessonType } from '../../lib/types';
@@ -245,18 +245,43 @@ function LessonEditor({ l, skills, onSaved }: { l: ALesson; skills: ASkill[]; on
   );
 }
 
+const MAX_UPLOAD = 500 * 1024 * 1024;
+const mb = (n: number) => fa(Math.round(n / 1024 / 1024));
+/** بارگذاری فایل درس با نوار پیشرفت؛ تا تمام نشده، بستن صفحه هشدار می‌دهد */
 function Uploader({ accept, onDone, label }: { accept: string; onDone: (key: string, name: string) => void; label: string }) {
-  const [busy, setBusy] = useState(false);
+  const [prog, setProg] = useState<{ sent: number; total: number; name: string } | null>(null);
+  const ctl = useRef<AbortController | null>(null);
   const toast = useToast();
+  useEffect(() => {
+    if (!prog) return;
+    const warn = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = ''; };
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
+  }, [!!prog]);
+  const start = async (f: File) => {
+    if (f.size > MAX_UPLOAD) { toast(`این فایل ${mb(f.size)} مگ است؛ حداکثر ۵۰۰ مگ. با کیفیت 720p خروجی بگیر یا در آپارات بگذار.`, 'err'); return; }
+    ctl.current = new AbortController();
+    setProg({ sent: 0, total: f.size, name: f.name });
+    try {
+      const r = await uploadFile<{ key: string; name: string }>('/admin/uploads', f, (sent, total) => setProg({ sent, total, name: f.name }), ctl.current.signal);
+      onDone(r.key, r.name); toast('فایل بارگذاری شد؛ حالا «ذخیرهٔ درس» را بزن');
+    } catch (er) { if ((er as ApiError).code !== 'aborted') toast((er as Error).message, 'err'); }
+    finally { setProg(null); ctl.current = null; }
+  };
+  if (prog) {
+    const pct = prog.total ? Math.min(100, Math.floor((prog.sent / prog.total) * 100)) : 0;
+    return (
+      <div className="grid gap-2 rounded-2xl border border-line p-4" role="status" aria-live="polite">
+        <div className="flex items-center gap-3 text-sm"><b className="min-w-0 flex-1 truncate text-ink" dir="auto">{prog.name}</b><span className="tnum shrink-0 text-muted">{pct === 100 ? 'در حال ذخیره…' : `${fa(pct)}٪ · ${mb(prog.sent)} از ${mb(prog.total)} مگ`}</span></div>
+        <div className="h-2 overflow-hidden rounded-full bg-sunken" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct}><div className="h-full rounded-full bg-leaf transition-[width]" style={{ width: `${pct}%` }} /></div>
+        <div className="flex items-center gap-3"><p className="hint me-auto">تا تمام نشده صفحه را نبند.</p>{pct < 100 && <button type="button" className="btn btn-ghost btn-sm" onClick={() => ctl.current?.abort()}>لغو</button>}</div>
+      </div>
+    );
+  }
   return (
-    <label className={`btn btn-secondary w-fit ${busy ? 'opacity-60' : ''}`}>
-      <Upload className="size-4" />{busy ? 'در حال بارگذاری…' : label}
-      <input type="file" accept={accept} className="sr-only" disabled={busy} onChange={async (e) => {
-        const f = e.target.files?.[0]; if (!f) return;
-        setBusy(true);
-        try { const fd = new FormData(); fd.append('file', f); const r = await api<{ key: string; name: string }>('/admin/uploads', { form: fd }); onDone(r.key, r.name); toast('فایل بارگذاری شد'); }
-        catch (er) { toast((er as Error).message, 'err'); } finally { setBusy(false); e.target.value = ''; }
-      }} />
+    <label className="btn btn-secondary w-fit">
+      <Upload className="size-4" />{label}
+      <input type="file" accept={accept} className="sr-only" onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) start(f); }} />
     </label>
   );
 }

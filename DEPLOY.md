@@ -78,6 +78,10 @@ curl -s http://localhost:8080/api/v2/paths | head -c 300   # باید مسیره
 
 سایت روی پورت `WEB_PORT` (پیش‌فرض ۸۰۸۰) بالا می‌آید.
 
+### کلاس زنده روی همین سرور (BigBlueButton داکری)
+
+نصاب رسمی BigBlueButton 3.0 فقط Ubuntu 22.04 را می‌پذیرد. روی نسخهٔ دیگر (مثلاً 26.04) نسخهٔ داکری را به کار ببرید: github.com/bigbluebutton/docker. در `./scripts/setup` به «Should an automatic HTTPS Proxy be included?» پاسخ `n` بدهید؛ بعد `deploy/nginx/live.conf` دامنه و https را برایش فراهم می‌کند (پراکسی به `127.0.0.1:48087`). UDP 16384-32768 باید باز باشد. در `.env` مدرسه: `BBB_URL=https://live.دامنه/bigbluebutton/api` و `BBB_SECRET` از `.env` پوشهٔ bbb-docker.
+
 ### ورود بی پیامک: بات بله
 
 تا کاوه‌نگار آماده نیست، کد ورود را بات بله می‌دهد. پنج دقیقه کار است:

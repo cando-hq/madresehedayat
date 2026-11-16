@@ -23,7 +23,7 @@ print('۱. پیامک راه نیفتاده: صفحهٔ ورود به بات ب�
 o = requests.get(f'{B2}/auth/options').json(); ok(o.get('baleBot') is True, 'گزینهٔ بات روشن است', o)
 s = requests.Session(); s.headers['X-Forwarded-For'] = rand_ip()
 j = s.post(f'{B2}/auth/otp', json={'mobile': M}).json()
-ok(j.get('channel') == 'BALE_BOT' and j.get('botUrl') == 'https://ble.ir/madrese_bot?start=login' and 'devCode' not in j, 'کانال بات و نشانی بات', j)
+ok(j.get('channel') == 'BALE_BOT' and re.fullmatch(r'https://ble\.ir/\w+\?start=login', j.get('botUrl') or '') and 'devCode' not in j, 'کانال بات و نشانی بات', j)
 print('۲. /start: بات دکمهٔ «شماره‌ام را بفرست» می‌دهد')
 push(message_id=1, chat={'id': 501}, **{'from': {'id': 501}}, text='/start login')
 s1 = sent_after(0); kb = s1[-1].get('reply_markup', {}).get('keyboard', [[{}]])[0][0]
@@ -43,6 +43,7 @@ push(message_id=5, chat={'id': 501}, **{'from': {'id': 501}}, contact={'phone_nu
 s5 = sent_after(len(s4)); ok('چند ثانیه' in s5[-1]['text'], 'فاصله رعایت شد', s5[-1]['text'])
 print('۶. کاربر موجود: گفت‌وگو برای اعلان‌ها وصل می‌شود')
 r = s.post(f'{B2}/auth/register', json={'regToken': v['regToken'], 'firstName': 'بات', 'lastName': 'آزمون', 'gender': 'MALE'}); ok(r.ok, 'ثبت‌نام شد', r.text[:200])
+ok(psql("select count(*) from messenger_links where provider='BALE' and chat_id='501'") == '1', 'کاربر تازه: همان گفت‌وگویی که کد گرفت با ثبت‌نام وصل شد')
 time.sleep(10.5)
 push(message_id=6, chat={'id': 777}, **{'from': {'id': 777}}, contact={'phone_number': '98912777' + N, 'first_name': 'a', 'user_id': 777})
 s6 = sent_after(len(s5)); ok(re.search(r'\b\d{5}\b', s6[-1]['text']), 'کد دوباره رفت', s6[-1]['text'])

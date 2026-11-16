@@ -36,6 +36,15 @@ export class AuthService {
     this.messenger.onContact = (mobile, chatId) => this.botOtp(mobile, chatId);
   }
 
+  /** گفت‌وگوی بله‌ای که شمارهٔ کاربرِ هنوز‌ثبت‌نام‌نکرده را تأیید کرد؛ با ساخته شدن حساب وصل می‌شود (۳۰ دقیقه) */
+  private readonly pendingBale = new Map<string, { chatId: string; until: number }>();
+
+  private async linkBale(userId: string, chatId: string) {
+    await this.db.delete(messengerLinks).where(and(eq(messengerLinks.provider, 'BALE'), eq(messengerLinks.chatId, chatId)));
+    await this.db.insert(messengerLinks).values({ userId, provider: 'BALE', chatId })
+      .onConflictDoUpdate({ target: [messengerLinks.userId, messengerLinks.provider], set: { chatId, linkedAt: new Date() } });
+  }
+
   /** پیامک واقعاً می‌رود؟ (در محیط اجرا با SMS_PROVIDER=console هیچ پیامکی نمی‌رود) */
   private get smsReady() { return config.smsProvider !== 'console' || config.isDev; }
 
@@ -52,12 +61,13 @@ export class AuthService {
     const code = String(randomInt(10000, 100000));
     await this.db.insert(otpRequests).values({ mobile: mobileKey(mobile), codeHash: this.otpHash(mobile, code), expiresAt: new Date(Date.now() + OTP_TTL_MS) });
     const user = await this.db.query.users.findFirst({ where: eq(users.mobile, mobileKey(mobile)), columns: { id: true } });
-    if (user) {
-      await this.db.delete(messengerLinks).where(and(eq(messengerLinks.provider, 'BALE'), eq(messengerLinks.chatId, chatId)));
-      await this.db.insert(messengerLinks).values({ userId: user.id, provider: 'BALE', chatId })
-        .onConflictDoUpdate({ target: [messengerLinks.userId, messengerLinks.provider], set: { chatId, linkedAt: new Date() } });
+    if (user) await this.linkBale(user.id, chatId);
+    else {
+      const now = Date.now();
+      for (const [k, v] of this.pendingBale) if (v.until < now) this.pendingBale.delete(k);
+      this.pendingBale.set(mobileKey(mobile), { chatId, until: now + 30 * 60_000 });
     }
-    return `کد ورود مدرسهٔ هدایت برای ${mobile.slice(0, 4)}…${mobile.slice(-2)}:\n\n${code}\n\nتا ۲ دقیقه معتبر است؛ آن را به کسی نده.`;
+    return `کد ورود مدرسهٔ هدایت برای ${mobile.slice(0, 4)}…${mobile.slice(-2)}:\n\n${code}\n\nتا ۲ دقیقه معتبر است؛ آن را به کسی نده.\nاگر شمارهٔ بالا با شماره‌ای که در سایت زدی فرق دارد، در سایت همین شماره را بزن.`;
   }
 
   private otpHash(mobile: string, code: string) {
@@ -159,6 +169,8 @@ export class AuthService {
       mosqueId: input.mosqueId || null,
       nearMosque: input.mosqueId ? null : input.nearMosque?.trim() || null,
     }).returning();
+    const pb = this.pendingBale.get(mobileKey(mobile));
+    if (pb) { this.pendingBale.delete(mobileKey(mobile)); if (pb.until > Date.now()) await this.linkBale(u.id, pb.chatId).catch(() => {}); }
     let notice: string | null = null;
     if (input.inviteCode) {
       const code = input.inviteCode.trim().toLowerCase();

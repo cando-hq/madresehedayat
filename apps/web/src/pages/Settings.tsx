@@ -29,21 +29,21 @@ function MessengerSection() {
   return (
     <section className="card grid gap-3 p-6">
       <h2 className="text-lg font-extrabold">پیام‌رسان</h2>
-      <p className="text-sm text-muted">یادآوری برنامه‌ها، پاسخ راهیار و خبرهای هسته را در بله هم بگیرید. شمارهٔ همراه شما به بله فرستاده نمی‌شود.</p>
+      <p className="text-sm text-muted">کد ورود، یادآوری برنامه‌ها، پاسخ راهیار و خبرهای هسته را در بله هم بگیر. اگر با بات بله وارد شده‌ای، بله‌ات خودش وصل است.</p>
       {!b ? null : !b.available ? <p className="hint">پیام‌رسانی با بله به‌زودی باز می‌شود. تا آن زمان کد ورود با پیامک می‌آید.</p> : b.linked ? (
         <div className="flex flex-wrap items-center gap-3"><span className="chip chip-leaf">بله وصل است</span>
           <label className="flex items-center gap-2 text-sm"><input type="checkbox" className="size-4 accent-[var(--leaf)]" checked={me!.notifyMessenger} onChange={async (e) => { const v = e.target.checked; await api('/me/messenger/prefs', { body: { notifyMessenger: v } }); setMe({ ...me!, notifyMessenger: v }); }} />اعلان‌ها در بله هم بیاید</label>
           <button className="btn btn-ghost btn-sm text-rose" onClick={unlink}>قطع اتصال</button></div>
       ) : code ? (
         <ol className="grid gap-2 text-sm text-body">
-          <li>۱. بات مدرسه را در بله باز کنید{b.botUrl ? <>: <a href={b.botUrl} target="_blank" rel="noopener" className="font-bold text-leaf-ink" dir="ltr">@{b.botName}</a></> : ''}</li>
-          <li>۲. این کد را برایش بفرستید: <b dir="ltr" className="tnum rounded-lg bg-sunken px-2 py-1 text-lg tracking-[.2em] text-ink">{code}</b></li>
+          <li>۱. بات را در بله باز کن{b.botUrl ? <>: <a href={b.botUrl} target="_blank" rel="noopener" className="font-bold text-leaf-ink" dir="ltr">@{b.botName}</a></> : ''}</li>
+          <li>۲. این کد را برایش بفرست: <b dir="ltr" className="tnum rounded-lg bg-sunken px-2 py-1 text-lg tracking-[.2em] text-ink">{code}</b></li>
           <li className="text-muted">کد ۱۵ دقیقه اعتبار دارد. پس از فرستادن، همین‌جا «وصل است» نشان داده می‌شود.</li>
         </ol>
       ) : <button className="btn btn-secondary w-fit" onClick={getCode}>وصل کردن بله</button>}
       {q.data?.eitaa.available && (q.data.eitaa.linked
         ? <div className="flex flex-wrap items-center gap-3"><span className="chip chip-leaf">ایتا وصل است</span><button className="btn btn-ghost btn-sm text-rose" onClick={async () => { await api('/me/messenger/eitaa', { method: 'DELETE' }); q.refetch(); toast('اتصال ایتا قطع شد'); }}>قطع اتصال ایتا</button></div>
-        : <p className="text-sm text-body">برای وصل کردن ایتا، مدرسه را یک‌بار از داخل ایتا باز کنید{q.data.eitaa.appUrl ? <>: <a href={q.data.eitaa.appUrl} target="_blank" rel="noopener" className="font-bold text-leaf-ink">باز کردن در ایتا</a></> : ''} و دکمهٔ «شروع» را بزنید.</p>)}
+        : <p className="text-sm text-body">برای وصل کردن ایتا، مدرسه را یک‌بار از داخل ایتا باز کن{q.data.eitaa.appUrl ? <>: <a href={q.data.eitaa.appUrl} target="_blank" rel="noopener" className="font-bold text-leaf-ink">باز کردن در ایتا</a></> : ''} و دکمهٔ «شروع» را بزن.</p>)}
     </section>
   );
 }

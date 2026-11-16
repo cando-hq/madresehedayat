@@ -20,7 +20,11 @@ export default function Login() {
   const { me, setMe } = useAuth();
   const nav = useNavigate();
   const [params] = useSearchParams();
-  const next = params.get('next') || '/';
+  const asked = params.get('next');
+  // کسی که هنوز نقش کنشگری‌اش را نگفته ولی نقش کاری دارد (ستاد، برگزارکننده، استاد، راهیار) یک‌راست به پنل خودش می‌رود
+  const homeOf = (u: Me | null | undefined) => asked || (!u || u.onboarded !== false ? '/'
+    : u.roles.some((r) => r === 'HQ_ADMIN' || r === 'HQ_OPERATOR') ? '/admin' : u.publisher ? '/pub' : u.roles.includes('INSTRUCTOR') ? '/studio' : u.roles.includes('RAHYAR') ? '/rahyar' : '/');
+  const next = homeOf(me);
   const [step, setStep] = useState<Step>('mobile');
   const [mobile, setMobile] = useState('');
   const [code, setCode] = useState('');
@@ -88,7 +92,7 @@ export default function Login() {
     try {
       const r = await api<{ needsRegistration: boolean; regToken?: string; user?: Me }>('/auth/verify', { body: { mobile, code: c } });
       if (r.needsRegistration) { setRegToken(r.regToken!); setStep('register'); }
-      else { setMe(r.user!); welcome(`خوش برگشتی، ${r.user!.firstName}`); nav(next, { replace: true }); }
+      else { setMe(r.user!); welcome(`خوش برگشتی، ${r.user!.firstName}`); nav(homeOf(r.user), { replace: true }); }
     } catch (e) {
       const a = e as ApiError; const left = a.code === 'otp_wrong' ? Number(a.data?.left) : NaN;
       setErr(Number.isFinite(left) && left > 0 ? `${a.message} (${fa(left)} فرصت دیگر)` : a.message); setCode(''); codeRef.current?.focus();
@@ -153,7 +157,7 @@ export default function Login() {
               </div>
             </form>
           )}
-          {step === 'register' && <Register regToken={regToken} mobile={mobile} invite={params.get('invite') ?? ''} onDone={(u) => { setMe(u); nav(next, { replace: true }); }} />}
+          {step === 'register' && <Register regToken={regToken} mobile={mobile} invite={params.get('invite') ?? ''} onDone={(u) => { setMe(u); nav(homeOf(u), { replace: true }); }} />}
         </div>
       </div>
       <Art />

@@ -94,7 +94,10 @@ export class Messenger {
   private async contact(msg: any) {
     const chatId = msg.chat.id;
     const own = msg.contact?.user_id != null && msg.from?.id != null && String(msg.contact.user_id) === String(msg.from.id);
-    if (!own) { await this.bale('sendMessage', { chat_id: chatId, text: 'فقط شمارهٔ خودت را می‌شود فرستاد؛ دکمهٔ «شماره‌ام را بفرست» را بزن.', reply_markup: CONTACT_KEYBOARD }); return; }
+    if (!own) {
+      this.log.warn(`بله: شماره پذیرفته نشد (user_id ${msg.contact?.user_id ?? 'ندارد'}، فرستنده ${msg.from?.id ?? 'ندارد'})`);
+      await this.bale('sendMessage', { chat_id: chatId, text: 'فقط شمارهٔ خودت را می‌شود فرستاد؛ دکمهٔ «شماره‌ام را بفرست» را بزن.', reply_markup: CONTACT_KEYBOARD }); return;
+    }
     const mobile = normalizeIranMobile(msg.contact.phone_number);
     if (!mobile) { await this.bale('sendMessage', { chat_id: chatId, text: 'این شماره همراه ایران نیست؛ ورود با شمارهٔ ۰۹… است.' }); return; }
     if (!this.onContact) return;
@@ -121,13 +124,13 @@ export class Messenger {
           await this.db.insert(messengerLinks).values({ userId: c.userId, provider: 'BALE', chatId: String(msg.chat.id) })
             .onConflictDoUpdate({ target: [messengerLinks.userId, messengerLinks.provider], set: { chatId: String(msg.chat.id), linkedAt: new Date() } });
           await this.db.delete(messengerCodes).where(eq(messengerCodes.code, code));
-          await this.bale('sendMessage', { chat_id: msg.chat.id, text: 'حساب شما در مدرسهٔ هدایت وصل شد. از این پس یادآوری برنامه‌ها، پاسخ راهیار و خبرهای هسته را اینجا هم می‌گیرید.\nبرای قطع اتصال: تنظیمات مدرسه ← پیام‌رسان' }).catch(() => {});
+          await this.bale('sendMessage', { chat_id: msg.chat.id, text: 'بله‌ات به مدرسهٔ هدایت وصل شد. از این پس کد ورود، یادآوری برنامه‌ها، پاسخ راهیار و خبرهای هسته را این‌جا هم می‌گیری.\nبرای قطع: مدرسه ← تنظیمات ← پیام‌رسان' }).catch(() => {});
           continue;
         }
-        await this.bale('sendMessage', { chat_id: msg.chat.id, text: 'این کد پیدا نشد یا منقضی شده است. از «تنظیمات» مدرسه کد تازه بگیرید.' }).catch(() => {});
+        await this.bale('sendMessage', { chat_id: msg.chat.id, text: 'این کد پیدا نشد یا وقتش تمام شده. از «تنظیمات» مدرسه کد تازه بگیر.' }).catch(() => {});
         continue;
       }
-      await this.bale('sendMessage', { chat_id: msg.chat.id, text: 'سلام! این بات مدرسهٔ هدایت است.\nبرای گرفتن کد ورود، دکمهٔ «شماره‌ام را بفرست» را پایین صفحه بزن.\nیادآوری‌ها و خبرهای مدرسه هم همین‌جا می‌آید.', reply_markup: CONTACT_KEYBOARD }).catch(() => {});
+      await this.bale('sendMessage', { chat_id: msg.chat.id, text: 'سلام! این‌جا کد ورود «مدرسهٔ هدایت» را می‌گیری.\nدکمهٔ «شماره‌ام را بفرست» را پایین صفحه بزن؛ کد چند ثانیه بعد همین‌جا می‌آید.', reply_markup: CONTACT_KEYBOARD }).catch(() => {});
     }
     if (updates?.length) await this.db.insert(kv).values({ key: 'bale_offset', value: String(last + 1) }).onConflictDoUpdate({ target: kv.key, set: { value: String(last + 1) } });
     await this.db.delete(messengerCodes).where(lt(messengerCodes.expiresAt, new Date()));

@@ -55,6 +55,10 @@ export async function api<T = any>(path: string, opts: { method?: string; body?:
       throw new ApiError(401, 'session_expired', 'نشست شما تمام شده است؛ دوباره وارد شو');
     }
   }
+  // نقش تازه (مثلاً «مدیر برگزارکننده» که ستاد همین الان داده) در توکنِ قبلی نیست؛ یک بار توکن را تازه کن و دوباره بخواه
+  if (res.status === 403 && opts.retry !== false && !path.startsWith('/auth/')) {
+    if (await refresh()) return api<T>(path, { ...opts, retry: false });
+  }
   const text = await res.text();
   let data: any = null;
   try { data = text ? JSON.parse(text) : null; } catch { data = null; }

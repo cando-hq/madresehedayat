@@ -26,7 +26,8 @@ export default function Login() {
   const [code, setCode] = useState('');
   const [devCode, setDevCode] = useState<string | null>(null);
   // کد ورود اگر بله یا ایتا وصل باشد رایگان همان‌جا می‌رود (مدل کسب‌وکار: کم کردن پیامک)
-  const [channel, setChannel] = useState<'SMS' | 'BALE' | 'EITAA'>('SMS');
+  const [channel, setChannel] = useState<'SMS' | 'BALE' | 'EITAA' | 'BALE_BOT'>('SMS');
+  const [botUrl, setBotUrl] = useState<string | null>(null);
   const [alt, setAlt] = useState<'SMS' | 'BALE' | null>(null);
   const [info, setInfo] = useState('');
   const welcome = useToast();
@@ -69,8 +70,8 @@ export default function Login() {
     if (!/^09\d{9}$/.test(m)) { setErr('شماره ۱۱ رقم است و با ۰۹ شروع می‌شود؛ مثل ۰۹۱۲۳۴۵۶۷۸۹'); return; }
     setBusy(true); setErr('');
     try {
-      const r = await api<{ resendIn: number; isNew: boolean; devCode?: string; channel: 'SMS' | 'BALE' | 'EITAA'; alt?: 'SMS' | 'BALE' | null }>('/auth/otp', { body: { mobile: m, ...(via ? { via } : {}) } });
-      setMobile(m); setIsNew(r.isNew); setChannel(r.channel ?? 'SMS'); setAlt(r.alt ?? (r.channel && r.channel !== 'SMS' ? 'SMS' : null)); setDevCode(r.devCode ?? null); setWait(r.resendIn); setCode(''); setInfo(''); setStep('code');
+      const r = await api<{ resendIn: number; isNew: boolean; devCode?: string; channel: 'SMS' | 'BALE' | 'EITAA' | 'BALE_BOT'; alt?: 'SMS' | 'BALE' | null; botUrl?: string | null }>('/auth/otp', { body: { mobile: m, ...(via ? { via } : {}) } });
+      setMobile(m); setIsNew(r.isNew); setChannel(r.channel ?? 'SMS'); setBotUrl(r.botUrl ?? null); setAlt(r.alt !== undefined ? r.alt : r.channel && r.channel !== 'SMS' && r.channel !== 'BALE_BOT' ? 'SMS' : null); setDevCode(r.devCode ?? null); setWait(r.resendIn); setCode(''); setInfo(''); setStep('code');
       setTimeout(() => codeRef.current?.focus(), 50);
     } catch (e) {
       const a = e as ApiError;
@@ -130,22 +131,25 @@ export default function Login() {
           )}
           {step === 'code' && (
             <form onSubmit={verify} noValidate className="rise">
-              <h1 className="text-[26px] font-extrabold leading-tight">کد را بزن</h1>
+              <h1 className="text-[26px] font-extrabold leading-tight">{channel === 'BALE_BOT' ? 'کد را از بله بگیر' : 'کد را بزن'}</h1>
               <p className="mt-2 text-[15px] text-muted">
-                {channel === 'SMS' ? 'پیامک شد به ' : `در ${channel === 'BALE' ? 'بله' : 'ایتا'} رفت برای `}
+                {channel === 'BALE_BOT' ? 'بات مدرسه را در بله باز کن و «شماره‌ام را بفرست» را بزن. کد برای ' : channel === 'SMS' ? 'پیامک شد به ' : `در ${channel === 'BALE' ? 'بله' : 'ایتا'} رفت برای `}
                 <b dir="ltr" className="tnum text-ink">{maskMobile(mobile)}</b>
+                {channel === 'BALE_BOT' && ' همان‌جا می‌آید.'}
                 <button type="button" className="ms-2 inline-block py-1 font-bold text-leaf-ink" onClick={back}>عوض کن</button>
               </p>
+              {channel === 'BALE_BOT' && botUrl && <a href={botUrl} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-lg mt-6 w-full">باز کردن بات در بله</a>}
               <OtpBoxes inputRef={codeRef} value={digits} invalid={!!err} onChange={(v) => { setCode(v); setErr(''); }} />
               <div className="mt-3 min-h-6 text-center" aria-live="polite">
                 {err ? <p className="err justify-center" role="alert"><CircleAlert className="size-4" />{err}</p> : info ? <p className="hint">{info}</p> : devCode ? <p className="hint">آزمایشی: کد <b className="tnum">{fa(devCode)}</b></p> : null}
               </div>
               <button className="btn btn-primary btn-lg mt-6 w-full" disabled={busy || digits.length < 5}>{busy ? 'در حال بررسی…' : isNew ? 'ادامه' : 'ورود'}</button>
               <div className="mt-5 grid justify-items-center gap-1 text-sm">
-                {wait > 0 ? <span className="tnum py-2 text-muted">کد تازه تا {fa(Math.floor(wait / 60))}:{fa(String(wait % 60).padStart(2, '0'))}</span>
+                {channel === 'BALE_BOT' ? null : wait > 0 ? <span className="tnum py-2 text-muted">کد تازه تا {fa(Math.floor(wait / 60))}:{fa(String(wait % 60).padStart(2, '0'))}</span>
                   : <button type="button" className="py-2 font-bold text-leaf-ink" onClick={() => sendCode()} disabled={busy}>کد تازه بگیر</button>}
                 {/* اگر کد از یک راه نیامد، بعد از ده ثانیه می‌شود از راه دیگر گرفت (بی‌انتظار یک دقیقه) */}
                 {alt && wait <= 50 && <button type="button" className="py-2 font-bold text-muted" onClick={() => sendCode(undefined, alt === 'BALE' ? 'bale' : 'sms')} disabled={busy}>{alt === 'BALE' ? 'پیامک نیامد؟ در بله بفرست' : `در ${channel === 'EITAA' ? 'ایتا' : 'بله'} نیامد؟ با پیامک بفرست`}</button>}
+                {botUrl && channel !== 'BALE_BOT' && wait <= 50 && <a href={botUrl} target="_blank" rel="noopener noreferrer" className="py-2 font-bold text-muted">کد را از بات بله بگیر</a>}
               </div>
             </form>
           )}

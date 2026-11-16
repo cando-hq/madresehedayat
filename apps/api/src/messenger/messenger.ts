@@ -24,11 +24,15 @@ export class Messenger {
   constructor(@InjectDb() private readonly db: Db) {}
 
   get baleEnabled() { return !!config.baleToken; }
+  /** نشانی بات برای «کد را از بات بله بگیر» */
+  get baleBotUrl() { return config.baleToken && config.baleBotUsername ? `https://ble.ir/${config.baleBotUsername.replace(/^@/, '')}?start=login` : null; }
+  /** ورود با بات: شماره‌ای که بله تأیید کرده می‌رسد، متن پاسخ (کد ورود) برمی‌گردد. AuthService آن را می‌گذارد. */
+  onContact?: (mobile: string, chatId: string) => Promise<string>;
 
   private async bale(method: string, body: Record<string, unknown>) {
     const ac = new AbortController(); const t = setTimeout(() => ac.abort(), 15_000);
     try {
-      const r = await fetch(`https://tapi.bale.ai/bot${config.baleToken}/${method}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body), signal: ac.signal });
+      const r = await fetch(`${config.baleBotApi}/bot${config.baleToken}/${method}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body), signal: ac.signal });
       const j = (await r.json().catch(() => ({}))) as any;
       if (!j.ok) throw new Error(j.description ?? `HTTP ${r.status}`);
       return j.result;
@@ -83,6 +87,21 @@ export class Messenger {
     } finally { this.draining = false; }
   }
 
+  /**
+   * کاربر دکمهٔ «شماره‌ام را بفرست» را زده است. فقط شمارهٔ خود فرستنده پذیرفته می‌شود
+   * (contact.user_id باید همان فرستنده باشد)؛ کارت تماس کس دیگری کد ورود او را نمی‌گیرد.
+   */
+  private async contact(msg: any) {
+    const chatId = msg.chat.id;
+    const own = msg.contact?.user_id != null && msg.from?.id != null && String(msg.contact.user_id) === String(msg.from.id);
+    if (!own) { await this.bale('sendMessage', { chat_id: chatId, text: 'فقط شمارهٔ خودت را می‌شود فرستاد؛ دکمهٔ «شماره‌ام را بفرست» را بزن.', reply_markup: CONTACT_KEYBOARD }); return; }
+    const mobile = normalizeIranMobile(msg.contact.phone_number);
+    if (!mobile) { await this.bale('sendMessage', { chat_id: chatId, text: 'این شماره همراه ایران نیست؛ ورود با شمارهٔ ۰۹… است.' }); return; }
+    if (!this.onContact) return;
+    const text = await this.onContact(mobile, String(chatId));
+    await this.bale('sendMessage', { chat_id: chatId, text, reply_markup: { remove_keyboard: true } });
+  }
+
   /** خواندن پیام‌های تازهٔ بات (کد اتصال) — هر چند ثانیه از زمان‌بند */
   async poll() {
     if (!this.baleEnabled) return;
@@ -92,6 +111,7 @@ export class Messenger {
     for (const u of updates ?? []) {
       last = Math.max(last, u.update_id);
       const msg = u.message; if (!msg?.chat?.id) continue;
+      if (msg.contact) { await this.contact(msg).catch((e) => this.log.warn(`بله، شماره: ${e?.message ?? e}`)); continue; }
       const text = String(msg.text ?? '').trim();
       const code = (/^\/start\s+([A-Za-z0-9]{6})$/.exec(text)?.[1] ?? (/^[A-Za-z0-9]{6}$/.test(text) ? text : '')).toUpperCase();
       if (code) {
@@ -107,11 +127,20 @@ export class Messenger {
         await this.bale('sendMessage', { chat_id: msg.chat.id, text: 'این کد پیدا نشد یا منقضی شده است. از «تنظیمات» مدرسه کد تازه بگیرید.' }).catch(() => {});
         continue;
       }
-      await this.bale('sendMessage', { chat_id: msg.chat.id, text: 'سلام! این بات اعلان‌های مدرسهٔ هدایت را می‌فرستد.\nبرای وصل شدن: در مدرسه به «تنظیمات ← پیام‌رسان» بروید، کد ۶ حرفی بگیرید و همین‌جا بفرستید.' }).catch(() => {});
+      await this.bale('sendMessage', { chat_id: msg.chat.id, text: 'سلام! این بات مدرسهٔ هدایت است.\nبرای گرفتن کد ورود، دکمهٔ «شماره‌ام را بفرست» را پایین صفحه بزن.\nیادآوری‌ها و خبرهای مدرسه هم همین‌جا می‌آید.', reply_markup: CONTACT_KEYBOARD }).catch(() => {});
     }
     if (updates?.length) await this.db.insert(kv).values({ key: 'bale_offset', value: String(last + 1) }).onConflictDoUpdate({ target: kv.key, set: { value: String(last + 1) } });
     await this.db.delete(messengerCodes).where(lt(messengerCodes.expiresAt, new Date()));
   }
+}
+
+const CONTACT_KEYBOARD = { keyboard: [[{ text: 'شماره‌ام را بفرست', request_contact: true }]], resize_keyboard: true, one_time_keyboard: true };
+
+/** ۹۸۹۱۲…، +۹۸۹۱۲…، ۰۹۱۲…، ۹۱۲… ← ۰۹۱۲… */
+export function normalizeIranMobile(raw: unknown): string | null {
+  const d = String(raw ?? '').replace(/[۰-۹]/g, (c) => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(c))).replace(/\D/g, '');
+  const m = /^(?:0098|98|0)?(9\d{9})$/.exec(d);
+  return m ? '0' + m[1] : null;
 }
 
 const ALPHA = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';

@@ -5,7 +5,7 @@ import { createHash, createHmac, randomBytes, randomInt, timingSafeEqual } from 
 import { config } from '../config';
 import { dec, enc, mobileKey } from '../common/crypto';
 import { Db, InjectDb } from '../db/db.module';
-import { coreMemberships, cores, mosques, networks, otpRequests, roleGrants, sessions, users } from '../db/schema';
+import { coreMemberships, cores, messengerLinks, mosques, networks, otpRequests, roleGrants, sessions, users } from '../db/schema';
 import { Business } from '../business/business';
 import { RoleName } from '../common/auth.decorators';
 import { BaleSafir, SmsSender } from '../sms/sms';
@@ -32,7 +32,33 @@ export interface RegisterInput {
 
 @Injectable()
 export class AuthService {
-  constructor(@InjectDb() private readonly db: Db, private readonly jwt: JwtService, private readonly sms: SmsSender, private readonly messenger: Messenger, private readonly business: Business, private readonly safir: BaleSafir) {}
+  constructor(@InjectDb() private readonly db: Db, private readonly jwt: JwtService, private readonly sms: SmsSender, private readonly messenger: Messenger, private readonly business: Business, private readonly safir: BaleSafir) {
+    this.messenger.onContact = (mobile, chatId) => this.botOtp(mobile, chatId);
+  }
+
+  /** پیامک واقعاً می‌رود؟ (در محیط اجرا با SMS_PROVIDER=console هیچ پیامکی نمی‌رود) */
+  private get smsReady() { return config.smsProvider !== 'console' || config.isDev; }
+
+  /**
+   * ورود با بات بله: بله شمارهٔ کاربر را تأیید کرده (دکمهٔ «شماره‌ام را بفرست»)، کد همان‌جا در گفت‌وگو می‌رود.
+   * همان محدودیت‌های کد ورود: ۱۰ ثانیه فاصله، ۵ کد در ساعت. گفت‌وگو هم برای اعلان‌ها به حساب وصل می‌شود.
+   */
+  async botOtp(mobile: string, chatId: string): Promise<string> {
+    const recent = await this.db.select({ createdAt: otpRequests.createdAt }).from(otpRequests)
+      .where(and(eq(otpRequests.mobile, mobileKey(mobile)), gt(otpRequests.createdAt, new Date(Date.now() - 3600_000))))
+      .orderBy(desc(otpRequests.createdAt));
+    if (recent[0] && Date.now() - recent[0].createdAt.getTime() < SWITCH_MS) return 'کد همین الان فرستاده شد؛ چند ثانیه دیگر دوباره بزن.';
+    if (recent.length >= MAX_PER_HOUR) return 'در این یک ساعت کد زیادی خواستی؛ یک ساعت دیگر دوباره امتحان کن.';
+    const code = String(randomInt(10000, 100000));
+    await this.db.insert(otpRequests).values({ mobile: mobileKey(mobile), codeHash: this.otpHash(mobile, code), expiresAt: new Date(Date.now() + OTP_TTL_MS) });
+    const user = await this.db.query.users.findFirst({ where: eq(users.mobile, mobileKey(mobile)), columns: { id: true } });
+    if (user) {
+      await this.db.delete(messengerLinks).where(and(eq(messengerLinks.provider, 'BALE'), eq(messengerLinks.chatId, chatId)));
+      await this.db.insert(messengerLinks).values({ userId: user.id, provider: 'BALE', chatId })
+        .onConflictDoUpdate({ target: [messengerLinks.userId, messengerLinks.provider], set: { chatId, linkedAt: new Date() } });
+    }
+    return `کد ورود مدرسهٔ هدایت برای ${mobile.slice(0, 4)}…${mobile.slice(-2)}:\n\n${code}\n\nتا ۲ دقیقه معتبر است؛ آن را به کسی نده.`;
+  }
 
   private otpHash(mobile: string, code: string) {
     return createHmac('sha256', config.otpSecret).update(`${mobile}:${code}`).digest('hex');
@@ -67,11 +93,17 @@ export class AuthService {
       await this.db.delete(otpRequests).where(eq(otpRequests.id, row.id));
       throw new BadRequestException({ code: 'bale_failed', message: 'کد در بله نرفت؛ شاید این شماره در بله حساب ندارد. با پیامک بگیر.' });
     }
+    const botUrl = this.messenger.baleBotUrl;
+    if (!channel && !this.smsReady && botUrl) {
+      // پیامک راه نیفتاده: کد را بات بله می‌دهد (این ردیف بی‌کد بود، پاک می‌شود)
+      await this.db.delete(otpRequests).where(eq(otpRequests.id, row.id));
+      return { sent: false, channel: 'BALE_BOT' as const, botUrl, resendIn: 0, isNew: !user, alt: null };
+    }
     if (!channel) { await this.sms.sendOtp(mobile, code); channel = 'SMS'; }
     return {
-      sent: true, channel, resendIn: RESEND_MS / 1000, isNew: !user,
+      sent: true, channel, resendIn: RESEND_MS / 1000, isNew: !user, botUrl,
       /** راه دیگری که کاربر می‌تواند همان لحظه انتخاب کند */
-      alt: channel === 'SMS' ? (this.safir.enabled ? 'BALE' : null) : 'SMS',
+      alt: channel === 'SMS' ? (this.safir.enabled ? 'BALE' : null) : this.smsReady ? 'SMS' : null,
       ...(config.isDev && config.smsProvider === 'console' ? { devCode: code } : {}),
     };
   }

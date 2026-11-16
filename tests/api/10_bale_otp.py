@@ -10,7 +10,7 @@ def otp(mobile, via=None):
     s = requests.Session(); s.headers['X-Forwarded-For'] = rand_ip()
     return s, s.post(f'{B}/auth/otp', json={'mobile': mobile, **({'via': via} if via else {})})
 print('۱. صفحهٔ ورود می‌داند بله روشن است')
-o = requests.get(f'{B}/auth/options').json(); ok(o == {'sso': False, 'bale': True}, 'گزینه‌های ورود', o)
+o = requests.get(f'{B}/auth/options').json(); ok(o.get('sso') is False and o.get('bale') is True, 'گزینه‌های ورود', o)
 print('۲. شمارهٔ تازه: کد در بله، نه پیامک')
 s, r = otp('09127770001'); j = r.json()
 ok(j.get('channel') == 'BALE' and j.get('alt') == 'SMS' and j.get('isNew'), 'کد در بله رفت و پیامک جایگزین است', j)

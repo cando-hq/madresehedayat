@@ -155,7 +155,7 @@ export class AuthController {
   /** «ورود با سامانهٔ پایه» (OAuth2/OIDC) — منتظر اطلاعات اتصال از تیم سامانهٔ پایه */
   /** راه‌های ورودی که روی این سرور روشن است؛ صفحهٔ ورود فقط همین‌ها را نشان می‌دهد */
   @Public() @Get('options')
-  options() { return { sso: false, bale: !!(config.baleSafirKey && config.baleSafirBotId) }; }
+  options() { return { sso: false, bale: !!(config.baleSafirKey && config.baleSafirBotId), baleBot: !!(config.baleToken && config.baleBotUsername) }; }
 
   @Public() @Get('sso/core')
   sso() {

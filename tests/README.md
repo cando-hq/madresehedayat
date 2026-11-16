@@ -12,6 +12,8 @@
 | `api/06_feedback.py` | بازخورد، امتیاز درس و دوره، کیفیت محتوا |
 | `api/07_campaigns.py` | پویش‌ها: ساخت، دامنه، پیوستن، کارها، نقشه، نشان‌ها |
 | `api/08_live.py` | کلاس زنده با سرور ساختگی BigBlueButton (`fakebbb.py`) |
+| `api/10_bale_otp.py` | کد ورود در بله با سفیر ساختگی (`fakesafir.py`) |
+| `api/11_bale_bot_login.py` | ورود با بات بله بی پیامک (`fakebale.py` و یک API با `NODE_ENV=production`، `BALE_BOT_API=http://127.0.0.1:9320`، `BALE_BOT_TOKEN=test:bale-token`، `BALE_BOT_USERNAME=madrese_bot` روی `BOT_API_URL`، پیش‌فرض ۳۱۰۱؛ اگر بالا نباشد رد می‌شود) |
 | `ui/*.py` | گشت در صفحه‌ها با Playwright در ۳۹۰ و ۱۲۸۰ پیکسل: خطای صفحه، بیرون‌زدگی، متن‌های کلیدی، و پیام‌های خطا (بی‌اینترنت، ۴۰۴، ۵۰۲، پایان نشست) |
 
 ## اجرا

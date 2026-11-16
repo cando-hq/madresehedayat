@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowDown, ArrowUp, Award, Check, KeyRound, Landmark, Plus, Route, Search, ShieldOff, Trash2, Users, X } from 'lucide-react';
+import { ArrowDown, ArrowUp, Award, Check, KeyRound, Landmark, Plus, Route, ScrollText, Search, ShieldOff, Trash2, Users, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Dialog, Empty, ErrorBox, Spinner, useToast } from '../../components/ui';
 import { api } from '../../lib/api';
@@ -324,15 +324,27 @@ export function Mosques() {
 }
 
 /* ───────── گزارش تغییرات ───────── */
+const AUDIT_FA: Record<string, string> = {
+  'biz.costs': 'هزینه‌های مدل کسب‌وکار را عوض کرد', 'cert.restore': 'گواهی را برگرداند', 'cert.revoke': 'گواهی را باطل کرد', 'core.view': 'هسته را دید',
+  'course.create': 'دوره ساخت', 'course.delete': 'دوره را حذف کرد', 'course.dependencies': 'پیش‌نیاز دوره را عوض کرد', 'course.sponsor': 'حامی دوره را عوض کرد', 'course.update': 'دوره را ویرایش کرد',
+  'event.people': 'فهرست شرکت‌کنندگان برنامه را دید', 'feedback.triage': 'بازخورد را بررسی کرد', 'grant.create': 'دسترسی ویژه داد', 'grant.delete': 'دسترسی ویژه را گرفت',
+  'imamat.assess': 'ارزیابی میدانی امام را ثبت کرد', 'invoice.create': 'صورت‌حساب ساخت', 'invoice.pay': 'پرداخت صورت‌حساب را ثبت کرد', 'invoice.void': 'صورت‌حساب را باطل کرد',
+  'lesson.delete': 'درس را حذف کرد', 'lesson.update': 'درس را ویرایش کرد', 'mfa.reset': 'رمز دوم کاربر را از نو کرد', 'mosque.create': 'مسجد ثبت کرد', 'mosque.verify': 'مسجد را تأیید کرد',
+  'network.create': 'شبکهٔ راهیاری ساخت', 'org.export': 'دادهٔ سازمان را خروجی گرفت', 'org.view': 'پنل سازمان را دید', 'path.create': 'مسیر ساخت', 'path.update': 'مسیر را ویرایش کرد',
+  'rahyar.learner': 'پروندهٔ کنشگر را دید', 'rahyar.messages': 'پیام‌های راهیاری را دید', 'rahyar.report': 'گزارش کنشگر را بررسی کرد', 'review.publish': 'برای انتشار تأیید کرد', 'review.return': 'برای اصلاح برگرداند',
+  'role.grant': 'نقش داد', 'role.revoke': 'نقش را گرفت', 'service.save': 'خدمت را ذخیره کرد', 'sponsor.delete': 'حامی را حذف کرد', 'sponsor.save': 'حامی را ذخیره کرد',
+  'sub.cancel': 'اشتراک را لغو کرد', 'sub.create': 'اشتراک ساخت', 'sub.update': 'اشتراک را ویرایش کرد', 'ticket.view': 'درخواست پشتیبانی را دید',
+  'user.activate': 'حساب را فعال کرد', 'user.deactivate': 'حساب را غیرفعال کرد', 'users.list': 'فهرست کاربران را دید',
+};
 export function Audit() {
   const q = useQuery({ queryKey: ['admin-audit'], queryFn: () => api<{ id: string; action: string; target: string | null; createdAt: string; actor: string }[]>('/admin/audit') });
   if (q.isLoading) return <Spinner />;
   return (
     <div className="rise">
       <PageHead title="گزارش تغییرات" desc="صد تغییر آخر کارکنان در مدرسه." />
-      <div className="card overflow-hidden"><ul>{q.data?.map((a) => (
-        <li key={a.id} className="flex flex-wrap items-center gap-3 border-b border-line px-4 py-2.5 text-sm last:border-0"><b className="text-ink">{a.actor}</b><code className="rounded bg-sunken px-1.5" dir="ltr">{a.action}</code><span className="text-muted" dir="ltr">{a.target}</span><span className="ms-auto text-muted">{ago(a.createdAt)}</span></li>
-      ))}</ul></div>
+      {!q.data?.length ? <Empty icon={ScrollText} title="هنوز تغییری ثبت نشده" /> : <div className="card overflow-hidden"><ul>{q.data.map((a) => (
+        <li key={a.id} className="flex flex-wrap items-center gap-3 border-b border-line px-4 py-2.5 text-sm last:border-0"><b className="text-ink">{a.actor}</b>{AUDIT_FA[a.action] ? <span className="text-body">{AUDIT_FA[a.action]}</span> : <code className="rounded bg-sunken px-1.5" dir="ltr">{a.action}</code>}<span className="text-muted" dir="ltr">{a.target}</span><span className="ms-auto text-muted">{ago(a.createdAt)}</span></li>
+      ))}</ul></div>}
     </div>
   );
 }

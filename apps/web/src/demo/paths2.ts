@@ -26,6 +26,18 @@ export function seedPaths2(db: Any) {
   db.users.push({ id: 'p-pub', mobile: '09127777777', firstName: 'امیر', lastName: 'رستمی', gender: 'MALE', countyId: kashan?.id, mosqueId: null, nearMosque: null, nationalId: null, isActive: true, createdAt: iso(t - 300 * DAY), actorRole: 'OTHER' });
   db.roles.push({ userId: 'p-pub', role: 'ORG_ADMIN', networkId: 'pub-hedayat' });
   if (!db.networks.some((n: Any) => n.id === 'pub-hedayat')) db.networks.push({ id: 'pub-hedayat', kind: 'ORGANIZATION', name: 'بنیاد هدایت', underRahyar: false });
+  // گزارش تغییرات ستاد: چند کار نمونهٔ هفتهٔ اخیر
+  const H = 3600e3;
+  db.audit.push(
+    { id: 'au1', actorId: 'p-admin', action: 'review.publish', target: 'مسیر «تعیّن امامت»', createdAt: iso(t - 2 * H) },
+    { id: 'au2', actorId: 'p-admin', action: 'role.grant', target: 'راهیار شهرستان کاشان', createdAt: iso(t - 5 * H) },
+    { id: 'au3', actorId: 'p-admin', action: 'mosque.verify', target: 'مسجد جامع کاشان', createdAt: iso(t - 1 * DAY) },
+    { id: 'au4', actorId: 'p-admin', action: 'review.return', target: 'برنامهٔ «مهمانی محله»', createdAt: iso(t - 1 * DAY - 3 * H) },
+    { id: 'au5', actorId: 'p-admin', action: 'network.create', target: 'شبکهٔ راهیاری استان اصفهان', createdAt: iso(t - 2 * DAY) },
+    { id: 'au6', actorId: 'p-admin', action: 'sub.create', target: 'اشتراک سازمانی برکت', createdAt: iso(t - 3 * DAY) },
+    { id: 'au7', actorId: 'p-admin', action: 'feedback.triage', target: 'بازخورد دربارهٔ پخش زنده', createdAt: iso(t - 4 * DAY) },
+    { id: 'au8', actorId: 'p-admin', action: 'course.update', target: 'دورهٔ «شناخت محله»', createdAt: iso(t - 6 * DAY) },
+  );
   // سازندهٔ هر دوره
   const pubOfSlug = (s: string) => s.startsWith('rs') ? 'pub-shahr' : ['tr4', 'tr5', 'tr6'].includes(s) ? 'pub-banovan' : s === 'nj3' ? 'org-barakat' : 'pub-hedayat';
   for (const c of db.courses) { c.publisherId = c.publisherId ?? pubOfSlug(c.slug); c.libraryShare = c.libraryShare ?? 'all'; c.version = c.version ?? 1; }
@@ -399,6 +411,8 @@ export function registerPaths2(X: Any) {
 
   // ── نمایهٔ کاربر: نقش و مسیر اصلی در /auth/me
   X.wrap('GET', '/auth/me', (orig: Any) => (m: Any, b: Any, q: Any) => { const r = orig(m, b, q); const u = me(); const pid = pubOf(u.id); return { ...r, actorRole: u.actorRole ?? null, mainPathId: u.mainPathId ?? null, onboarded: !!(u.onboardedAt || u.actorRole), publisher: pid ? pubCard(pid) : null, location: u.lat != null ? { lat: u.lat, lng: u.lng } : null }; });
+  // پاسخ ورود هم همان «من» کامل را بدهد (برگزارکننده، نقش کنشگر)، مثل API واقعی
+  X.wrap('POST', '/auth/verify', (orig: Any) => (m: Any, b: Any, q: Any) => { const r = orig(m, b, q); if (!r?.user) return r; const u = DB().users.find((x: Any) => x.id === r.user.id); if (!u) return r; const pid = pubOf(u.id); return { ...r, user: { ...r.user, actorRole: u.actorRole ?? null, mainPathId: u.mainPathId ?? null, onboarded: !!(u.onboardedAt || u.actorRole), publisher: pid ? pubCard(pid) : null } }; });
   X.wrap('POST', '/auth/register', (orig: Any) => (m: Any, b: Any, q: Any) => { const r = orig(m, b, q); return { ...r, user: { ...r.user, onboarded: false, actorRole: null } }; });
 }
 

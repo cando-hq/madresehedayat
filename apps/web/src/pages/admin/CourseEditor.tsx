@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowDown, ArrowUp, CircleAlert, ExternalLink, Pencil, Plus, Trash2, Upload, X } from 'lucide-react';
+import { ArrowDown, ArrowUp, CircleAlert, ExternalLink, Music, Pencil, Plus, Trash2, Upload, Video, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router';
 import { CourseIcon, Dialog, ErrorBox, ICONS, LESSON_ICON, Spinner, useToast } from '../../components/ui';
@@ -10,7 +10,7 @@ import type { LessonType } from '../../lib/types';
 import type { AdminCourse } from './Courses';
 import { STATUS_CHIP } from './Courses';
 
-interface ALesson { id: string; title: string; type: LessonType; order: number; durationSec: number; required: boolean; isFinalQuiz: boolean; content: any; skillIds?: string[] }
+interface ALesson { problem?: string | null; id: string; title: string; type: LessonType; order: number; durationSec: number; required: boolean; isFinalQuiz: boolean; content: any; skillIds?: string[] }
 interface ASkill { id: string; title: string }
 interface FullCourse extends AdminCourse {
   about: string | null; level: string | null; instructor: string | null; passScore: number; missionRule: 'ON_SUBMIT' | 'ON_APPROVAL';
@@ -31,6 +31,8 @@ export default function CourseEditor() {
   const q = useQuery({ queryKey: ['admin-course', id], queryFn: () => api<FullCourse>(`/admin/courses/${id}`) });
   const [editLesson, setEditLesson] = useState<ALesson | null>(null);
   const [problems, setProblems] = useState<string[]>([]);
+  // فهرست کمبودها مال لحظهٔ فرستادن است؛ با هر تغییر دوره کهنه می‌شود (نشان «ناقص» کنار هر درس می‌ماند)
+  useEffect(() => { setProblems([]); }, [q.dataUpdatedAt]);
   const inval = () => { qc.invalidateQueries({ queryKey: ['admin-course', id] }); qc.invalidateQueries({ queryKey: ['admin-courses'] }); };
   const patch = useMutation({
     mutationFn: (body: Record<string, unknown>) => api(`/admin/courses/${id}`, { method: 'PATCH', body }),
@@ -45,8 +47,8 @@ export default function CourseEditor() {
   const creator = !base.startsWith('/admin');
   const submit = useMutation({
     mutationFn: () => api(`/v2${base}/courses/${id}/submit`, { method: 'POST' }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-course', id] }); toast('برای بازبینی ستاد فرستاده شد؛ نتیجه را پیام می‌دهیم'); },
-    onError: (e) => toast((e as Error).message, 'err'),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-course', id] }); setProblems([]); toast('برای بازبینی ستاد فرستاده شد؛ نتیجه را پیام می‌دهیم'); },
+    onError: (e) => { const a = e as ApiError; if (a.data?.problems) { setProblems(a.data.problems); window.scrollTo({ top: 0, behavior: 'smooth' }); } toast(a.message, 'err'); },
   });
   if (q.isLoading) return <Spinner />;
   if (q.error) return <ErrorBox error={q.error} />;
@@ -57,9 +59,9 @@ export default function CourseEditor() {
       <nav className="text-sm text-muted"><Link to={base} className="text-leaf-ink">{base === '/pub' ? 'محتوای ما' : base === '/studio' ? 'دوره‌های من' : 'دوره‌ها'}</Link> / {c.title}</nav>
       <header className="flex flex-wrap items-center gap-3">
         <h1 className="me-auto text-[clamp(22px,2.6vw,28px)] font-extrabold">{c.title}</h1>
-        <span className={STATUS_CHIP[c.status]}>{STATUS_LABEL[c.status]}</span>
+        {creator ? (c.status !== 'PUBLISHED' && (c as any).reviewStatus === 'IN_REVIEW' ? <span className="chip chip-flame">در بازبینی ستاد</span> : <span className={STATUS_CHIP[c.status]}>{STATUS_LABEL[c.status]}</span>) : <span className={STATUS_CHIP[c.status]}>{STATUS_LABEL[c.status]}</span>}
         {c.status === 'PUBLISHED' && <Link to={`/courses/${c.slug}`} className="btn btn-ghost btn-sm" target="_blank"><ExternalLink className="size-4" />دیدن در مدرسه</Link>}
-        {creator ? (c.status !== 'PUBLISHED' && <button className="btn btn-primary btn-sm" disabled={submit.isPending} onClick={() => submit.mutate()}>{(c as any).reviewStatus === 'IN_REVIEW' ? 'در بازبینی ستاد' : 'فرستادن برای بازبینی'}</button>) : <>
+        {creator ? (c.status !== 'PUBLISHED' && (c as any).reviewStatus !== 'IN_REVIEW' && <button className="btn btn-primary btn-sm" disabled={submit.isPending} onClick={() => submit.mutate()}>فرستادن برای بازبینی</button>) : <>
         {c.status === 'DRAFT' && <button className="btn btn-secondary btn-sm" onClick={() => patch.mutate({ status: 'REVIEW' })}>فرستادن برای بازبینی</button>}
         {(c.status === 'DRAFT' || c.status === 'REVIEW') && <button className="btn btn-primary btn-sm" onClick={() => patch.mutate({ status: 'PUBLISHED' })}>انتشار</button>}
         {c.status === 'REVIEW' && <button className="btn btn-ghost btn-sm" onClick={() => patch.mutate({ status: 'DRAFT' })}>برگرداندن به پیش‌نویس</button>}
@@ -68,7 +70,7 @@ export default function CourseEditor() {
         {c.status === 'ARCHIVED' && <button className="btn btn-secondary btn-sm" onClick={() => patch.mutate({ status: 'PUBLISHED' })}>انتشار دوباره</button>}</>}
       </header>
       {problems.length > 0 && (
-        <div className="rounded-2xl bg-rose-soft p-4 text-sm text-rose"><b className="flex items-center gap-2"><CircleAlert className="size-4" />پیش از انتشار این‌ها را درست کنید:</b>
+        <div className="rounded-2xl bg-rose-soft p-4 text-sm text-rose"><b className="flex items-center gap-2"><CircleAlert className="size-4" />{creator ? 'پیش از فرستادن این‌ها را کامل کن:' : 'پیش از انتشار این‌ها را درست کنید:'}</b>
           <ul className="mt-2 list-disc ps-5">{problems.map((p) => <li key={p}>{p}</li>)}</ul></div>
       )}
       {c.status === 'PUBLISHED' && <p className="rounded-2xl bg-sunken p-3 text-sm text-muted">این دوره منتشر شده است. اصلاحات جزئی به همه می‌رسد؛ برای تغییر اساسی «انتشار نسخهٔ تازه» را بزنید تا یادگیرنده‌های فعلی روی نسخهٔ قبلی بمانند.</p>}
@@ -151,6 +153,7 @@ function Outline({ c, onEdit, inval }: { c: FullCourse; onEdit: (l: ALesson) => 
   const toast = useToast();
   const [adding, setAdding] = useState<string | null>(null);
   const [nl, setNl] = useState<{ title: string; type: LessonType }>({ title: '', type: 'TEXT' });
+  const [bulk, setBulk] = useState<{ moduleId: string; kind: 'aparat' | 'audio' } | null>(null);
   const call = (p: Promise<unknown>, ok?: string) => p.then(() => { inval(); if (ok) toast(ok); }).catch((e) => toast((e as Error).message, 'err'));
   const order = (mods: FullCourse['modules']) => call(api(`/admin/courses/${c.id}/order`, { method: 'PUT', body: { modules: mods.map((m) => ({ id: m.id, lessons: m.lessons.map((l) => l.id) })) } }));
   const moveLesson = (mi: number, li: number, d: -1 | 1) => {
@@ -181,7 +184,7 @@ function Outline({ c, onEdit, inval }: { c: FullCourse; onEdit: (l: ALesson) => 
             <li key={l.id} className="flex items-center gap-2 border-b border-line px-3 py-2 last:border-0">
               <I className="size-4 shrink-0 text-muted" />
               <button className="min-w-0 flex-1 text-start" onClick={() => onEdit(l)}><span className="block truncate font-semibold text-ink">{l.title}</span>
-                <span className="text-xs text-muted">{LESSON_LABEL[l.type]}{l.durationSec ? ` · ${minutes(l.durationSec)}` : ''}{!l.required ? ' · اختیاری' : ''}{l.isFinalQuiz ? ' · آزمون پایانی' : ''}</span></button>
+                <span className="text-xs text-muted">{LESSON_LABEL[l.type]}{l.durationSec ? ` · ${minutes(l.durationSec)}` : ''}{!l.required ? ' · اختیاری' : ''}{l.isFinalQuiz ? ' · آزمون پایانی' : ''}</span>{l.problem && <span className="mt-0.5 flex items-center gap-1 text-xs font-semibold text-rose"><CircleAlert className="size-3.5 shrink-0" />ناقص: {l.problem}</span>}</button>
               <button className="btn btn-ghost btn-icon btn-sm" aria-label="بالا" onClick={() => moveLesson(mi, li, -1)}><ArrowUp className="size-4" /></button>
               <button className="btn btn-ghost btn-icon btn-sm" aria-label="پایین" onClick={() => moveLesson(mi, li, 1)}><ArrowDown className="size-4" /></button>
               <button className="btn btn-ghost btn-icon btn-sm text-rose" aria-label="حذف درس" onClick={() => { if (window.confirm(`درس «${l.title}» حذف شود؟`)) call(api(`/admin/lessons/${l.id}`, { method: 'DELETE' }), 'درس حذف شد'); }}><Trash2 className="size-4" /></button>
@@ -193,9 +196,15 @@ function Outline({ c, onEdit, inval }: { c: FullCourse; onEdit: (l: ALesson) => 
               <select className="input h-10 w-auto" value={nl.type} onChange={(e) => setNl({ ...nl, type: e.target.value as LessonType })}>{TYPES.map((t) => <option key={t} value={t}>{LESSON_LABEL[t]}</option>)}</select>
               <button className="btn btn-primary btn-sm h-10">افزودن</button><button type="button" className="btn btn-ghost btn-sm h-10" onClick={() => setAdding(null)}>انصراف</button>
             </form>
-          ) : <button className="flex w-full items-center gap-2 border-t border-line px-4 py-2.5 text-sm font-semibold text-leaf-ink hover:bg-sunken" onClick={() => setAdding(m.id)}><Plus className="size-4" />درس تازه در این بخش</button>}
+          ) : <div className="flex flex-wrap items-center gap-x-1 border-t border-line px-2 py-1">
+              <button className="flex items-center gap-2 rounded-xl px-2 py-2 text-sm font-semibold text-leaf-ink hover:bg-sunken" onClick={() => setAdding(m.id)}><Plus className="size-4" />درس تازه در این بخش</button>
+              <span className="ms-auto" />
+              <button className="flex items-center gap-1.5 rounded-xl px-2 py-2 text-sm text-muted hover:bg-sunken hover:text-ink" onClick={() => setBulk({ moduleId: m.id, kind: 'aparat' })}><Video className="size-4" />چند ویدیوی آپارات</button>
+              <button className="flex items-center gap-1.5 rounded-xl px-2 py-2 text-sm text-muted hover:bg-sunken hover:text-ink" onClick={() => setBulk({ moduleId: m.id, kind: 'audio' })}><Music className="size-4" />چند فایل صوتی</button>
+            </div>}
         </div>
       ))}
+      {bulk && <BulkAdd moduleId={bulk.moduleId} kind={bulk.kind} onClose={() => setBulk(null)} onDone={inval} />}
     </section>
   );
 }
@@ -242,6 +251,74 @@ function LessonEditor({ l, skills, onSaved }: { l: ALesson; skills: ASkill[]; on
       {problem && <p className="err"><CircleAlert className="size-4" />{problem}</p>}
       <div className="sticky bottom-0 -mx-6 -mb-6 flex gap-2 border-t border-line bg-card px-6 py-4"><button className="btn btn-primary" onClick={() => save.mutate()} disabled={save.isPending}>{save.isPending ? 'در حال ذخیره…' : 'ذخیرهٔ درس'}</button></div>
     </div>
+  );
+}
+
+/** «فلان عنوان | https://www.aparat.com/v/abc12» یا فقط پیوند؛ عنوان نبود، «ویدیوی n» */
+function parseAparatLines(text: string) {
+  return text.split('\n').map((l) => l.trim()).filter(Boolean).map((line, i) => {
+    const m = line.match(/aparat\.com\/(?:v|video\/video\/embed\/videohash)\/([A-Za-z0-9]{3,20})/);
+    const title = line.replace(/https?:\/\/\S+/g, '').replace(/^[\s|:،,\-–—]+|[\s|:،,\-–—]+$/g, '').trim();
+    return { line, hash: m?.[1] ?? null, title: title || `ویدیوی ${fa(i + 1)}` };
+  });
+}
+/** نام فایل صوتی به عنوان درس: «03_جلسه سوم.mp3» ← «جلسه سوم» */
+const titleFromFile = (name: string) => name.replace(/\.[^.]+$/, '').replace(/^[\d۰-۹\s._\-–]+/, '').replace(/[_]+/g, ' ').trim() || name;
+
+/** ساختن چند درس با هم: چند پیوند آپارات (هر خط یکی) یا چند فایل صوتی؛ به ترتیب، ته همان بخش */
+function BulkAdd({ moduleId, kind, onClose, onDone }: { moduleId: string; kind: 'aparat' | 'audio'; onClose: () => void; onDone: () => void }) {
+  const toast = useToast();
+  const [text, setText] = useState('');
+  const [files, setFiles] = useState<File[]>([]);
+  const [run, setRun] = useState<{ i: number; n: number; pct?: number } | null>(null);
+  const items = kind === 'aparat' ? parseAparatLines(text) : [];
+  const bad = items.filter((x) => !x.hash);
+  const tooBig = files.filter((f) => f.size > MAX_UPLOAD);
+  const n = kind === 'aparat' ? items.length : files.length;
+  const ready = n > 0 && !run && (kind === 'aparat' ? !bad.length : !tooBig.length);
+  const go = async () => {
+    let made = 0;
+    try {
+      if (kind === 'aparat') {
+        for (const [i, it] of items.entries()) {
+          setRun({ i: i + 1, n });
+          const l = await api<{ id: string }>(`/admin/modules/${moduleId}/lessons`, { body: { title: it.title.slice(0, 160), type: 'VIDEO' } });
+          await api(`/admin/lessons/${l.id}`, { method: 'PATCH', body: { content: { provider: 'aparat', aparatHash: it.hash } } });
+          made++;
+        }
+      } else {
+        for (const [i, f] of files.entries()) {
+          setRun({ i: i + 1, n, pct: 0 });
+          const up = await uploadFile<{ key: string }>('/admin/uploads', f, (sent, total) => setRun({ i: i + 1, n, pct: total ? Math.floor((sent / total) * 100) : 0 }));
+          const l = await api<{ id: string }>(`/admin/modules/${moduleId}/lessons`, { body: { title: titleFromFile(f.name).slice(0, 160), type: 'AUDIO' } });
+          await api(`/admin/lessons/${l.id}`, { method: 'PATCH', body: { content: { fileKey: up.key } } });
+          made++;
+        }
+      }
+      toast(`${fa(made)} درس ساخته شد`); onDone(); onClose();
+    } catch (e) {
+      toast(`${fa(made)} درس ساخته شد؛ بقیه نشد: ${(e as Error).message}`, 'err'); onDone(); setRun(null);
+    }
+  };
+  return (
+    <Dialog open onClose={() => { if (!run) onClose(); }} title={kind === 'aparat' ? 'چند ویدیوی آپارات با هم' : 'چند فایل صوتی با هم'}>
+      <div className="grid gap-3">
+        {kind === 'aparat' ? <>
+          <label className="field"><span>پیوندها، هر خط یکی</span>
+            <textarea className="input ltr min-h-40 font-mono text-sm" dir="auto" value={text} onChange={(e) => setText(e.target.value)} disabled={!!run} autoFocus placeholder={'جلسهٔ اول: امام و محله | https://www.aparat.com/v/abc12\nhttps://www.aparat.com/v/def34'} />
+            <span className="hint">اگر عنوان را کنار پیوند بنویسی، همان عنوان درس می‌شود؛ وگرنه «ویدیوی ۱، ۲…». درس‌ها به همین ترتیب ته این بخش می‌آیند.</span></label>
+          {items.length > 0 && <ul className="max-h-48 divide-y divide-line overflow-auto rounded-2xl border border-line text-sm">{items.map((it, i) => <li key={i} className="flex items-center gap-2 px-3 py-2"><span className="tnum w-6 shrink-0 text-muted">{fa(i + 1)}</span><span className="min-w-0 flex-1 truncate text-ink">{it.title}</span>{it.hash ? <span className="ltr shrink-0 text-xs text-muted">{it.hash}</span> : <span className="shrink-0 text-xs font-semibold text-rose">پیوند آپارات نیست</span>}</li>)}</ul>}
+        </> : <>
+          <label className="btn btn-secondary w-fit"><Music className="size-4" />انتخاب فایل‌ها<input type="file" accept="audio/*" multiple className="sr-only" disabled={!!run} onChange={(e) => { setFiles([...(e.target.files ?? [])].sort((a, b) => a.name.localeCompare(b.name, 'fa', { numeric: true }))); e.target.value = ''; }} /></label>
+          <span className="hint">به ترتیب نام فایل چیده می‌شوند؛ عنوان درس از نام فایل می‌آید و بعداً عوض‌شدنی است. هر فایل تا ۵۰۰ مگ.</span>
+          {files.length > 0 && <ul className="max-h-48 divide-y divide-line overflow-auto rounded-2xl border border-line text-sm">{files.map((f, i) => <li key={i} className="flex items-center gap-2 px-3 py-2"><span className="tnum w-6 shrink-0 text-muted">{fa(i + 1)}</span><span className="min-w-0 flex-1 truncate text-ink">{titleFromFile(f.name)}</span><span className={`tnum shrink-0 text-xs ${f.size > MAX_UPLOAD ? 'font-semibold text-rose' : 'text-muted'}`}>{mb(f.size)} مگ</span></li>)}</ul>}
+        </>}
+        {run && <div className="grid gap-2" role="status" aria-live="polite"><span className="text-sm text-ink">{kind === 'aparat' ? `ساختن درس ${fa(run.i)} از ${fa(run.n)}…` : `بارگذاری فایل ${fa(run.i)} از ${fa(run.n)} · ${fa(run.pct ?? 0)}٪`}</span>
+          <div className="h-2 overflow-hidden rounded-full bg-sunken"><div className="h-full rounded-full bg-leaf transition-[width]" style={{ width: `${Math.round((((run.i - 1) + (run.pct ?? 100) / 100) / run.n) * 100)}%` }} /></div>
+          <p className="hint">تا تمام نشده صفحه را نبند.</p></div>}
+        <div className="flex gap-2"><button className="btn btn-primary" disabled={!ready} onClick={go}>{n ? `ساختن ${fa(n)} درس` : 'ساختن درس‌ها'}</button>{!run && <button className="btn btn-ghost" onClick={onClose}>انصراف</button>}</div>
+      </div>
+    </Dialog>
   );
 }
 

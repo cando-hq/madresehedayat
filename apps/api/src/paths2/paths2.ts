@@ -6,6 +6,7 @@
  * همان پاسخ‌هایی که نسخهٔ نمایشی (apps/web/src/demo/paths2.ts) می‌دهد.
  */
 import { BadRequestException, Body, Controller, ForbiddenException, Get, HttpCode, Injectable, NotFoundException, Param, Patch, Post, Query } from '@nestjs/common';
+import { AdminService } from '../admin/admin.service';
 import { ArrayMaxSize, IsArray, IsBoolean, IsIn, IsNumber, IsOptional, IsString, Length } from 'class-validator';
 import { and, asc, desc, eq, inArray, isNotNull, sql } from 'drizzle-orm';
 import { AuthUser, CurrentUser, MaybeUser, Public, Roles } from '../common/auth.decorators';
@@ -61,7 +62,12 @@ type Path2 = typeof paths2.$inferSelect;
 
 @Injectable()
 export class Paths2Service {
-  constructor(@InjectDb() private readonly db: Db, private readonly notify: Notifier) {}
+  constructor(@InjectDb() private readonly db: Db, private readonly notify: Notifier, private readonly admin: AdminService) {}
+  /** پیش از فرستادن برای بازبینی همان بررسی‌های انتشار؛ دورهٔ ناقص به ستاد نمی‌رسد */
+  private async readyOrThrow(courseId: string) {
+    const p = await this.admin.publishProblems(courseId);
+    if (p.length) throw new BadRequestException({ code: 'not_ready', message: p.length === 1 ? p[0] : `${p.length} مورد مانده؛ فهرستش بالای صفحه است`, problems: p });
+  }
 
   // ───────── کمکی‌ها
   private async path(key: string) {
@@ -369,7 +375,7 @@ export class Paths2Service {
   async patchCourse(u: AuthUser, id: string, d: CoursePatchDto) { const pub = await this.needPub(u); const c = await this.db.query.courses.findFirst({ where: eq(courses.id, id) }); if (!c || c.publisherId !== pub.id) throw new ForbiddenException(err('forbidden', 'این دوره مال شما نیست')); if (d.libraryShare) await this.db.update(courses).set({ libraryShare: d.libraryShare }).where(eq(courses.id, id)); return { ok: true }; }
   async submitCourse(u: AuthUser, id: string) {
     const pub = await this.needPub(u); const c = await this.db.query.courses.findFirst({ where: eq(courses.id, id) }); if (!c || c.publisherId !== pub.id) throw new ForbiddenException(err('forbidden', 'این دوره مال شما نیست'));
-    if (!(await this.courseLessons(c.id)).length) throw new BadRequestException(err('not_ready', 'دوره هنوز درسی ندارد'));
+    await this.readyOrThrow(c.id);
     await this.db.update(courses).set({ reviewStatus: 'IN_REVIEW', submittedAt: new Date() }).where(eq(courses.id, c.id));
     await this.notifyStaff(`دورهٔ تازه برای بازبینی: ${c.title}`, pub.name); return { ok: true };
   }
@@ -475,7 +481,7 @@ export class Paths2Service {
   }
   async studioSubmit(u: AuthUser, id: string) {
     await this.needOstad(u); const c = await this.db.query.courses.findFirst({ where: eq(courses.id, id) }); if (!c || c.instructorId !== u.id) throw new ForbiddenException(err('forbidden', 'این دوره مال شما نیست'));
-    if (!(await this.courseLessons(c.id)).length) throw new BadRequestException(err('not_ready', 'دوره هنوز درسی ندارد'));
+    await this.readyOrThrow(c.id);
     await this.db.update(courses).set({ reviewStatus: 'IN_REVIEW', submittedAt: new Date() }).where(eq(courses.id, c.id));
     await this.notifyStaff(`دورهٔ تازه برای بازبینی: ${c.title}`, await this.name(u.id)); return { ok: true };
   }

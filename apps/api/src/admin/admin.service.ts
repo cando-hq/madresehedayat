@@ -113,7 +113,9 @@ export class AdminService {
     if (!c) throw new NotFoundException({ code: 'no_course', message: 'دوره پیدا نشد' });
     const deps = await this.db.select({ requiresId: courseDependencies.requiresId, kind: courseDependencies.kind, title: courses.title })
       .from(courseDependencies).innerJoin(courses, eq(courses.id, courseDependencies.requiresId)).where(eq(courseDependencies.courseId, id));
-    return { ...c, dependencies: deps };
+    // مشکل هر درس کنارش، تا سازنده در فهرست ببیند کدام ناقص است
+    const modulesWithProblems = c.modules.map((m) => ({ ...m, lessons: m.lessons.map((l) => ({ ...l, problem: validateContent(l.type, l.content) })) }));
+    return { ...c, modules: modulesWithProblems, dependencies: deps };
   }
 
   async createCourse(actor: string, data: { title: string; slug?: string }) {

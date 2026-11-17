@@ -413,6 +413,28 @@ export function registerPaths2(X: Any) {
   X.wrap('GET', '/auth/me', (orig: Any) => (m: Any, b: Any, q: Any) => { const r = orig(m, b, q); const u = me(); const pid = pubOf(u.id); return { ...r, actorRole: u.actorRole ?? null, mainPathId: u.mainPathId ?? null, onboarded: !!(u.onboardedAt || u.actorRole), publisher: pid ? pubCard(pid) : null, location: u.lat != null ? { lat: u.lat, lng: u.lng } : null }; });
   // پاسخ ورود هم همان «من» کامل را بدهد (برگزارکننده، نقش کنشگر)، مثل API واقعی
   X.wrap('POST', '/auth/verify', (orig: Any) => (m: Any, b: Any, q: Any) => { const r = orig(m, b, q); if (!r?.user) return r; const u = DB().users.find((x: Any) => x.id === r.user.id); if (!u) return r; const pid = pubOf(u.id); return { ...r, user: { ...r.user, actorRole: u.actorRole ?? null, mainPathId: u.mainPathId ?? null, onboarded: !!(u.onboardedAt || u.actorRole), publisher: pid ? pubCard(pid) : null } }; });
+  // مثل API واقعی: مشکل هر درس کنارش، و دورهٔ ناقص به بازبینی نمی‌رود
+  const lessonProblem = (t: string, c: Any): string | null => {
+    c = c ?? {};
+    if (t === 'VIDEO') return c.provider === 'file' ? (c.fileKey ? null : 'فایل ویدیو را بارگذاری کنید') : /^[A-Za-z0-9]{3,20}$/.test(c.aparatHash ?? '') ? null : 'شناسهٔ ویدیوی آپارات درست نیست';
+    if (t === 'AUDIO') return c.fileKey || c.url ? null : 'فایل صوتی را بارگذاری کنید';
+    if (t === 'TEXT') return typeof c.body === 'string' && c.body.trim().length >= 20 ? null : 'متن درس کوتاه است';
+    if (t === 'QUIZ') return Array.isArray(c.questions) && c.questions.length ? null : 'دست‌کم یک پرسش لازم است';
+    if (t === 'PRACTICE') return Array.isArray(c.steps) && c.steps.length ? null : 'تمرین دست‌کم یک موقعیت لازم دارد';
+    if (t === 'MISSION') return c.goal ? null : 'هدف مأموریت را بنویسید';
+    if (t === 'WORKSHEET') return c.prompt && Array.isArray(c.fields) && c.fields.length ? null : 'برگه دست‌کم یک خانه لازم دارد';
+    return null;
+  };
+  const readyOrThrow = (c: Any) => {
+    const p: string[] = []; const ls = allLessons(c.id);
+    if (!String(c.about ?? '').trim()) p.push('توضیح دوره خالی است');
+    if (!ls.length) p.push('دوره هنوز درسی ندارد');
+    for (const l of ls) { const e = lessonProblem(l.type, l.content); if (e) p.push(`درس «${l.title}»: ${e}`); }
+    if (p.length) throw E(400, 'not_ready', p.length === 1 ? p[0] : `${p.length} مورد مانده؛ فهرستش بالای صفحه است`, { problems: p });
+  };
+  X.readyOrThrow = readyOrThrow;
+  X.wrap('GET', '/admin/courses/([^/]+)', (orig: Any) => (m: Any, b: Any, q: Any) => { const r = orig(m, b, q); return { ...r, modules: (r.modules ?? []).map((md: Any) => ({ ...md, lessons: md.lessons.map((l: Any) => ({ ...l, problem: lessonProblem(l.type, l.content) })) })) }; });
+  X.wrap('POST', '/v2/pub/courses/([^/]+)/submit', (orig: Any) => (m: Any, b: Any, q: Any) => { X.readyOrThrow?.(C(m[1])); return orig(m, b, q); });
   X.wrap('POST', '/auth/register', (orig: Any) => (m: Any, b: Any, q: Any) => { const r = orig(m, b, q); return { ...r, user: { ...r.user, onboarded: false, actorRole: null } }; });
 }
 
@@ -450,6 +472,7 @@ export function registerStudio(X: Any) {
     DB().courses.push(c); DB().modules.push({ id: rid(), courseId: c.id, title: 'درس‌ها', order: 0 }); return c;
   });
   on('POST', '/v2/studio/courses/([^/]+)/submit', (m: Any) => { const u = needOstad(); const c = C(m[1]); if (c.instructorId !== u.id) throw E(403, 'forbidden', 'این دوره مال شما نیست'); if (!allLessons(c.id).length) throw E(400, 'not_ready', 'دوره هنوز درسی ندارد'); c.reviewStatus = 'IN_REVIEW'; c.submittedAt = now(); notify(DB().roles.filter((r: Any) => r.role === 'HQ_ADMIN').map((r: Any) => r.userId), { kind: 'review', title: `دورهٔ تازه برای بازبینی: ${c.title}`, body: nm(u.id), link: '/admin/review' }); return { ok: true }; });
+  X.wrap('POST', '/v2/studio/courses/([^/]+)/submit', (orig: Any) => (m: Any, b: Any, q: Any) => { X.readyOrThrow?.(C(m[1])); return orig(m, b, q); });
   // برگزارکننده استاد را به دوره می‌سپارد
   on('POST', '/v2/pub/courses/([^/]+)/instructor', (m: Any, b: Any) => {
     const u = me(); const pid = DB().roles.find((r: Any) => r.userId === u.id && r.role === 'ORG_ADMIN')?.networkId; const c = C(m[1]); if (!pid || c.publisherId !== pid) throw E(403, 'forbidden', 'این دوره مال شما نیست');

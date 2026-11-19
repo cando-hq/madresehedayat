@@ -1,0 +1,32 @@
+<!-- @dsCard group="هویت" height=520 subtitle="سه مدت، یک منحنی، ورود پله‌ای" -->
+<!doctype html>
+<html lang="fa" dir="rtl"><head><meta charset="utf-8"><title>حرکت</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400..800&display=swap"><style>.wrap{padding:var(--space-6);display:grid;gap:var(--space-5)}
+.top{display:flex;align-items:center;justify-content:space-between}
+.top h3{font-size:18px;font-weight:800}
+.g{display:grid;grid-template-columns:1.6fr 1fr 1fr;gap:var(--space-4)}
+.legend{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-3);font-size:13px;color:var(--muted)}
+.legend b{display:block;color:var(--ink);font-size:14px;margin-bottom:2px}
+.sk{display:grid;gap:var(--space-3);padding:var(--space-6)}.sk .skeleton{height:14px}.sk .skeleton.w{width:60%}.sk .skeleton.t{height:22px;width:40%}</style></head><body>
+<div class="wrap">
+<div class="top"><h3>پیشخوان کنشگر</h3><button class="btn btn-secondary btn-sm" id="replay">پخش دوباره</button></div>
+<div class="g stagger" id="stage">
+<article class="card is-link" style="padding:var(--space-6);display:grid;gap:var(--space-4);align-content:start">
+<span class="chip chip-live">الان زنده</span>
+<h3 style="font-size:18px;font-weight:800">کلاس زنده: نوجوان و فضای مجازی</h3>
+<div class="bar animate"><span style="width:64%"></span></div>
+<div style="display:flex;justify-content:space-between;align-items:center"><span class="hint tnum">۶۴٪ ظرفیت پر شده</span><button class="btn btn-primary btn-sm">ورود به کلاس <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 18l-6-6 6-6"/></svg></button></div>
+</article>
+<article class="card stat"><span class="n tnum">۸</span><span class="l">کنشگر فعال این هفته</span></article>
+<article class="card stat"><span class="n tnum">٪۷۲</span><span class="l">پیشرفت پویش جاری</span></article>
+<article class="card sk" style="grid-column:1/-1"><span class="skeleton t"></span><span class="skeleton"></span><span class="skeleton w"></span></article>
+</div>
+<div class="legend">
+<div><b>ورود پله‌ای</b>هر کارت ۴۵ms بعد از قبلی، ۴۸۰ms با `ease-out`؛ ۸px بالا می‌آید و می‌ایستد.</div>
+<div><b>پاسخ به دست</b>هاور کارتِ پیوند ۲px بالا می‌رود؛ دکمه هنگام فشردن ۱٫۵٪ کوچک می‌شود. همین.</div>
+<div><b>زنده و بارگذاری</b>نقطهٔ «زنده» هر ۲ ثانیه نفس می‌کشد؛ اسکلت با شیمر آرام. با «کاهش حرکت» همه خاموش.</div>
+</div>
+</div>
+<script>
+document.getElementById('replay').addEventListener('click',function(){var s=document.getElementById('stage');s.classList.remove('stagger');s.querySelectorAll('.bar').forEach(function(b){b.classList.remove('animate')});void s.offsetWidth;s.classList.add('stagger');s.querySelectorAll('.bar').forEach(function(b){b.classList.add('animate')});});
+</script>
+</body></html>

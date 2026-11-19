@@ -1,0 +1,150 @@
+/* مدرسهٔ هدایت — اجزای پایه. همان نام کلاس‌های سامانه (apps/web/src/styles/app.css)، با توکن‌ها.
+   اصل: سطح‌های ساده، مرز نازک، سایهٔ کم، فاصلهٔ زیاد. رنگ فقط برای معنا. */
+html, body { margin: 0; }
+body {
+  background: var(--bg); color: var(--body);
+  font-family: var(--font-sans); font-size: 16px; line-height: 1.85;
+  direction: rtl; text-align: start;
+  font-feature-settings: normal; letter-spacing: 0;
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3, h4 { color: var(--ink); line-height: 1.5; margin: 0; text-wrap: balance; }
+p { margin: 0; }
+a { color: var(--leaf-ink); text-underline-offset: .35em; text-decoration-thickness: 1px; }
+.ltr { direction: ltr; unicode-bidi: plaintext; }
+.tnum { font-variant-numeric: tabular-nums; }
+:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; border-radius: var(--radius-sm); }
+
+/* ردیف نمایش در پیش‌نمایش‌ها */
+.mh-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); padding: var(--space-6); }
+.mh-stack { display: grid; gap: var(--space-5); padding: var(--space-6); }
+
+/* دکمه: بی‌سایه، بی‌درخشش؛ وزنش از رنگ و اندازه می‌آید */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); height: 44px; padding-inline: var(--space-5); border-radius: var(--radius-lg); font: inherit; font-weight: 700; font-size: 15px; line-height: 1; cursor: pointer; border: 1px solid transparent; transition: background-color .15s, border-color .15s, color .15s; white-space: nowrap; text-decoration: none; }
+.btn[disabled] { opacity: .5; cursor: not-allowed; }
+.btn svg { width: 18px; height: 18px; flex: none; }
+.btn-primary { background: var(--action); color: var(--on-action); }
+.btn-primary:hover:not([disabled]) { background: var(--leaf-ink); }
+[data-theme="dark"] .btn-primary:hover:not([disabled]) { background: var(--leaf); filter: brightness(1.06); }
+.btn-secondary { background: transparent; color: var(--ink); border-color: var(--line-strong); }
+.btn-secondary:hover:not([disabled]) { background: var(--sunken); }
+.btn-ghost { background: transparent; color: var(--body); }
+.btn-ghost:hover:not([disabled]) { background: var(--sunken); color: var(--ink); }
+.btn-danger { background: transparent; color: var(--rose-ink); border-color: color-mix(in srgb, var(--rose) 45%, transparent); }
+.btn-danger:hover:not([disabled]) { background: var(--rose-soft); }
+.btn-danger.btn-solid { background: var(--danger); color: var(--on-danger); border-color: transparent; }
+.btn-sm { height: 36px; padding-inline: var(--space-4); font-size: 14px; border-radius: var(--radius-md); }
+.btn-lg { height: 52px; padding-inline: var(--space-6); font-size: 16px; }
+.btn-icon { width: 40px; padding: 0; }
+
+/* کارت: مرز نازک، بی‌سایه. سایه فقط برای چیز شناور */
+.card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-2xl); }
+.card-float { box-shadow: var(--shadow-md); border-color: transparent; }
+
+/* فیلد */
+.field { display: grid; gap: var(--space-2); }
+.field > label { font-size: 14px; font-weight: 700; color: var(--ink); line-height: 1.5; }
+.input { box-sizing: border-box; width: 100%; height: 48px; border-radius: var(--radius-lg); border: 1px solid var(--line-strong); background: var(--card); color: var(--ink); padding-inline: var(--space-4); font: inherit; font-size: 16px; line-height: 1.5; transition: border-color .15s, box-shadow .15s; }
+.input::placeholder { color: var(--muted); }
+.input:focus { outline: none; border-color: var(--leaf-ink); box-shadow: 0 0 0 1px var(--leaf-ink); }
+.input[aria-invalid="true"] { border-color: var(--rose); }
+.input[aria-invalid="true"]:focus { box-shadow: 0 0 0 1px var(--rose); }
+textarea.input { height: auto; min-height: 112px; padding-block: var(--space-3); resize: vertical; line-height: 1.8; }
+.hint { font-size: 13px; color: var(--muted); line-height: 1.7; }
+.err { font-size: 13px; font-weight: 600; color: var(--rose-ink); display: flex; gap: var(--space-1\.5); align-items: center; line-height: 1.7; }
+
+/* چیپ: کوتاه و کم‌رنگ؛ معنا از متن می‌آید، رنگ فقط کمکش می‌کند */
+.chip { display: inline-flex; align-items: center; gap: var(--space-1\.5); height: 26px; padding-inline: var(--space-2\.5); border-radius: var(--radius-full); font-size: 13px; font-weight: 600; line-height: 1; background: var(--sunken); color: var(--body); white-space: nowrap; }
+.chip svg { width: 14px; height: 14px; }
+.chip-leaf { background: var(--leaf-soft); color: var(--leaf-ink); }
+.chip-flame { background: var(--flame-soft); color: var(--flame-ink); }
+.chip-dome { background: var(--dome-soft); color: var(--dome-ink); font-weight: 700; }
+.chip-rose { background: var(--rose-soft); color: var(--rose-ink); }
+.chip-live { background: transparent; color: var(--flame-ink); padding-inline-start: 0; font-weight: 700; }
+.chip-live::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--flame); margin-inline-end: var(--space-1); }
+.chip-dot::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+/* نوار پیشرفت: باریک، تک‌رنگ */
+.bar { height: 6px; border-radius: var(--radius-full); background: var(--line); overflow: hidden; }
+.bar > span { display: block; height: 100%; border-radius: var(--radius-full); background: var(--leaf); transition: width .5s; }
+.bar-soft { height: 4px; }
+
+/* زبانه‌ها: خط زیرین، نه قرص */
+.seg { display: inline-flex; gap: var(--space-5); border-bottom: 1px solid var(--line); max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+.seg::-webkit-scrollbar { display: none; }
+.seg > button { flex: none; white-space: nowrap; height: 40px; padding: 0 var(--space-1); margin-bottom: -1px; border: 0; border-bottom: 2px solid transparent; background: transparent; font: inherit; font-size: 14px; font-weight: 600; color: var(--muted); cursor: pointer; transition: color .15s, border-color .15s; }
+.seg > button:hover { color: var(--ink); }
+.seg > button[aria-pressed="true"] { color: var(--ink); border-bottom-color: var(--leaf); }
+/* نسخهٔ قرصی برای فیلتر داخل کارت */
+.seg-pill { display: inline-flex; gap: var(--space-1); padding: var(--space-1); border-radius: var(--radius-lg); background: var(--sunken); border: 0; }
+.seg-pill > button { height: 32px; padding-inline: var(--space-3); margin: 0; border: 0; border-radius: 9px; }
+.seg-pill > button[aria-pressed="true"] { background: var(--card); color: var(--ink); border: 0; }
+
+/* کاشی آمار */
+.stat { display: grid; gap: var(--space-1); padding: var(--space-5); }
+.stat .n { font-size: 30px; font-weight: 800; line-height: 1.2; color: var(--ink); }
+.stat .l { font-size: 13px; color: var(--muted); }
+
+/* جلد دوره: تک‌رنگ ملایم، طاق، نشانهٔ کوچک */
+.tint-green { --t: var(--leaf); --t-soft: var(--leaf-soft); --t-ink: var(--leaf-ink); }
+.tint-deep { --t: var(--deep); --t-soft: var(--deep-soft); --t-ink: var(--deep); }
+.tint-flame { --t: var(--flame); --t-soft: var(--flame-soft); --t-ink: var(--flame-ink); }
+.tint-dome { --t: var(--dome); --t-soft: var(--dome-soft); --t-ink: var(--dome-ink); }
+.tint-rose { --t: var(--rose); --t-soft: var(--rose-soft); --t-ink: var(--rose-ink); }
+.cover { background: var(--t-soft); color: var(--t-ink); }
+.cover-arch { border-radius: 999px 999px var(--radius-xl) var(--radius-xl); }
+
+/* جداکنندهٔ هیرلاین */
+.hr { height: 1px; background: var(--line); border: 0; margin: 0; }
+
+/* ───────── حرکت ─────────
+   سه مدت و یک منحنی. هر چیز وارد می‌شود، نمی‌پرد. */
+:root {
+  --dur-fast: 150ms;   /* هاور، فشردن، تغییر رنگ */
+  --dur-base: 260ms;   /* باز و بسته شدن، جابه‌جایی کوچک */
+  --dur-slow: 480ms;   /* ورود صفحه و کارت‌ها، نوار پیشرفت */
+  --ease-out: cubic-bezier(.22, 1, .36, 1);     /* ورود: تند شروع، نرم می‌ایستد */
+  --ease-in-out: cubic-bezier(.65, 0, .35, 1);  /* جابه‌جایی بین دو حالت */
+  --stagger: 45ms;
+}
+@keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes grow-x { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes pulse-dot { 0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--flame) 55%, transparent); } 70% { box-shadow: 0 0 0 6px transparent; } }
+@keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+/* ورود: به هر فرزند --i بدهید تا پشت سر هم بیایند */
+.rise { animation: rise var(--dur-slow) var(--ease-out) both; animation-delay: calc(var(--i, 0) * var(--stagger)); }
+.fade { animation: fade var(--dur-base) var(--ease-out) both; animation-delay: calc(var(--i, 0) * var(--stagger)); }
+.stagger > * { animation: rise var(--dur-slow) var(--ease-out) both; }
+.stagger > :nth-child(1) { animation-delay: 0ms } .stagger > :nth-child(2) { animation-delay: calc(var(--stagger) * 1) }
+.stagger > :nth-child(3) { animation-delay: calc(var(--stagger) * 2) } .stagger > :nth-child(4) { animation-delay: calc(var(--stagger) * 3) }
+.stagger > :nth-child(5) { animation-delay: calc(var(--stagger) * 4) } .stagger > :nth-child(6) { animation-delay: calc(var(--stagger) * 5) }
+.stagger > :nth-child(n+7) { animation-delay: calc(var(--stagger) * 6) }
+
+/* پاسخ به دست: کم و دقیق */
+.btn { transition: background-color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out); }
+.btn:active:not([disabled]) { transform: scale(.985); }
+.card { transition: border-color var(--dur-fast) var(--ease-out), transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out); }
+a.card:hover, .card.is-link:hover { border-color: var(--line-strong); transform: translateY(-2px); box-shadow: var(--shadow-sm); }
+.input { transition: border-color var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out); }
+.seg > button { transition: color var(--dur-fast) var(--ease-out), border-color var(--dur-base) var(--ease-out); }
+
+/* نوار پیشرفت از راست پر می‌شود */
+.bar > span { transform-origin: right center; transition: width var(--dur-slow) var(--ease-out); }
+.bar.animate > span { animation: grow-x var(--dur-slow) var(--ease-out) both; animation-delay: 120ms; }
+
+/* نقطهٔ «زنده» نفس می‌کشد */
+.chip-live::before { animation: pulse-dot 2s var(--ease-in-out) infinite; }
+
+/* اسکلت بارگذاری */
+.skeleton { position: relative; overflow: hidden; border-radius: var(--radius-md); background: var(--sunken); color: transparent; }
+.skeleton::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--card) 70%, transparent) 50%, transparent 100%); background-size: 200% 100%; animation: shimmer 1.6s linear infinite; }
+
+/* باز شدن جزئیات (details) و منو */
+.reveal { animation: rise var(--dur-base) var(--ease-out) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
+  .chip-live::before { animation: none; }
+}

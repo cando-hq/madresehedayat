@@ -1,0 +1,1546 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>سازندهٔ دوره</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F6F8F7}
+a{color:#0A7A45}a:hover{color:#262A4F}
+input,textarea,button{font-family:inherit;line-height:1.7}
+button{cursor:pointer}
+input:focus,textarea:focus{outline:none;border-color:#0A7A45 !important}
+button:focus-visible,a:focus-visible{outline:2px solid #0A7A45;outline-offset:2px}
+.gap-btn{opacity:.4}
+.gap-row:hover .gap-btn,.gap-btn:focus-visible{opacity:1}
+</style>
+</helmet>
+<div dir="rtl" style="min-height: 960px; background: #F6F8F7; color: #3E4462; font-family: Vazirmatn, Tahoma, sans-serif; font-size: 15px; line-height: 1.85">
+
+<div style="background: #262A4F; color: #ECEEF6">
+  <div style="max-width: 1180px; margin: 0 auto; padding: 6px 24px; display: flex; align-items: center; gap: 10px; font-size: 13px; flex-wrap: wrap">
+    <span>نمونهٔ قابل کلیک · دیدن به‌عنوان</span>
+    <button onClick="{{asMaker}}" style="{{roleMakerStyle}}">سازندهٔ دوره</button>
+    <button onClick="{{asStaff}}" style="{{roleStaffStyle}}">کارشناس ستاد</button>
+  </div>
+</div>
+
+<sc-if value="{{isList}}" hint-placeholder-val="{{ false }}">
+<div style="max-width: 1000px; margin: 0 auto; padding: 48px 24px 64px; display: flex; flex-direction: column; gap: 24px">
+  <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap">
+    <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+      <h1 style="margin: 0; font-size: 30px; font-weight: 800; color: #262A4F; line-height: 1.5">دوره‌های من</h1>
+      <p style="margin: 0; color: #6C7290">دوره‌هایی که می‌سازی این‌جا می‌مانند تا ستاد ببیند و منتشر کند.</p>
+    </div>
+    <button onClick="{{goStart}}" style="height: 48px; padding: 0 22px; border: 0; border-radius: 12px; background: #0A8449; color: #FFFFFF; font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>دورهٔ تازه</button>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 12px">
+    <sc-for list="{{courses}}" as="c" hint-placeholder-count="4">
+      <button onClick="{{c.open}}" style="display: flex; align-items: center; gap: 18px; padding: 16px 18px; background: #FFFFFF; border: 1px solid #E3E6EE; border-radius: 20px; text-align: start; color: #3E4462">
+        <span aria-hidden="true" style="flex: none; width: 44px; height: 56px; border-radius: 22px 22px 8px 8px; background: #E1F3F6"></span>
+        <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+          <span style="font-size: 17px; font-weight: 800; color: #262A4F">{{c.title}}</span>
+          <span style="font-size: 13px; color: #6C7290">{{c.meta}}</span>
+        </span>
+        <span style="{{c.chipStyle}}">{{c.status}}</span>
+        <span style="flex: none; width: 130px; text-align: end; font-size: 14px; font-weight: 700; color: #0A7A45">{{c.action}}</span>
+      </button>
+    </sc-for>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{isStart}}" hint-placeholder-val="{{ true }}">
+<div style="max-width: 760px; margin: 0 auto; padding: 48px 24px 64px; display: flex; flex-direction: column; gap: 32px">
+  <div style="font-size: 13px; color: #6C7290"><button onClick="{{goList}}" style="border: 0; background: transparent; padding: 0; color: #6C7290; font-size: 13px">دوره‌های من</button> ‹ دورهٔ تازه</div>
+  <div style="display: flex; flex-direction: column; gap: 8px">
+    <h1 style="margin: 0; font-size: 32px; font-weight: 800; color: #262A4F; line-height: 1.5">دورهٔ تازه</h1>
+    <p style="margin: 0; color: #6C7290">اول اسمش را بنویس، بعد بگو درس‌هایش الان کجاست. بقیه را با هم می‌چینیم.</p>
+  </div>
+  <label style="display: flex; flex-direction: column; gap: 8px">
+    <span style="font-weight: 700; color: #262A4F">اسم دوره</span>
+    <input value="{{courseTitle}}" onChange="{{setCourseTitle}}" placeholder="مثلاً: مسجد و نوجوان" style="height: 52px; box-sizing: border-box; padding: 0 16px; border: 1px solid #CDD2DF; border-radius: 12px; background: #FFFFFF; font-size: 17px; color: #262A4F">
+  </label>
+  <div style="display: flex; flex-direction: column; gap: 16px">
+    <h2 style="margin: 0; font-size: 20px; font-weight: 800; color: #262A4F">درس‌هایش الان کجاست؟</h2>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px">
+      <button onClick="{{goPaste}}" style="text-align: start; display: flex; flex-direction: column; gap: 12px; padding: 24px; background: #FFFFFF; border: 1px solid #E3E6EE; border-radius: 20px; color: #3E4462">
+        <span style="width: 48px; height: 48px; border-radius: 14px; background: #E4EEF7; color: #1F6FA8; display: flex; align-items: center; justify-content: center"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 5h10a4 4 0 0 1 4 4v6a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a4 4 0 0 1 4-4zM10 9.5v5l4.5-2.5z"></path></svg></span>
+        <span style="font-size: 17px; font-weight: 800; color: #262A4F">ویدیوها در آپارات</span>
+        <span style="font-size: 14px; color: #6C7290; line-height: 1.8">پیوندها را یک‌جا بچسبان. عنوان و زمان هر ویدیو خودش پر می‌شود.</span>
+      </button>
+      <button onClick="{{goAudio}}" style="text-align: start; display: flex; flex-direction: column; gap: 12px; padding: 24px; background: #FFFFFF; border: 1px solid #E3E6EE; border-radius: 20px; color: #3E4462">
+        <span style="width: 48px; height: 48px; border-radius: 14px; background: #E1F3F6; color: #1D7F92; display: flex; align-items: center; justify-content: center"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 16v-4a8 8 0 0 1 16 0v4M5 14h1a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H5a2 2 0 0 1-2-2v-2a2 2 0 0 1 2-2zM19 14h-1a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h1a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2z"></path></svg></span>
+        <span style="font-size: 17px; font-weight: 800; color: #262A4F">فایل‌های صوتی</span>
+        <span style="font-size: 14px; color: #6C7290; line-height: 1.8">چند فایل را با هم انتخاب کن. اسم هر فایل عنوان درسش می‌شود.</span>
+      </button>
+      <button onClick="{{goScratch}}" style="text-align: start; display: flex; flex-direction: column; gap: 12px; padding: 24px; background: #FFFFFF; border: 1px solid #E3E6EE; border-radius: 20px; color: #3E4462">
+        <span style="width: 48px; height: 48px; border-radius: 14px; background: #E2F4EA; color: #0A7A45; display: flex; align-items: center; justify-content: center"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></span>
+        <span style="font-size: 17px; font-weight: 800; color: #262A4F">از صفر</span>
+        <span style="font-size: 14px; color: #6C7290; line-height: 1.8">درس‌ها را یکی‌یکی می‌سازی: متن، آزمون، مأموریت.</span>
+      </button>
+    </div>
+    <p style="margin: 0; font-size: 13px; color: #6C7290">هر راهی را بروی، بعداً هم می‌توانی لای درس‌ها فصل، آزمون، متن یا مأموریت بگذاری.</p>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{isPaste}}" hint-placeholder-val="{{ false }}">
+<div style="max-width: 1100px; margin: 0 auto; padding: 48px 24px 64px; display: flex; flex-direction: column; gap: 24px">
+  <div style="display: flex; flex-direction: column; gap: 6px">
+    <div style="font-size: 13px; color: #6C7290">{{courseTitleShown}} ‹ ویدیوهای آپارات</div>
+    <h1 style="margin: 0; font-size: 28px; font-weight: 800; color: #262A4F; line-height: 1.5">پیوندهای آپارات را بچسبان</h1>
+    <p style="margin: 0; color: #6C7290">هر پیوند در یک خط. ترتیب همین ترتیب درس‌ها می‌شود و بعداً هم جابه‌جا می‌شود.</p>
+  </div>
+  <div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+    <label style="flex: 1 1 380px; min-width: 0; display: flex; flex-direction: column; gap: 8px">
+      <span style="font-weight: 700; color: #262A4F">پیوندها</span>
+      <textarea dir="ltr" value="{{pasteText}}" onChange="{{setPaste}}" rows="12" style="box-sizing: border-box; width: 100%; padding: 16px; border: 1px solid #CDD2DF; border-radius: 14px; background: #FFFFFF; font-size: 14px; color: #262A4F; resize: vertical; font-family: ui-monospace, Menlo, monospace"></textarea>
+      <span style="font-size: 13px; color: #6C7290">ویدیو باید در آپارات «عمومی» یا «فقط با پیوند» باشد، نه خصوصی.</span>
+    </label>
+    <div style="flex: 1 1 420px; min-width: 0; display: flex; flex-direction: column; gap: 12px">
+      <div style="font-weight: 700; color: #262A4F">{{pasteSummary}}</div>
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <sc-for list="{{parsed}}" as="p" hint-placeholder-count="5">
+          <sc-if value="{{p.ok}}" hint-placeholder-val="{{ true }}">
+            <div style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: #FFFFFF; border: 1px solid #E3E6EE; border-radius: 14px">
+              <span style="flex: none; width: 88px; height: 50px; border-radius: 10px; background: #262A4F; color: #FFFFFF; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9 7v10l8-5z"></path></svg></span>
+              <span style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+                <span style="font-weight: 700; color: #262A4F; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{p.title}}</span>
+                <span style="font-size: 13px; color: #6C7290">{{p.meta}}</span>
+              </span>
+              <span style="flex: none; font-size: 12px; font-weight: 600; color: #0A7A45; background: #E2F4EA; border-radius: 999px; padding: 2px 10px">پیدا شد</span>
+            </div>
+          </sc-if>
+          <sc-if value="{{p.bad}}" hint-placeholder-val="{{ false }}">
+            <div style="display: flex; flex-direction: column; gap: 2px; padding: 10px 14px; background: #FBE6EB; border-radius: 14px">
+              <span dir="ltr" style="font-size: 13px; color: #A8314F; text-align: end; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{p.line}}</span>
+              <span style="font-size: 13px; color: #A8314F">این خط پیوند آپارات نیست؛ کنار گذاشته می‌شود.</span>
+            </div>
+          </sc-if>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+  <div style="display: flex; gap: 12px; flex-wrap: wrap">
+    <button onClick="{{buildFromPaste}}" style="height: 48px; padding: 0 24px; border: 0; border-radius: 12px; background: #0A8449; color: #FFFFFF; font-size: 15px; font-weight: 700">{{buildLabel}}</button>
+    <button onClick="{{goStartKeep}}" style="height: 48px; padding: 0 20px; border: 1px solid #CDD2DF; border-radius: 12px; background: transparent; color: #3E4462; font-size: 15px; font-weight: 700">بازگشت</button>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{isBuild}}" hint-placeholder-val="{{ false }}">
+<div>
+  <div style="position: sticky; top: 0; z-index: 5; background: #FFFFFF; border-bottom: 1px solid #E3E6EE">
+    <div style="max-width: 1180px; margin: 0 auto; padding: 12px 24px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap">
+      <button onClick="{{goList}}" style="border: 0; background: transparent; color: #6C7290; font-size: 14px; padding: 8px 4px">‹ دوره‌های من</button>
+      <span style="{{statusChipStyle}}">{{statusChip}}</span>
+      <span style="flex: 1"></span>
+      <span style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: #6C7290"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0A7A45" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>ذخیره شد</span>
+      <button onClick="{{openPreview}}" style="height: 44px; padding: 0 16px; border: 1px solid #CDD2DF; border-radius: 12px; background: transparent; display: flex; align-items: center; gap: 8px; color: #3E4462; font-size: 14px; font-weight: 700"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12zM12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"></path></svg>از چشم کنشگر</button>
+      <button onClick="{{submit}}" style="height: 44px; padding: 0 20px; border: 0; border-radius: 12px; background: #0A8449; color: #FFFFFF; font-size: 14px; font-weight: 700">{{submitLabel}}</button>
+    </div>
+  </div>
+
+  <div style="max-width: 1180px; margin: 0 auto; padding: 32px 24px 96px; display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+    <div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 20px">
+
+      <div style="display: flex; gap: 24px; align-items: stretch; padding: 24px; background: #FFFFFF; border: 1px solid #E3E6EE; border-radius: 28px">
+        <div aria-hidden="true" style="flex: none; width: 128px; height: 160px; border-radius: 64px 64px 16px 16px; background: #E1F3F6; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 22px; box-sizing: border-box">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#1D7F92" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c-5-2-7-6.5-6-11.5C10.5 9 14 11 15.5 15M12 21c4.5-1.5 7-5.5 6.5-11-3 .2-5.4 1.4-7 3.6"></path></svg>
+        </div>
+        <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 10px; justify-content: center">
+          <input value="{{courseTitle}}" onChange="{{setCourseTitle}}" placeholder="اسم دوره" aria-label="اسم دوره" style="border: 1px solid transparent; border-radius: 10px; padding: 2px 8px; margin-inline-start: -8px; background: transparent; font-size: 26px; font-weight: 800; color: #262A4F">
+          <div style="font-size: 14px; color: #6C7290">{{courseMeta}}</div>
+          <textarea value="{{courseDesc}}" onChange="{{setCourseDesc}}" rows="2" placeholder="در یک جمله: این دوره به کنشگر چه می‌دهد؟" aria-label="معرفی کوتاه دوره" style="border: 1px solid #E3E6EE; border-radius: 12px; padding: 10px 12px; background: #F6F8F7; font-size: 14px; color: #3E4462; resize: none"></textarea>
+        </div>
+      </div>
+
+      <sc-if value="{{showStatusBanner}}" hint-placeholder-val="{{ false }}">
+        <div role="status" style="{{statusBannerStyle}}">
+          <span style="font-weight: 800; font-size: 15px">{{statusBannerTitle}}</span>
+          <span style="font-size: 14px; color: #3E4462">{{statusBannerText}}</span>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{showBanner}}" hint-placeholder-val="{{ false }}">
+        <div role="status" style="padding: 14px 18px; background: #FFF4D1; border-radius: 16px; color: #8A6500; font-size: 14px; font-weight: 600">{{bannerText}}</div>
+      </sc-if>
+
+      <sc-if value="{{noLessons}}" hint-placeholder-val="{{ false }}">
+        <div style="padding: 32px; text-align: center; color: #6C7290; background: #FFFFFF; border: 1px dashed #CDD2DF; border-radius: 20px">هنوز درسی نداری. از پایین اولین درس را بساز یا پیوندهای آپارات را بچسبان.</div>
+      </sc-if>
+
+      <div style="display: flex; flex-direction: column">
+        <sc-for list="{{rows}}" as="r" hint-placeholder-count="5">
+          <sc-if value="{{r.isSection}}" hint-placeholder-val="{{ false }}">
+            <div draggable="true" onDragStart="{{r.dragStart}}" onDragOver="{{r.dragOver}}" onDrop="{{r.drop}}" onDragEnd="{{dragEnd}}" style="{{r.secStyle}}">
+              <span aria-hidden="true" style="flex: none; color: #CDD2DF; cursor: grab; display: flex"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M9 6h.01M15 6h.01M9 12h.01M15 12h.01M9 18h.01M15 18h.01"></path></svg></span>
+              <button onClick="{{r.open}}" style="flex: 1; min-width: 0; display: flex; flex-direction: column; padding: 4px 0; border: 0; background: transparent; text-align: start; color: #3E4462">
+                <span style="font-size: 12px; color: #6C7290">{{r.secLabel}}</span>
+                <span style="font-size: 19px; font-weight: 800; color: #262A4F">{{r.titleShown}}</span>
+              </button>
+              <sc-if value="{{r.hasChipWarn}}" hint-placeholder-val="{{ false }}"><span style="{{r.chipStyle}}">{{r.chip}}</span></sc-if>
+              <span style="flex: none; display: flex; flex-direction: column">
+                <button onClick="{{r.up}}" aria-label="بالاتر" style="width: 32px; height: 26px; border: 0; background: transparent; color: #6C7290; border-radius: 8px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6-6 6 6"></path></svg></button>
+                <button onClick="{{r.down}}" aria-label="پایین‌تر" style="width: 32px; height: 26px; border: 0; background: transparent; color: #6C7290; border-radius: 8px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></button>
+              </span>
+            </div>
+          </sc-if>
+          <sc-if value="{{r.isLesson}}" hint-placeholder-val="{{ true }}">
+            <div draggable="true" onDragStart="{{r.dragStart}}" onDragOver="{{r.dragOver}}" onDrop="{{r.drop}}" onDragEnd="{{dragEnd}}" style="{{r.cardStyle}}">
+              <div style="display: flex; align-items: center">
+                <span aria-hidden="true" style="flex: none; color: #CDD2DF; cursor: grab; display: flex; padding-inline-start: 10px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M9 6h.01M15 6h.01M9 12h.01M15 12h.01M9 18h.01M15 18h.01"></path></svg></span>
+                <button onClick="{{r.open}}" style="flex: 1; min-width: 0; display: flex; align-items: center; gap: 14px; padding: 14px 12px; border: 0; background: transparent; text-align: start; color: #3E4462; border-radius: 18px">
+                  <span style="flex: none; width: 22px; font-size: 13px; color: #6C7290; text-align: center">{{r.num}}</span>
+                  <span style="{{r.iconStyle}}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{r.d}}"></path></svg></span>
+                  <span style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+                    <span style="font-weight: 700; color: #262A4F; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{r.titleShown}}</span>
+                    <span style="font-size: 13px; color: #6C7290">{{r.meta}}</span>
+                    <sc-if value="{{r.uploading}}" hint-placeholder-val="{{ false }}">
+                      <span style="display: block; height: 6px; margin-top: 6px; background: #EEF1F2; border-radius: 999px; overflow: hidden"><span style="{{r.barStyle}}"></span></span>
+                    </sc-if>
+                  </span>
+                  <span style="{{r.chipStyle}}">{{r.chip}}</span>
+                </button>
+                <span style="flex: none; display: flex; flex-direction: column; padding-inline-end: 8px">
+                  <button onClick="{{r.up}}" aria-label="بالاتر" style="width: 32px; height: 28px; border: 0; background: transparent; color: #6C7290; border-radius: 8px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6-6 6 6"></path></svg></button>
+                  <button onClick="{{r.down}}" aria-label="پایین‌تر" style="width: 32px; height: 28px; border: 0; background: transparent; color: #6C7290; border-radius: 8px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></button>
+                </span>
+              </div>
+              <sc-if value="{{r.hasNote}}" hint-placeholder-val="{{ false }}">
+                <div style="display: flex; align-items: center; gap: 12px; margin: 0 16px 14px; padding: 10px 14px; background: #E4EEF7; border-radius: 12px">
+                  <span style="flex: 1; font-size: 13px; color: #1F6FA8"><b>یادداشت ستاد:</b> {{r.note}}</span>
+                  <button onClick="{{r.resolve}}" style="flex: none; height: 32px; padding: 0 12px; border: 1px solid #1F6FA8; border-radius: 999px; background: transparent; color: #1F6FA8; font-size: 13px; font-weight: 700">درستش کردم</button>
+                </div>
+              </sc-if>
+            </div>
+          </sc-if>
+          <sc-if value="{{r.hasGap}}" hint-placeholder-val="{{ true }}">
+            <div class="gap-row" style="display: flex; flex-direction: column; align-items: center; padding: 4px 0">
+              <button class="gap-btn" onClick="{{r.toggleGap}}" aria-label="افزودن در این‌جا" style="display: flex; align-items: center; gap: 8px; height: 28px; padding: 0 14px; border: 1px dashed #CDD2DF; border-radius: 999px; background: #F6F8F7; color: #3E4462; font-size: 13px">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>افزودن این‌جا
+              </button>
+              <sc-if value="{{r.gapOpen}}" hint-placeholder-val="{{ false }}">
+                <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 8px; padding: 10px; background: #FFFFFF; border: 1px solid #E3E6EE; border-radius: 16px; box-shadow: 0 8px 24px rgba(38,42,79,.08)">
+                  <sc-for list="{{addKinds}}" as="k" hint-placeholder-count="6"><button onClick="{{k.ins}}" style="{{k.style}}">{{k.label}}</button></sc-for>
+                </div>
+              </sc-if>
+            </div>
+          </sc-if>
+        </sc-for>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 14px; padding: 20px; border: 1.5px dashed #CDD2DF; border-radius: 20px; background: #FFFFFF">
+        <div style="font-weight: 700; color: #262A4F">افزودن به آخر دوره</div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap">
+          <textarea dir="ltr" value="{{quickPaste}}" onChange="{{setQuickPaste}}" rows="1" placeholder="پیوند آپارات را این‌جا بچسبان (چندتا هم می‌شود)" aria-label="پیوند آپارات" style="flex: 1 1 320px; min-width: 0; box-sizing: border-box; padding: 10px 14px; border: 1px solid #CDD2DF; border-radius: 12px; background: #F6F8F7; font-size: 14px; color: #262A4F; resize: vertical; text-align: right"></textarea>
+          <button onClick="{{addQuick}}" style="height: 46px; padding: 0 18px; border: 1px solid #CDD2DF; border-radius: 12px; background: transparent; color: #262A4F; font-weight: 700">افزودن ویدیو</button>
+        </div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center">
+          <span style="font-size: 13px; color: #6C7290">یا:</span>
+          <sc-for list="{{endKinds}}" as="k" hint-placeholder-count="5"><button onClick="{{k.ins}}" style="{{k.style}}">{{k.label}}</button></sc-for>
+        </div>
+      </div>
+    </div>
+
+    <div style="flex: 1 1 300px; max-width: 360px; min-width: 0; position: sticky; top: 92px; display: flex; flex-direction: column; gap: 16px">
+      <div style="padding: 20px; background: #FFFFFF; border: 1px solid #E3E6EE; border-radius: 20px; display: flex; flex-direction: column; gap: 12px">
+        <div style="font-size: 13px; color: #6C7290">آمادگی دوره</div>
+        <div style="font-size: 20px; font-weight: 800; color: #262A4F">{{readyText}}</div>
+        <div style="height: 6px; background: #EEF1F2; border-radius: 999px; overflow: hidden"><div style="{{readyBarStyle}}"></div></div>
+        <sc-if value="{{allReady}}" hint-placeholder-val="{{ false }}">
+          <div style="font-size: 14px; color: #0A7A45">همه‌چیز آماده است. می‌توانی برای ستاد بفرستی.</div>
+        </sc-if>
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <sc-for list="{{problems}}" as="pb" hint-placeholder-count="1">
+            <button onClick="{{pb.open}}" style="{{pb.style}}">
+              <span style="font-size: 13px; font-weight: 700">{{pb.where}}</span>
+              <span style="font-size: 13px">{{pb.what}}</span>
+            </button>
+          </sc-for>
+        </div>
+      </div>
+      <div style="padding: 20px; background: #FFFFFF; border: 1px solid #E3E6EE; border-radius: 20px; display: flex; flex-direction: column; gap: 10px; font-size: 14px">
+        <div style="font-size: 13px; color: #6C7290">مشخصات دوره</div>
+        <div style="display: flex; justify-content: space-between"><span>سطح</span><span style="color: #262A4F; font-weight: 600">{{set.level}}</span></div>
+        <div style="display: flex; justify-content: space-between; gap: 12px"><span>برای</span><span style="color: #262A4F; font-weight: 600; text-align: end">{{set.audText}}</span></div>
+        <div style="display: flex; justify-content: space-between"><span>پیش‌نیاز</span><span style="color: #262A4F; font-weight: 600">{{set.pre}}</span></div>
+        <div style="display: flex; justify-content: space-between"><span>ترتیب درس‌ها</span><span style="color: #262A4F; font-weight: 600">{{set.orderText}}</span></div>
+        <div style="display: flex; justify-content: space-between"><span>گواهی</span><span style="color: #262A4F; font-weight: 600">{{set.certText}}</span></div>
+        <button onClick="{{openSettings}}" style="margin-top: 4px; align-self: flex-start; border: 0; background: transparent; padding: 4px 0; color: #0A7A45; font-weight: 700; font-size: 14px">تنظیمات دوره</button>
+      </div>
+    </div>
+  </div>
+
+  <sc-if value="{{drawerOpen}}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{close}}" style="position: fixed; inset: 0; background: rgba(38,42,79,.28); z-index: 20"></div>
+    <div role="dialog" aria-label="ویرایش درس" style="position: fixed; top: 0; bottom: 0; left: 0; width: min(520px, 100%); z-index: 21; background: #FFFFFF; box-shadow: 0 8px 40px rgba(38,42,79,.18); display: flex; flex-direction: column">
+      <div style="display: flex; align-items: center; gap: 12px; padding: 18px 24px; border-bottom: 1px solid #E3E6EE">
+        <span style="{{dl.iconStyle}}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{dl.d}}"></path></svg></span>
+        <span style="flex: 1; display: flex; flex-direction: column">
+          <span style="font-size: 13px; color: #6C7290">{{dl.kicker}}</span>
+          <span style="font-weight: 800; color: #262A4F">{{dl.typeName}}</span>
+        </span>
+        <button onClick="{{close}}" aria-label="بستن" style="width: 40px; height: 40px; border: 0; border-radius: 10px; background: #EEF1F2; color: #3E4462"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+      </div>
+
+      <div style="flex: 1; overflow: auto; padding: 24px; display: flex; flex-direction: column; gap: 20px">
+        <sc-if value="{{dl.hasNote}}" hint-placeholder-val="{{ false }}">
+          <div style="padding: 12px 14px; background: #E4EEF7; border-radius: 12px; font-size: 14px; color: #1F6FA8"><b>یادداشت ستاد:</b> {{dl.note}}</div>
+        </sc-if>
+
+        <sc-if value="{{dl.isVideo}}" hint-placeholder-val="{{ false }}">
+          <label style="display: flex; flex-direction: column; gap: 8px">
+            <span style="font-weight: 700; color: #262A4F">پیوند آپارات</span>
+            <input dir="ltr" value="{{dl.link}}" onChange="{{dl.setLink}}" placeholder="https://www.aparat.com/v/..." style="height: 48px; box-sizing: border-box; padding: 0 14px; border: 1px solid #CDD2DF; border-radius: 12px; font-size: 14px; color: #262A4F">
+          </label>
+          <sc-if value="{{dl.hasHash}}" hint-placeholder-val="{{ false }}">
+            <div style="aspect-ratio: 16 / 9; border-radius: 16px; background: #262A4F; color: #FFFFFF; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px">
+              <span style="width: 56px; height: 56px; border-radius: 999px; background: rgba(255,255,255,.14); display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9 7v10l8-5z"></path></svg></span>
+              <span style="font-size: 13px; opacity: .8">پخش از آپارات · {{dl.minsFa}} دقیقه</span>
+            </div>
+          </sc-if>
+          <sc-if value="{{dl.noHash}}" hint-placeholder-val="{{ true }}">
+            <div style="aspect-ratio: 16 / 9; border-radius: 16px; border: 1.5px dashed #CDD2DF; display: flex; align-items: center; justify-content: center; padding: 24px; text-align: center; color: #6C7290; font-size: 14px">پیوند را که بچسبانی، ویدیو همین‌جا دیده می‌شود.</div>
+          </sc-if>
+        </sc-if>
+
+        <sc-if value="{{dl.isAudio}}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; flex-direction: column; gap: 8px; padding: 14px 16px; background: #E1F3F6; border-radius: 14px">
+            <div style="display: flex; align-items: center; gap: 8px">
+              <span dir="auto" style="flex: 1; font-weight: 700; color: #1D7F92">{{dl.file}}</span>
+              <button onClick="{{dl.replaceFile}}" style="flex: none; height: 32px; padding: 0 12px; border: 1px solid #1D7F92; border-radius: 999px; background: transparent; color: #1D7F92; font-size: 13px; font-weight: 700">عوض کردن فایل</button>
+            </div>
+            <span style="display: block; height: 6px; background: #FFFFFF; border-radius: 999px; overflow: hidden"><span style="{{dl.barStyle}}"></span></span>
+            <span style="font-size: 13px; color: #1D7F92">{{dl.uploadText}}</span>
+          </div>
+        </sc-if>
+
+        <label style="display: flex; flex-direction: column; gap: 8px">
+          <span style="font-weight: 700; color: #262A4F">{{dl.titleLabel}}</span>
+          <input value="{{dl.title}}" onChange="{{dl.setTitle}}" placeholder="{{dl.titlePh}}" style="height: 48px; box-sizing: border-box; padding: 0 14px; border: 1px solid #CDD2DF; border-radius: 12px; font-size: 15px; color: #262A4F">
+        </label>
+
+        <sc-if value="{{dl.isText}}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; flex-direction: column; gap: 10px">
+            <div style="display: flex; align-items: center; gap: 8px">
+              <span style="flex: 1; font-weight: 700; color: #262A4F">متن درس</span>
+              <span style="display: flex; padding: 3px; background: #EEF1F2; border-radius: 10px">
+                <button onClick="{{dl.tabEdit}}" style="{{dl.tabEditStyle}}">نوشتن</button>
+                <button onClick="{{dl.tabView}}" style="{{dl.tabViewStyle}}">پیش‌نمایش</button>
+              </span>
+            </div>
+            <sc-if value="{{dl.editing}}" hint-placeholder-val="{{ true }}">
+              <div style="display: flex; gap: 6px; flex-wrap: wrap">
+                <button onClick="{{dl.fmtH}}" style="height: 34px; padding: 0 12px; border: 1px solid #E3E6EE; border-radius: 8px; background: #FFFFFF; color: #262A4F; font-weight: 800; font-size: 13px">تیتر</button>
+                <button onClick="{{dl.fmtB}}" style="height: 34px; padding: 0 12px; border: 1px solid #E3E6EE; border-radius: 8px; background: #FFFFFF; color: #262A4F; font-weight: 800; font-size: 13px">پررنگ</button>
+                <button onClick="{{dl.fmtLi}}" style="height: 34px; padding: 0 12px; border: 1px solid #E3E6EE; border-radius: 8px; background: #FFFFFF; color: #262A4F; font-size: 13px">فهرست</button>
+                <button onClick="{{dl.fmtQ}}" style="height: 34px; padding: 0 12px; border: 1px solid #E3E6EE; border-radius: 8px; background: #FFFFFF; color: #262A4F; font-size: 13px">نکتهٔ برجسته</button>
+              </div>
+              <textarea value="{{dl.body}}" onChange="{{dl.setBody}}" onSelect="{{dl.onSel}}" rows="14" placeholder="متن درس را این‌جا بنویس یا از Word بچسبان." aria-label="متن درس" style="box-sizing: border-box; padding: 12px 14px; border: 1px solid #CDD2DF; border-radius: 12px; font-size: 15px; color: #3E4462; resize: vertical; line-height: 2"></textarea>
+              <span style="font-size: 12px; color: #6C7290">چند کلمه را انتخاب کن و «پررنگ» را بزن، یا نشانگر را در یک خط بگذار و «تیتر» یا «فهرست» را بزن. {{dl.readTime}}</span>
+            </sc-if>
+            <sc-if value="{{dl.viewing}}" hint-placeholder-val="{{ false }}">
+              <div style="padding: 16px 18px; border: 1px solid #E3E6EE; border-radius: 12px; min-height: 200px; display: flex; flex-direction: column; gap: 10px">
+                <sc-for list="{{dl.blocks}}" as="b" hint-placeholder-count="3">
+                  <sc-if value="{{b.isH}}" hint-placeholder-val="{{ false }}"><h3 style="margin: 6px 0 0; font-size: 18px; font-weight: 800; color: #262A4F; line-height: 1.7"><sc-for list="{{b.segs}}" as="g"><span style="{{g.st}}">{{g.t}}</span></sc-for></h3></sc-if>
+                  <sc-if value="{{b.isP}}" hint-placeholder-val="{{ true }}"><p style="margin: 0; line-height: 2.05"><sc-for list="{{b.segs}}" as="g"><span style="{{g.st}}">{{g.t}}</span></sc-for></p></sc-if>
+                  <sc-if value="{{b.isLi}}" hint-placeholder-val="{{ false }}"><div style="display: flex; gap: 10px; line-height: 2"><span style="flex: none; width: 6px; height: 6px; border-radius: 999px; background: #0E9F5A; margin-top: 13px"></span><span><sc-for list="{{b.segs}}" as="g"><span style="{{g.st}}">{{g.t}}</span></sc-for></span></div></sc-if>
+                  <sc-if value="{{b.isQ}}" hint-placeholder-val="{{ false }}"><div style="padding: 10px 14px; background: #E1F3F6; border-radius: 12px; color: #1D7F92; line-height: 2"><sc-for list="{{b.segs}}" as="g"><span style="{{g.st}}">{{g.t}}</span></sc-for></div></sc-if>
+                </sc-for>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{dl.hasBody}}" hint-placeholder-val="{{ false }}">
+          <label style="display: flex; flex-direction: column; gap: 8px">
+            <span style="font-weight: 700; color: #262A4F">{{dl.bodyLabel}}</span>
+            <textarea value="{{dl.body}}" onChange="{{dl.setBody}}" rows="{{dl.bodyRows}}" placeholder="{{dl.bodyPh}}" style="box-sizing: border-box; padding: 12px 14px; border: 1px solid #CDD2DF; border-radius: 12px; font-size: 15px; color: #3E4462; resize: vertical; line-height: 2"></textarea>
+          </label>
+        </sc-if>
+
+        <sc-if value="{{dl.isMission}}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; flex-direction: column; gap: 10px">
+            <span style="font-weight: 700; color: #262A4F">گزارش کنشگر چه داشته باشد؟</span>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap"><sc-for list="{{dl.reportKinds}}" as="o" hint-placeholder-count="3"><button onClick="{{o.pick}}" aria-pressed="{{o.on}}" style="{{o.style}}">{{o.label}}</button></sc-for></div>
+            <span style="font-weight: 700; color: #262A4F; margin-top: 6px">مهلت پیشنهادی</span>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap"><sc-for list="{{dl.dues}}" as="o" hint-placeholder-count="3"><button onClick="{{o.pick}}" aria-pressed="{{o.on}}" style="{{o.style}}">{{o.label}}</button></sc-for></div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{dl.isQuiz}}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; flex-direction: column; gap: 14px">
+            <div style="display: flex; flex-direction: column; gap: 12px; padding: 14px 16px; background: #F6F8F7; border-radius: 14px">
+              <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap">
+                <span style="flex: 1; font-size: 14px; font-weight: 700; color: #262A4F">نمرهٔ قبولی</span>
+                <sc-for list="{{dl.passOpts}}" as="o" hint-placeholder-count="3"><button onClick="{{o.pick}}" aria-pressed="{{o.on}}" style="{{o.style}}">{{o.label}}</button></sc-for>
+              </div>
+              <div style="display: flex; align-items: center; gap: 12px">
+                <span style="flex: 1; font-size: 14px; font-weight: 700; color: #262A4F">اگر قبول نشد، دوباره امتحان بدهد</span>
+                <button role="switch" aria-checked="{{dl.retry}}" aria-label="امکان دوباره امتحان دادن" onClick="{{dl.toggleRetry}}" style="{{dl.retryTrack}}"><span style="{{dl.retryKnob}}"></span></button>
+              </div>
+              <div style="display: flex; align-items: center; gap: 12px">
+                <span style="flex: 1; font-size: 14px; font-weight: 700; color: #262A4F">ترتیب پرسش‌ها برای هر نفر فرق کند</span>
+                <button role="switch" aria-checked="{{dl.shuffle}}" aria-label="به‌هم ریختن ترتیب پرسش‌ها" onClick="{{dl.toggleShuffle}}" style="{{dl.shuffleTrack}}"><span style="{{dl.shuffleKnob}}"></span></button>
+              </div>
+            </div>
+            <sc-for list="{{dl.questions}}" as="q" hint-placeholder-count="1">
+              <div style="display: flex; flex-direction: column; gap: 10px; padding: 16px; border: 1px solid #E3E6EE; border-radius: 16px">
+                <div style="display: flex; align-items: center; gap: 8px">
+                  <span style="font-size: 13px; font-weight: 800; color: #262A4F">پرسش {{q.num}}</span>
+                  <span style="flex: 1"></span>
+                  <button onClick="{{q.up}}" aria-label="پرسش بالاتر" style="width: 30px; height: 30px; border: 0; background: transparent; color: #6C7290"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6-6 6 6"></path></svg></button>
+                  <button onClick="{{q.down}}" aria-label="پرسش پایین‌تر" style="width: 30px; height: 30px; border: 0; background: transparent; color: #6C7290"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></button>
+                  <button onClick="{{q.remove}}" style="border: 0; background: transparent; color: #A8314F; font-size: 13px; padding: 4px">حذف</button>
+                </div>
+                <div style="display: flex; gap: 6px; flex-wrap: wrap"><sc-for list="{{q.kinds}}" as="k" hint-placeholder-count="4"><button onClick="{{k.pick}}" aria-pressed="{{k.on}}" style="{{k.style}}">{{k.label}}</button></sc-for></div>
+                <textarea value="{{q.text}}" onChange="{{q.setText}}" rows="2" placeholder="متن پرسش" aria-label="متن پرسش" style="box-sizing: border-box; padding: 10px 12px; border: 1px solid #CDD2DF; border-radius: 10px; font-size: 15px; color: #262A4F; resize: vertical"></textarea>
+                <sc-if value="{{q.hasOpts}}" hint-placeholder-val="{{ true }}">
+                  <sc-for list="{{q.opts}}" as="o" hint-placeholder-count="3">
+                    <div style="display: flex; align-items: center; gap: 8px">
+                      <button onClick="{{o.pick}}" aria-label="{{o.pickLabel}}" aria-pressed="{{o.ok}}" style="{{o.dotStyle}}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></button>
+                      <input value="{{o.t}}" onChange="{{o.set}}" placeholder="{{o.ph}}" aria-label="{{o.ph}}" readOnly="{{o.fixed}}" style="flex: 1; min-width: 0; height: 40px; box-sizing: border-box; padding: 0 12px; border: 1px solid #E3E6EE; border-radius: 10px; font-size: 14px; color: #3E4462">
+                      <sc-if value="{{o.canRemove}}" hint-placeholder-val="{{ true }}"><button onClick="{{o.remove}}" aria-label="حذف گزینه" style="flex: none; width: 32px; height: 32px; border: 0; border-radius: 8px; background: transparent; color: #6C7290"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></sc-if>
+                    </div>
+                  </sc-for>
+                  <div style="display: flex; align-items: center; gap: 12px">
+                    <span style="flex: 1; font-size: 12px; color: #6C7290">{{q.hint}}</span>
+                    <sc-if value="{{q.canAdd}}" hint-placeholder-val="{{ true }}"><button onClick="{{q.addOpt}}" style="border: 0; background: transparent; color: #0A7A45; font-weight: 700; font-size: 13px; padding: 4px">+ گزینه</button></sc-if>
+                  </div>
+                </sc-if>
+                <sc-if value="{{q.isShort}}" hint-placeholder-val="{{ false }}">
+                  <input value="{{q.answer}}" onChange="{{q.setAnswer}}" placeholder="پاسخ نمونه (اختیاری؛ بعد از پاسخ به کنشگر نشان داده می‌شود)" aria-label="پاسخ نمونه" style="height: 42px; box-sizing: border-box; padding: 0 12px; border: 1px solid #E3E6EE; border-radius: 10px; font-size: 14px; color: #3E4462">
+                  <span style="font-size: 12px; color: #6C7290">پاسخ کوتاه نمره ندارد؛ برای فکر کردن است و راهیار هم می‌تواند ببیند.</span>
+                </sc-if>
+                <input value="{{q.explain}}" onChange="{{q.setExplain}}" placeholder="توضیح بعد از پاسخ (اختیاری): چرا این پاسخ درست است؟" aria-label="توضیح بعد از پاسخ" style="height: 42px; box-sizing: border-box; padding: 0 12px; border: 1px dashed #CDD2DF; border-radius: 10px; font-size: 14px; color: #3E4462">
+              </div>
+            </sc-for>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap">
+              <sc-for list="{{dl.addQKinds}}" as="k" hint-placeholder-count="4"><button onClick="{{k.add}}" style="height: 40px; padding: 0 14px; border: 1px dashed #CDD2DF; border-radius: 12px; background: transparent; color: #0A7A45; font-weight: 700; font-size: 13px">{{k.label}}</button></sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{dl.hasFiles}}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; flex-direction: column; gap: 8px">
+            <span style="font-weight: 700; color: #262A4F">پیوست (جزوه، PDF، تصویر)</span>
+            <sc-for list="{{dl.files}}" as="f" hint-placeholder-count="1">
+              <div style="display: flex; align-items: center; gap: 10px; padding: 8px 12px; border: 1px solid #E3E6EE; border-radius: 10px">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6C7290" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5l-8.5 8.5a5 5 0 0 1-7-7L14 4.5a3.3 3.3 0 0 1 4.7 4.7L10.2 17.7a1.7 1.7 0 0 1-2.4-2.4L15.5 7.6"></path></svg>
+                <span style="flex: 1; font-size: 14px">{{f.name}}</span>
+                <button onClick="{{f.remove}}" aria-label="حذف پیوست" style="width: 30px; height: 30px; border: 0; background: transparent; color: #6C7290"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+              </div>
+            </sc-for>
+            <button onClick="{{dl.addFile}}" style="align-self: flex-start; height: 38px; padding: 0 14px; border: 1px dashed #CDD2DF; border-radius: 10px; background: transparent; color: #3E4462; font-size: 13px; font-weight: 700">+ افزودن پیوست</button>
+          </div>
+        </sc-if>
+
+        <div style="font-size: 13px; color: #6C7290; line-height: 1.9">{{dl.help}}</div>
+      </div>
+
+      <div style="display: flex; gap: 12px; padding: 16px 24px; border-top: 1px solid #E3E6EE">
+        <button onClick="{{close}}" style="height: 46px; padding: 0 24px; border: 0; border-radius: 12px; background: #0A8449; color: #FFFFFF; font-weight: 700">تمام</button>
+        <button onClick="{{dl.duplicate}}" style="height: 46px; padding: 0 16px; border: 1px solid #CDD2DF; border-radius: 12px; background: transparent; color: #3E4462; font-weight: 700">تکثیر</button>
+        <span style="flex: 1"></span>
+        <button onClick="{{dl.remove}}" style="height: 46px; padding: 0 16px; border: 1px solid #C23A5B; border-radius: 12px; background: transparent; color: #A8314F; font-weight: 700">{{dl.removeLabel}}</button>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{settingsOpen}}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{close}}" style="position: fixed; inset: 0; background: rgba(38,42,79,.28); z-index: 20"></div>
+    <div role="dialog" aria-label="تنظیمات دوره" style="position: fixed; top: 0; bottom: 0; left: 0; width: min(480px, 100%); z-index: 21; background: #FFFFFF; box-shadow: 0 8px 40px rgba(38,42,79,.18); display: flex; flex-direction: column">
+      <div style="display: flex; align-items: center; gap: 12px; padding: 18px 24px; border-bottom: 1px solid #E3E6EE">
+        <span style="flex: 1; display: flex; flex-direction: column">
+          <span style="font-size: 13px; color: #6C7290">{{courseTitleShown}}</span>
+          <span style="font-weight: 800; color: #262A4F">تنظیمات دوره</span>
+        </span>
+        <button onClick="{{close}}" aria-label="بستن" style="width: 40px; height: 40px; border: 0; border-radius: 10px; background: #EEF1F2; color: #3E4462"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+      </div>
+      <div style="flex: 1; overflow: auto; padding: 24px; display: flex; flex-direction: column; gap: 24px">
+        <label style="display: flex; flex-direction: column; gap: 8px">
+          <span style="font-weight: 700; color: #262A4F">معرفی کامل دوره</span>
+          <textarea value="{{set.about}}" onChange="{{set.setAbout}}" rows="4" placeholder="کنشگر بعد از این دوره چه کاری را بهتر انجام می‌دهد؟ برای چه کسی مناسب است؟" style="box-sizing: border-box; padding: 12px 14px; border: 1px solid #CDD2DF; border-radius: 12px; font-size: 15px; color: #3E4462; resize: vertical; line-height: 2"></textarea>
+        </label>
+        <div style="display: flex; flex-direction: column; gap: 10px">
+          <span style="font-weight: 700; color: #262A4F">سطح</span>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap"><sc-for list="{{set.levels}}" as="o" hint-placeholder-count="3"><button onClick="{{o.pick}}" aria-pressed="{{o.on}}" style="{{o.style}}">{{o.label}}</button></sc-for></div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px">
+          <span style="font-weight: 700; color: #262A4F">برای چه کسانی</span>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap"><sc-for list="{{set.auds}}" as="o" hint-placeholder-count="5"><button onClick="{{o.pick}}" aria-pressed="{{o.on}}" style="{{o.style}}">{{o.label}}</button></sc-for></div>
+          <span style="font-size: 13px; color: #6C7290">دوره فقط به همین گروه‌ها پیشنهاد می‌شود.</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px">
+          <span style="font-weight: 700; color: #262A4F">پیش‌نیاز</span>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap"><sc-for list="{{set.pres}}" as="o" hint-placeholder-count="3"><button onClick="{{o.pick}}" aria-pressed="{{o.on}}" style="{{o.style}}">{{o.label}}</button></sc-for></div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 14px">
+          <div style="display: flex; align-items: center; gap: 12px">
+            <span style="flex: 1; display: flex; flex-direction: column"><span style="font-weight: 700; color: #262A4F">درس‌ها به ترتیب باز شوند</span><span style="font-size: 13px; color: #6C7290">هر درس بعد از تمام شدن درس قبلی باز می‌شود.</span></span>
+            <button role="switch" aria-checked="{{set.ordered}}" aria-label="درس‌ها به ترتیب باز شوند" onClick="{{set.toggleOrdered}}" style="{{set.orderedTrack}}"><span style="{{set.orderedKnob}}"></span></button>
+          </div>
+          <div style="display: flex; align-items: center; gap: 12px">
+            <span style="flex: 1; display: flex; flex-direction: column"><span style="font-weight: 700; color: #262A4F">گواهی پایان دوره</span><span style="font-size: 13px; color: #6C7290">با گذراندن همهٔ درس‌ها و قبولی در آزمون‌ها.</span></span>
+            <button role="switch" aria-checked="{{set.cert}}" aria-label="گواهی پایان دوره" onClick="{{set.toggleCert}}" style="{{set.certTrack}}"><span style="{{set.certKnob}}"></span></button>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px">
+          <span style="font-weight: 700; color: #262A4F">جلد</span>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+            <button onClick="{{set.coverAuto}}" style="{{set.coverAutoStyle}}">
+              <span aria-hidden="true" style="width: 48px; height: 60px; border-radius: 24px 24px 8px 8px; background: #E1F3F6"></span>
+              <span style="font-weight: 700; color: #262A4F; font-size: 14px">جلد خودکار</span>
+              <span style="font-size: 12px; color: #6C7290">با رنگ و قاب طاق مدرسه</span>
+            </button>
+            <button onClick="{{set.coverUpload}}" style="{{set.coverUploadStyle}}">
+              <span aria-hidden="true" style="width: 48px; height: 60px; border-radius: 24px 24px 8px 8px; border: 1.5px dashed #CDD2DF; display: flex; align-items: center; justify-content: center; color: #6C7290"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M12 16V5M7 10l5-5 5 5M5 19h14"></path></svg></span>
+              <span style="font-weight: 700; color: #262A4F; font-size: 14px">تصویر خودم</span>
+              <span style="font-size: 12px; color: #6C7290">در قاب طاق می‌نشیند</span>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div style="display: flex; gap: 12px; padding: 16px 24px; border-top: 1px solid #E3E6EE">
+        <button onClick="{{close}}" style="height: 46px; padding: 0 24px; border: 0; border-radius: 12px; background: #0A8449; color: #FFFFFF; font-weight: 700">تمام</button>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{isPreview}}" hint-placeholder-val="{{ false }}">
+<div style="max-width: 1180px; margin: 0 auto; padding: 24px 24px 48px; display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start; justify-content: center">
+  <div style="flex: 1 1 280px; max-width: 340px; display: flex; flex-direction: column; gap: 14px; padding-top: 24px">
+    <button onClick="{{pvBackGo}}" style="align-self: flex-start; border: 0; background: transparent; color: #6C7290; font-size: 14px; padding: 4px 0">{{pvBackLabel}}</button>
+    <h1 style="margin: 0; font-size: 24px; font-weight: 800; color: #262A4F; line-height: 1.6">از چشم کنشگر</h1>
+    <p style="margin: 0; color: #6C7290; font-size: 14px">همین دوره، همان‌طور که کنشگر روی گوشی می‌بیند. درس‌ها را جلو ببر، آزمون بده، گزارش بفرست. چیزی در دورهٔ واقعی ثبت نمی‌شود.</p>
+    <button onClick="{{pvReset}}" style="align-self: flex-start; height: 40px; padding: 0 14px; border: 1px solid #CDD2DF; border-radius: 10px; background: transparent; color: #3E4462; font-size: 13px; font-weight: 700">از اول</button>
+  </div>
+  <div style="flex: none; width: 390px; height: 800px; border-radius: 40px; border: 10px solid #262A4F; background: #F6F8F7; overflow: hidden; box-sizing: border-box; display: flex; flex-direction: column">
+    <sc-if value="{{pv.isList}}" hint-placeholder-val="{{ true }}">
+      <div style="flex: 1; overflow: auto; display: flex; flex-direction: column; gap: 14px; padding: 18px 14px 28px">
+        <div style="display: flex; gap: 14px; align-items: center; padding: 14px; background: #FFFFFF; border: 1px solid #E3E6EE; border-radius: 22px">
+          <div aria-hidden="true" style="flex: none; width: 70px; height: 88px; border-radius: 35px 35px 12px 12px; background: #E1F3F6; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 12px; box-sizing: border-box">
+            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#1D7F92" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c-5-2-7-6.5-6-11.5C10.5 9 14 11 15.5 15M12 21c4.5-1.5 7-5.5 6.5-11-3 .2-5.4 1.4-7 3.6"></path></svg>
+          </div>
+          <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px">
+            <div style="font-size: 18px; font-weight: 800; color: #262A4F; line-height: 1.5">{{courseTitleShown}}</div>
+            <div style="font-size: 12px; color: #6C7290">{{pv.meta}}</div>
+            <div style="height: 6px; background: #EEF1F2; border-radius: 999px; overflow: hidden"><div style="{{pv.barStyle}}"></div></div>
+            <div style="font-size: 12px; color: #6C7290">{{pv.progressText}}</div>
+          </div>
+        </div>
+        <sc-if value="{{pv.finished}}" hint-placeholder-val="{{ false }}">
+          <div style="padding: 14px 16px; border-radius: 16px; background: #E2F4EA; color: #0A7A45; font-size: 14px; font-weight: 600">{{pv.finishText}}</div>
+        </sc-if>
+        <sc-if value="{{pv.hasNext}}" hint-placeholder-val="{{ true }}">
+          <button onClick="{{pv.openNext}}" style="height: 50px; border: 0; border-radius: 14px; background: #0A8449; color: #FFFFFF; font-size: 15px; font-weight: 700">{{pv.nextLabel}}</button>
+        </sc-if>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <sc-for list="{{pv.items}}" as="it" hint-placeholder-count="6">
+            <sc-if value="{{it.isSection}}" hint-placeholder-val="{{ false }}">
+              <div style="padding: 10px 4px 0; font-size: 14px; font-weight: 800; color: #262A4F">{{it.title}}</div>
+            </sc-if>
+            <sc-if value="{{it.isLesson}}" hint-placeholder-val="{{ true }}">
+              <button onClick="{{it.open}}" style="{{it.style}}">
+                <span style="{{it.iconStyle}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{it.d}}"></path></svg></span>
+                <span style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+                  <span style="font-weight: 700; color: #262A4F; font-size: 14px; line-height: 1.7">{{it.title}}</span>
+                  <span style="font-size: 12px; color: #6C7290">{{it.meta}}</span>
+                </span>
+                <sc-if value="{{it.done}}" hint-placeholder-val="{{ false }}">
+                  <span role="img" aria-label="گذرانده شد" style="flex: none; width: 26px; height: 26px; border-radius: 999px; background: #E2F4EA; color: #0A7A45; display: flex; align-items: center; justify-content: center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+                </sc-if>
+                <sc-if value="{{it.locked}}" hint-placeholder-val="{{ false }}">
+                  <span role="img" aria-label="هنوز باز نشده" style="flex: none; color: #CDD2DF; display: flex"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 11V8a5 5 0 0 1 10 0v3M6 11h12a1 1 0 0 1 1 1v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7a1 1 0 0 1 1-1z"></path></svg></span>
+                </sc-if>
+              </button>
+            </sc-if>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{pv.isLesson}}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: #FFFFFF; border-bottom: 1px solid #E3E6EE">
+        <button onClick="{{pv.toList}}" aria-label="فهرست درس‌ها" style="width: 40px; height: 40px; border: 0; border-radius: 10px; background: #EEF1F2; color: #3E4462; display: flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></button>
+        <span style="flex: 1; font-size: 13px; color: #6C7290">{{pl.kicker}}</span>
+      </div>
+      <div style="flex: 1; overflow: auto; display: flex; flex-direction: column; gap: 16px; padding: 16px">
+        <sc-if value="{{pl.isVideo}}" hint-placeholder-val="{{ false }}">
+          <div style="aspect-ratio: 16 / 9; border-radius: 16px; background: #262A4F; color: #FFFFFF; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px">
+            <span style="width: 52px; height: 52px; border-radius: 999px; background: rgba(255,255,255,.14); display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9 7v10l8-5z"></path></svg></span>
+            <span style="font-size: 12px; opacity: .8">پخش از آپارات · {{pl.mins}} دقیقه</span>
+          </div>
+        </sc-if>
+        <sc-if value="{{pl.isAudio}}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 16px; background: #E1F3F6">
+            <div style="display: flex; align-items: center; gap: 12px">
+              <button onClick="{{pl.togglePlay}}" aria-label="{{pl.playLabel}}" style="flex: none; width: 52px; height: 52px; border: 0; border-radius: 999px; background: #1D7F92; color: #FFFFFF; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="{{pl.playD}}"></path></svg></button>
+              <span style="flex: 1; display: flex; flex-direction: column; gap: 6px">
+                <span style="display: block; height: 6px; background: #FFFFFF; border-radius: 999px; overflow: hidden"><span style="{{pl.audioBar}}"></span></span>
+                <span style="font-size: 12px; color: #1D7F92">{{pl.audioTime}}</span>
+              </span>
+              <button onClick="{{pl.cycleSpeed}}" aria-label="سرعت پخش" style="flex: none; height: 34px; padding: 0 10px; border: 1px solid #1D7F92; border-radius: 999px; background: transparent; color: #1D7F92; font-size: 13px; font-weight: 700">{{pl.speed}}</button>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{pl.isMission}}" hint-placeholder-val="{{ false }}">
+          <div style="padding: 12px 14px; border-radius: 14px; background: #FFF4D1; color: #8A6500; font-size: 13px; font-weight: 600">{{pl.missionMeta}}</div>
+        </sc-if>
+        <h2 style="margin: 0; font-size: 21px; font-weight: 800; color: #262A4F; line-height: 1.6">{{pl.title}}</h2>
+        <sc-if value="{{pl.hasNote}}" hint-placeholder-val="{{ false }}">
+          <p style="margin: 0; line-height: 2.05">{{pl.note}}</p>
+        </sc-if>
+        <sc-if value="{{pl.isText}}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; flex-direction: column; gap: 10px">
+            <sc-for list="{{pl.blocks}}" as="b" hint-placeholder-count="3">
+              <sc-if value="{{b.isH}}" hint-placeholder-val="{{ false }}"><h3 style="margin: 6px 0 0; font-size: 18px; font-weight: 800; color: #262A4F; line-height: 1.7"><sc-for list="{{b.segs}}" as="g"><span style="{{g.st}}">{{g.t}}</span></sc-for></h3></sc-if>
+              <sc-if value="{{b.isP}}" hint-placeholder-val="{{ true }}"><p style="margin: 0; line-height: 2.05"><sc-for list="{{b.segs}}" as="g"><span style="{{g.st}}">{{g.t}}</span></sc-for></p></sc-if>
+              <sc-if value="{{b.isLi}}" hint-placeholder-val="{{ false }}"><div style="display: flex; gap: 10px; line-height: 2"><span style="flex: none; width: 6px; height: 6px; border-radius: 999px; background: #0E9F5A; margin-top: 13px"></span><span><sc-for list="{{b.segs}}" as="g"><span style="{{g.st}}">{{g.t}}</span></sc-for></span></div></sc-if>
+              <sc-if value="{{b.isQ}}" hint-placeholder-val="{{ false }}"><div style="padding: 10px 14px; background: #E1F3F6; border-radius: 12px; color: #1D7F92; line-height: 2"><sc-for list="{{b.segs}}" as="g"><span style="{{g.st}}">{{g.t}}</span></sc-for></div></sc-if>
+            </sc-for>
+          </div>
+        </sc-if>
+        <sc-if value="{{pl.isQuiz}}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; flex-direction: column; gap: 18px">
+            <sc-if value="{{pl.checked}}" hint-placeholder-val="{{ false }}">
+              <div role="status" style="{{pl.resultStyle}}">{{pl.resultText}}</div>
+            </sc-if>
+            <sc-for list="{{pl.qs}}" as="q" hint-placeholder-count="2">
+              <div style="display: flex; flex-direction: column; gap: 8px">
+                <span style="font-size: 12px; color: #6C7290">پرسش {{q.num}} · {{q.kindLabel}}</span>
+                <p style="margin: 0; font-weight: 700; color: #262A4F; line-height: 1.9">{{q.text}}</p>
+                <sc-for list="{{q.opts}}" as="o" hint-placeholder-count="3">
+                  <button onClick="{{o.pick}}" aria-pressed="{{o.on}}" style="{{o.style}}"><span style="{{o.markStyle}}"></span><span style="flex: 1">{{o.t}}</span></button>
+                </sc-for>
+                <sc-if value="{{q.isShort}}" hint-placeholder-val="{{ false }}">
+                  <textarea value="{{q.answer}}" onChange="{{q.setAnswer}}" rows="3" placeholder="پاسخت را بنویس" aria-label="پاسخ" style="box-sizing: border-box; padding: 10px 12px; border: 1px solid #CDD2DF; border-radius: 12px; font-size: 14px; color: #262A4F; resize: vertical"></textarea>
+                </sc-if>
+                <sc-if value="{{q.showExplain}}" hint-placeholder-val="{{ false }}">
+                  <div style="{{q.explainStyle}}">{{q.explainText}}</div>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+        <sc-if value="{{pl.isMission}}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; flex-direction: column; gap: 10px">
+            <sc-if value="{{pl.wantText}}" hint-placeholder-val="{{ true }}">
+              <textarea value="{{pl.report}}" onChange="{{pl.setReport}}" rows="4" placeholder="چه کردی و چه دیدی؟ چند خط کافی است." aria-label="متن گزارش" style="box-sizing: border-box; padding: 10px 12px; border: 1px solid #CDD2DF; border-radius: 12px; font-size: 14px; color: #262A4F; resize: vertical"></textarea>
+            </sc-if>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap">
+              <sc-if value="{{pl.wantPhoto}}" hint-placeholder-val="{{ true }}"><button style="height: 40px; padding: 0 14px; border: 1px dashed #CDD2DF; border-radius: 10px; background: #FFFFFF; color: #3E4462; font-size: 13px; font-weight: 700">+ عکس</button></sc-if>
+              <sc-if value="{{pl.wantVoice}}" hint-placeholder-val="{{ false }}"><button style="height: 40px; padding: 0 14px; border: 1px dashed #CDD2DF; border-radius: 10px; background: #FFFFFF; color: #3E4462; font-size: 13px; font-weight: 700">+ پیام صوتی</button></sc-if>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{pl.hasFiles}}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; flex-direction: column; gap: 6px">
+            <sc-for list="{{pl.files}}" as="f" hint-placeholder-count="1">
+              <div style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: #FFFFFF; border: 1px solid #E3E6EE; border-radius: 12px; font-size: 14px">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6C7290" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"></path></svg>
+                <span style="flex: 1">{{f.name}}</span>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+      </div>
+      <div style="padding: 14px; background: #FFFFFF; border-top: 1px solid #E3E6EE">
+        <button onClick="{{pl.cta}}" style="{{pl.ctaStyle}}">{{pl.ctaLabel}}</button>
+      </div>
+    </sc-if>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{isSent}}" hint-placeholder-val="{{ false }}">
+<div style="max-width: 560px; margin: 0 auto; padding: 96px 24px; display: flex; flex-direction: column; align-items: center; gap: 20px; text-align: center">
+  <div aria-hidden="true" style="width: 120px; height: 150px; border-radius: 60px 60px 16px 16px; background: #E2F4EA; display: flex; align-items: center; justify-content: center">
+    <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#0A7A45" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>
+  </div>
+  <h1 style="margin: 0; font-size: 28px; font-weight: 800; color: #262A4F; line-height: 1.5">دوره برای ستاد فرستاده شد</h1>
+  <p style="margin: 0; color: #6C7290">{{sentText}}</p>
+  <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center">
+    <button onClick="{{goList}}" style="height: 48px; padding: 0 22px; border: 0; border-radius: 12px; background: #0A8449; color: #FFFFFF; font-size: 15px; font-weight: 700">دوره‌های من</button>
+    <button onClick="{{backToBuild}}" style="height: 48px; padding: 0 20px; border: 1px solid #CDD2DF; border-radius: 12px; background: transparent; color: #3E4462; font-size: 15px; font-weight: 700">دیدن دوره</button>
+  </div>
+  <button onClick="{{reviewAsStaff}}" style="margin-top: 12px; border: 0; background: transparent; color: #1F6FA8; font-size: 14px; font-weight: 700; padding: 6px">در نمونه: حالا جای ستاد بنشین و بازبینی کن</button>
+</div>
+</sc-if>
+
+<sc-if value="{{isQueue}}" hint-placeholder-val="{{ false }}">
+<div style="max-width: 1000px; margin: 0 auto; padding: 48px 24px 64px; display: flex; flex-direction: column; gap: 24px">
+  <div style="display: flex; flex-direction: column; gap: 4px">
+    <h1 style="margin: 0; font-size: 30px; font-weight: 800; color: #262A4F; line-height: 1.5">بازبینی دوره‌ها</h1>
+    <p style="margin: 0; color: #6C7290">دوره‌هایی که سازنده‌ها فرستاده‌اند. هر کدام را باز کن، از چشم کنشگر ببین و منتشر کن یا با یادداشت برگردان.</p>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 12px">
+    <div style="font-weight: 800; color: #262A4F">منتظر بازبینی</div>
+    <sc-if value="{{queueHasCurrent}}" hint-placeholder-val="{{ true }}">
+      <button onClick="{{openReview}}" style="display: flex; align-items: center; gap: 18px; padding: 16px 18px; background: #FFFFFF; border: 1px solid #E3E6EE; border-radius: 20px; text-align: start; color: #3E4462">
+        <span aria-hidden="true" style="flex: none; width: 44px; height: 56px; border-radius: 22px 22px 8px 8px; background: #E1F3F6"></span>
+        <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+          <span style="font-size: 17px; font-weight: 800; color: #262A4F">{{courseTitleShown}}</span>
+          <span style="font-size: 13px; color: #6C7290">{{queueMeta}}</span>
+        </span>
+        <span style="flex: none; font-size: 12px; font-weight: 600; border-radius: 999px; padding: 3px 12px; background: #FFF4D1; color: #8A6500">تازه رسیده</span>
+        <span style="flex: none; width: 110px; text-align: end; font-size: 14px; font-weight: 700; color: #0A7A45">بازبینی</span>
+      </button>
+    </sc-if>
+    <div style="display: flex; align-items: center; gap: 18px; padding: 16px 18px; background: #FFFFFF; border: 1px solid #E3E6EE; border-radius: 20px">
+      <span aria-hidden="true" style="flex: none; width: 44px; height: 56px; border-radius: 22px 22px 8px 8px; background: #EEF1F2"></span>
+      <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+        <span style="font-size: 17px; font-weight: 800; color: #262A4F">نوجوان و مسجد</span>
+        <span style="font-size: 13px; color: #6C7290">۹ درس · فرستاده‌شده ۲ روز پیش</span>
+      </span>
+      <span style="flex: none; font-size: 12px; font-weight: 600; border-radius: 999px; padding: 3px 12px; background: #EEF1F2; color: #3E4462">در صف</span>
+      <span style="flex: none; width: 110px; text-align: end; font-size: 13px; color: #6C7290">در نمونه باز نمی‌شود</span>
+    </div>
+  </div>
+  <sc-if value="{{queueHasDone}}" hint-placeholder-val="{{ false }}">
+    <div style="display: flex; flex-direction: column; gap: 12px">
+      <div style="font-weight: 800; color: #262A4F">به‌تازگی</div>
+      <div style="display: flex; align-items: center; gap: 18px; padding: 16px 18px; background: #FFFFFF; border: 1px solid #E3E6EE; border-radius: 20px">
+        <span style="flex: 1; font-size: 17px; font-weight: 800; color: #262A4F">{{courseTitleShown}}</span>
+        <span style="{{statusChipStyle}}">{{statusChip}}</span>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{isReview}}" hint-placeholder-val="{{ false }}">
+<div style="max-width: 1180px; margin: 0 auto; padding: 32px 24px 64px; display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+  <div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+    <button onClick="{{goQueue}}" style="align-self: flex-start; border: 0; background: transparent; color: #6C7290; font-size: 14px; padding: 4px 0">‹ بازبینی دوره‌ها</button>
+    <div style="display: flex; flex-direction: column; gap: 4px">
+      <h1 style="margin: 0; font-size: 28px; font-weight: 800; color: #262A4F; line-height: 1.5">{{courseTitleShown}}</h1>
+      <div style="font-size: 14px; color: #6C7290">{{courseMeta}} · {{set.level}} · برای {{set.audText}}</div>
+      <p style="margin: 4px 0 0">{{courseDesc}}</p>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <sc-for list="{{rvRows}}" as="r" hint-placeholder-count="6">
+        <sc-if value="{{r.isSection}}" hint-placeholder-val="{{ false }}">
+          <div style="padding: 12px 4px 2px; font-size: 16px; font-weight: 800; color: #262A4F">{{r.title}}</div>
+        </sc-if>
+        <sc-if value="{{r.isLesson}}" hint-placeholder-val="{{ true }}">
+          <div style="display: flex; flex-direction: column; gap: 10px; padding: 12px 14px; background: #FFFFFF; border: 1px solid #E3E6EE; border-radius: 16px">
+            <div style="display: flex; align-items: center; gap: 12px">
+              <span style="flex: none; width: 22px; font-size: 13px; color: #6C7290; text-align: center">{{r.num}}</span>
+              <span style="{{r.iconStyle}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{r.d}}"></path></svg></span>
+              <span style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+                <span style="font-weight: 700; color: #262A4F">{{r.title}}</span>
+                <span style="font-size: 13px; color: #6C7290">{{r.meta}}</span>
+              </span>
+              <button onClick="{{r.preview}}" style="flex: none; height: 36px; padding: 0 12px; border: 1px solid #CDD2DF; border-radius: 10px; background: transparent; color: #3E4462; font-size: 13px; font-weight: 700">دیدن</button>
+              <button onClick="{{r.startNote}}" style="flex: none; height: 36px; padding: 0 12px; border: 1px solid #1F6FA8; border-radius: 10px; background: transparent; color: #1F6FA8; font-size: 13px; font-weight: 700">یادداشت</button>
+            </div>
+            <sc-if value="{{r.editing}}" hint-placeholder-val="{{ false }}">
+              <div style="display: flex; flex-direction: column; gap: 8px">
+                <textarea value="{{noteDraft}}" onChange="{{setNoteDraft}}" rows="2" placeholder="چه چیزی را درست کند؟ روشن و مهربان بنویس." aria-label="یادداشت برای سازنده" style="box-sizing: border-box; padding: 10px 12px; border: 1px solid #1F6FA8; border-radius: 10px; font-size: 14px; color: #262A4F; resize: vertical"></textarea>
+                <div style="display: flex; gap: 8px">
+                  <button onClick="{{saveNote}}" style="height: 36px; padding: 0 14px; border: 0; border-radius: 10px; background: #1F6FA8; color: #FFFFFF; font-size: 13px; font-weight: 700">ثبت یادداشت</button>
+                  <button onClick="{{cancelNote}}" style="height: 36px; padding: 0 12px; border: 0; background: transparent; color: #6C7290; font-size: 13px">انصراف</button>
+                </div>
+              </div>
+            </sc-if>
+            <sc-if value="{{r.hasNote}}" hint-placeholder-val="{{ false }}">
+              <div style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: #E4EEF7; border-radius: 10px">
+                <span style="flex: 1; font-size: 13px; color: #1F6FA8">{{r.note}}</span>
+                <button onClick="{{r.dropNote}}" style="flex: none; border: 0; background: transparent; color: #A8314F; font-size: 13px; padding: 4px">حذف</button>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
+      </sc-for>
+    </div>
+  </div>
+  <div style="flex: 1 1 300px; max-width: 360px; min-width: 0; position: sticky; top: 24px; display: flex; flex-direction: column; gap: 16px">
+    <div style="padding: 20px; background: #FFFFFF; border: 1px solid #E3E6EE; border-radius: 20px; display: flex; flex-direction: column; gap: 14px">
+      <div style="font-size: 13px; color: #6C7290">نتیجهٔ بازبینی</div>
+      <button onClick="{{previewAll}}" style="height: 42px; border: 1px solid #CDD2DF; border-radius: 12px; background: transparent; color: #3E4462; font-size: 14px; font-weight: 700">دیدن کل دوره از چشم کنشگر</button>
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <sc-for list="{{checks}}" as="c" hint-placeholder-count="3">
+          <button onClick="{{c.toggle}}" role="checkbox" aria-checked="{{c.on}}" style="display: flex; align-items: center; gap: 10px; padding: 6px 0; border: 0; background: transparent; text-align: start; color: #3E4462; font-size: 14px">
+            <span style="{{c.boxStyle}}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>{{c.label}}
+          </button>
+        </sc-for>
+      </div>
+      <label style="display: flex; flex-direction: column; gap: 6px">
+        <span style="font-size: 14px; font-weight: 700; color: #262A4F">یادداشت کلی برای سازنده</span>
+        <textarea value="{{general}}" onChange="{{setGeneral}}" rows="3" placeholder="اختیاری" style="box-sizing: border-box; padding: 10px 12px; border: 1px solid #CDD2DF; border-radius: 10px; font-size: 14px; color: #262A4F; resize: vertical"></textarea>
+      </label>
+      <div style="font-size: 13px; color: #6C7290">{{reviewSummary}}</div>
+      <sc-if value="{{rvHasNotes}}" hint-placeholder-val="{{ false }}">
+        <button onClick="{{returnIt}}" style="height: 46px; border: 0; border-radius: 12px; background: #1F6FA8; color: #FFFFFF; font-size: 15px; font-weight: 700">برگرداندن با یادداشت‌ها</button>
+        <span style="font-size: 12px; color: #6C7290">تا یادداشت باز هست، دوره منتشر نمی‌شود.</span>
+      </sc-if>
+      <sc-if value="{{rvNoNotes}}" hint-placeholder-val="{{ true }}">
+        <button onClick="{{publish}}" style="height: 46px; border: 0; border-radius: 12px; background: #0A8449; color: #FFFFFF; font-size: 15px; font-weight: 700">منتشر کن</button>
+        <span style="font-size: 12px; color: #6C7290">دوره همین حالا برای گروه‌هایی که سازنده انتخاب کرده باز می‌شود.</span>
+      </sc-if>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{hasToast}}" hint-placeholder-val="{{ false }}">
+  <div role="status" style="position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 40; display: flex; align-items: center; gap: 16px; padding: 12px 18px; background: #262A4F; color: #FFFFFF; border-radius: 14px; box-shadow: 0 8px 24px rgba(38,42,79,.25); font-size: 14px">
+    <span>{{toastText}}</span>
+    <sc-if value="{{hasUndo}}" hint-placeholder-val="{{ false }}"><button onClick="{{undo}}" style="border: 0; background: transparent; color: #F2B705; font-weight: 800; font-size: 14px; padding: 4px">برگرداندن</button></sc-if>
+  </div>
+</sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"start":{"editor":"enum","options":["list","start","paste","audio","build","insert","d-video","d-audio","d-text","d-quiz","d-mission","settings","blocked","sent","returned","published","preview","preview-text","preview-quiz","staff-queue","staff-review"],"default":"list"},"$preview":{"width":1280,"height":960}}'>
+class Component extends DCLogic {
+  constructor(...a) {
+    super(...a);
+    this.n = 100;
+    this.sel = { s: 0, e: 0 };
+    this.state = this.initFor((this.props && this.props.start) || 'list', null);
+  }
+  componentDidMount() {
+    this.t = setInterval(() => {
+      const ls = this.state.lessons;
+      if (!ls.some(l => l.type === 'audio' && l.progress < 100)) return;
+      this.setState({ lessons: ls.map(l => (l.type === 'audio' && l.progress < 100) ? Object.assign({}, l, { progress: Math.min(100, l.progress + 1 + (l.id % 3)) }) : l) });
+    }, 450);
+  }
+  componentWillUnmount() { clearInterval(this.t); clearTimeout(this.tt); }
+
+  fa(n) { return String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[+d]); }
+  id() { this.n += 1; return this.n; }
+  samples() {
+    return {
+      k8Tz3: { t: 'چرا مسجد؟ جایگاه مسجد در زندگی محله', m: 14 },
+      p2Lq9: { t: 'امام جماعت، هیئت امنا و کنشگر: هر کس چه می‌کند', m: 18 },
+      w7Hn4: { t: 'شناخت محله در یک هفته', m: 12 },
+      r5Df1: { t: 'گفت‌وگو با نوجوان مسجدی', m: 16 },
+      b3Xc8: { t: 'اولین برنامه‌ات را بچین', m: 12 }
+    };
+  }
+  video(hash) {
+    const s = this.samples()[hash];
+    return { id: this.id(), type: 'video', hash, link: 'https://www.aparat.com/v/' + hash, title: s ? s.t : 'ویدیوی آپارات', mins: s ? s.m : 10, body: '', files: [] };
+  }
+  audioFile(file, title, mins, progress) { return { id: this.id(), type: 'audio', file, title, progress, mins, body: '', files: [] }; }
+  q(kind, text, opts, explain) {
+    return { id: this.id(), kind, text, opts: (opts || []).map(o => ({ t: o[0], ok: !!o[1] })), explain: explain || '', answer: '' };
+  }
+  blank(type) {
+    const id = this.id();
+    if (type === 'section') return { id, type, title: 'فصل تازه' };
+    if (type === 'video') return { id, type, hash: '', link: '', title: '', mins: 0, body: '', files: [] };
+    if (type === 'audio') return { id, type, file: 'جلسه-تازه.mp3', title: 'جلسه تازه', progress: 0, mins: 20, body: '', files: [] };
+    if (type === 'text') return { id, type, title: '', body: '', files: [] };
+    if (type === 'quiz') return { id, type, title: 'آزمون کوتاه', questions: [], pass: 60, retry: true, shuffle: false };
+    return { id, type: 'mission', title: 'مأموریت میدانی', body: '', report: { text: true, photo: true, voice: false }, due: 'یک هفته', files: [] };
+  }
+  sampleQuestions() {
+    return [
+      this.q('one', 'در مسجد محله، برنامه برای نوجوان‌ها کار کیست؟', [['فقط امام جماعت'], ['امام، هیئت امنا و کنشگرها با هم', 1], ['فقط ستاد بنیاد']], 'کار مسجد جمعی است و هر کس سهمی دارد.'),
+      this.q('tf', 'اولین قدم شناخت محله، چیدن یک برنامهٔ بزرگ است.', [['درست'], ['نادرست', 1]], 'اول باید محله را دید و از اهلش پرسید.'),
+      this.q('many', 'کدام‌ها از کارهای هیئت امناست؟ همهٔ پاسخ‌های درست را بزن.', [['نگهداری ساختمان مسجد', 1], ['تصمیم دربارهٔ هزینه‌ها', 1], ['امامت نماز جماعت']], 'امامت نماز با امام جماعت است.'),
+      this.q('short', 'در محلهٔ تو، نوجوان‌ها بیشتر کجا جمع می‌شوند؟', [], '')
+    ];
+  }
+  sampleBuild(full) {
+    const v = ['k8Tz3', 'p2Lq9', 'w7Hn4', 'r5Df1', 'b3Xc8'].map(h => this.video(h));
+    v[0].files = ['جزوهٔ جلسهٔ اول.pdf'];
+    const s1 = Object.assign(this.blank('section'), { title: 'مسجد و جایگاهش' });
+    const s2 = Object.assign(this.blank('section'), { title: 'شناخت محله' });
+    const quiz = this.blank('quiz');
+    if (full) quiz.questions = this.sampleQuestions();
+    const text = Object.assign(this.blank('text'), { title: 'پیش از ادامه: نقشهٔ محله‌ات', body: '## چرا نقشه؟\nکسی که محله را **نمی‌شناسد**، برایش برنامه هم نمی‌تواند بچیند.\n- یک برگه بردار و مسجد را وسطش بکش.\n- دورش جاهایی را بنویس که مردم بیشتر آن‌جا هستند.\n- کنار هر جا بنویس چه کسانی آن‌جا هستند.\n> در درس بعد با همین برگه کار داریم.' });
+    const mission = Object.assign(this.blank('mission'), { title: 'یک گفت‌وگوی واقعی', body: 'این هفته با یکی از نوجوانان مسجد گفت‌وگو کن و در سه خط بنویس چه شنیدی.' });
+    return [s1, v[0], v[1], quiz, s2, text, v[2], v[3], v[4], mission];
+  }
+  pv0() { return { at: -1, done: [], sel: {}, text: {}, checked: false, playing: false, speed: 0, report: '' }; }
+  initFor(mode, title) {
+    const st = {
+      role: 'maker', screen: 'build', status: 'draft',
+      courseTitle: title || 'مسجد و محله', courseDesc: 'برای کنشگری که تازه می‌خواهد در مسجد محله‌اش کاری را شروع کند.',
+      pasteText: 'https://www.aparat.com/v/k8Tz3\nhttps://www.aparat.com/v/p2Lq9\nhttps://www.aparat.com/v/w7Hn4\naparat.com/v/r5Df1\nhttps://www.aparat.com/v/b3Xc8\nhttps://www.youtube.com/watch?v=abc',
+      quickPaste: '', lessons: [], drawer: null, settings: false, insertAt: null, tried: false,
+      notes: {}, general: '', noteFor: null, noteDraft: '', checks: [false, false, false],
+      toast: null, undo: null, drag: null, over: null, textTab: 'edit',
+      pv: this.pv0(), pvBack: 'build',
+      set: { level: 'مقدماتی', aud: ['همهٔ کنشگران'], pre: 'ندارد', ordered: true, cert: true, cover: 'auto', about: '' }
+    };
+    if (mode === 'list') { st.screen = 'list'; st.lessons = this.sampleBuild(false); return st; }
+    if (mode === 'start') { st.screen = 'start'; st.courseTitle = ''; st.courseDesc = ''; return st; }
+    if (mode === 'paste') { st.screen = 'paste'; st.courseDesc = ''; return st; }
+    if (mode === 'audio') {
+      st.courseTitle = title || 'هیئت امنای فعال'; st.courseDesc = '';
+      st.lessons = [this.audioFile('جلسه-۱-مقدمه.mp3', 'جلسه ۱ مقدمه', 22, 100), this.audioFile('جلسه-۲-وظایف-هیئت-امنا.mp3', 'جلسه ۲ وظایف هیئت امنا', 25, 46), this.audioFile('جلسه-۳-برنامه-رمضان.mp3', 'جلسه ۳ برنامهٔ رمضان', 19, 8)];
+      return st;
+    }
+    const full = ['d-quiz', 'sent', 'returned', 'published', 'preview', 'preview-text', 'preview-quiz', 'staff-queue', 'staff-review'].indexOf(mode) >= 0;
+    st.lessons = this.sampleBuild(full);
+    const L = st.lessons;
+    if (mode === 'insert') st.insertAt = 2;
+    if (mode === 'd-video') st.drawer = L[2].id;
+    if (mode === 'd-quiz') st.drawer = L[3].id;
+    if (mode === 'd-text') st.drawer = L[5].id;
+    if (mode === 'd-mission') st.drawer = L[9].id;
+    if (mode === 'd-audio') { const a = this.audioFile('سخنرانی-شب-قدر.mp3', 'سخنرانی شب قدر', 28, 52); L.splice(7, 0, a); st.drawer = a.id; }
+    if (mode === 'settings') st.settings = true;
+    if (mode === 'blocked') st.tried = true;
+    if (mode === 'sent') { st.screen = 'sent'; st.status = 'review'; }
+    if (mode === 'published') st.status = 'published';
+    if (mode === 'returned') {
+      st.status = 'returned';
+      st.general = 'دوره خوب و کاربردی است. دو جا را درست کن و دوباره بفرست.';
+      st.notes[L[2].id] = 'صدای این ویدیو از دقیقهٔ ۶ ضعیف می‌شود. اگر نسخهٔ بهتری داری، پیوندش را عوض کن.';
+      st.notes[L[9].id] = 'مأموریت را مشخص‌تر کن: کنشگر دقیقاً چه چیزی را گزارش کند؟';
+    }
+    if (mode === 'preview') st.screen = 'preview';
+    if (mode === 'preview-text') { st.screen = 'preview'; st.pv.at = 5; st.pv.done = [1, 2, 3]; }
+    if (mode === 'preview-quiz') { st.screen = 'preview'; st.pv.at = 3; st.pv.done = [1, 2]; }
+    if (mode === 'staff-queue') { st.role = 'staff'; st.screen = 'queue'; st.status = 'review'; }
+    if (mode === 'staff-review') {
+      st.role = 'staff'; st.screen = 'review'; st.status = 'review'; st.checks = [true, true, false];
+      st.notes[L[2].id] = 'صدای این ویدیو از دقیقهٔ ۶ ضعیف می‌شود. اگر نسخهٔ بهتری داری، پیوندش را عوض کن.';
+      st.noteFor = L[9].id; st.noteDraft = 'مأموریت را مشخص‌تر کن: کنشگر دقیقاً چه چیزی را گزارش کند؟';
+    }
+    return st;
+  }
+
+  parse(text) {
+    return text.split('\n').map(s => s.trim()).filter(Boolean).map(line => {
+      const m = line.match(/aparat\.com\/v\/([A-Za-z0-9]+)/);
+      if (!m) return { ok: false, bad: true, line };
+      const s = this.samples()[m[1]];
+      return { ok: true, bad: false, hash: m[1], title: s ? s.t : 'ویدیوی آپارات', meta: 'آپارات · ' + this.fa(s ? s.m : 10) + ' دقیقه' };
+    });
+  }
+  blocks(body) {
+    return (body || '').split('\n').map(x => x.trim()).filter(Boolean).map(line => {
+      let k = 'p', t = line;
+      if (line.indexOf('## ') === 0) { k = 'h'; t = line.slice(3); }
+      else if (line.indexOf('- ') === 0) { k = 'li'; t = line.slice(2); }
+      else if (line.indexOf('> ') === 0) { k = 'q'; t = line.slice(2); }
+      const segs = t.split('**').map((x, i) => ({ t: x, st: i % 2 ? 'font-weight: 800; color: #262A4F' : '' })).filter(g => g.t);
+      return { isH: k === 'h', isP: k === 'p', isLi: k === 'li', isQ: k === 'q', segs };
+    });
+  }
+  qProblem(q, n) {
+    const N = 'پرسش ' + this.fa(n) + ' ';
+    if (!q.text.trim()) return N + 'متن ندارد';
+    if (q.kind === 'one' || q.kind === 'many') {
+      if (q.opts.filter(o => o.t.trim()).length < 2) return N + 'دست‌کم دو گزینه می‌خواهد';
+      if (q.opts.some(o => !o.t.trim())) return N + 'گزینهٔ خالی دارد';
+    }
+    if (q.kind !== 'short' && !q.opts.some(o => o.ok)) return N + 'پاسخ درست ندارد';
+    return null;
+  }
+  problem(l) {
+    if (l.type === 'section') return l.title.trim() ? null : 'فصل عنوان ندارد';
+    if (l.type === 'video' && !l.hash) return 'پیوند آپارات ندارد';
+    if (l.type === 'audio' && l.progress < 100) return null;
+    if (l.type === 'text' && !l.body.trim()) return 'متن ندارد';
+    if (l.type === 'mission') {
+      if (!l.body.trim()) return 'شرح کار ندارد';
+      if (!l.report.text && !l.report.photo && !l.report.voice) return 'معلوم نیست گزارش چه داشته باشد';
+    }
+    if (l.type === 'quiz') {
+      if (!l.questions.length) return 'هنوز پرسشی ندارد';
+      for (let i = 0; i < l.questions.length; i++) { const p = this.qProblem(l.questions[i], i + 1); if (p) return p; }
+    }
+    if (!l.title.trim()) return 'عنوان ندارد';
+    return null;
+  }
+  isUp(l) { return l.type === 'audio' && l.progress < 100; }
+  patch(id, p) { this.setState({ lessons: this.state.lessons.map(l => l.id === id ? Object.assign({}, l, p) : l) }); }
+  toast(text, undo) {
+    clearTimeout(this.tt);
+    this.setState({ toast: text, undo: undo || null });
+    this.tt = setTimeout(() => this.setState({ toast: null, undo: null }), 6000);
+  }
+  insertAt(type, idx) {
+    const l = this.blank(type);
+    const ls = this.state.lessons.slice();
+    ls.splice(idx, 0, l);
+    this.setState({ lessons: ls, insertAt: null, drawer: type === 'audio' ? null : l.id, settings: false, textTab: 'edit' });
+  }
+  moveTo(id, j) {
+    const ls = this.state.lessons.slice();
+    const i = ls.findIndex(l => l.id === id);
+    if (i < 0 || j < 0 || j >= ls.length || i === j) return;
+    const x = ls.splice(i, 1)[0];
+    ls.splice(j, 0, x);
+    this.setState({ lessons: ls });
+  }
+  removeLesson(id) {
+    const ls = this.state.lessons;
+    const i = ls.findIndex(l => l.id === id);
+    const l = ls[i];
+    this.setState({ lessons: ls.filter(x => x.id !== id), drawer: null });
+    this.toast((l.type === 'section' ? 'فصل' : 'درس') + ' حذف شد', { l, i });
+  }
+  dup(id) {
+    const ls = this.state.lessons.slice();
+    const i = ls.findIndex(l => l.id === id);
+    const c = JSON.parse(JSON.stringify(ls[i]));
+    c.id = this.id();
+    c.title = (c.title || '') + ' (رونوشت)';
+    if (c.questions) c.questions = c.questions.map(q => Object.assign(q, { id: this.id() }));
+    ls.splice(i + 1, 0, c);
+    this.setState({ lessons: ls, drawer: c.id });
+  }
+  qPatch(id, qid, p) {
+    const l = this.state.lessons.find(x => x.id === id);
+    this.patch(id, { questions: l.questions.map(q => q.id === qid ? Object.assign({}, q, p) : q) });
+  }
+  setKind(id, q, kind) {
+    let opts = q.opts;
+    const three = () => [{ t: '', ok: false }, { t: '', ok: false }, { t: '', ok: false }];
+    if (kind === 'tf') opts = [{ t: 'درست', ok: false }, { t: 'نادرست', ok: false }];
+    else if (q.kind === 'tf' && (kind === 'one' || kind === 'many')) opts = three();
+    else if (q.kind === 'short' && (kind === 'one' || kind === 'many') && opts.length < 2) opts = three();
+    else if (kind === 'one') { let seen = false; opts = opts.map(o => { if (o.ok && !seen) { seen = true; return o; } return Object.assign({}, o, { ok: false }); }); }
+    this.qPatch(id, q.id, { kind, opts });
+  }
+  fmt(id, kind) {
+    const l = this.state.lessons.find(x => x.id === id);
+    const b = l.body || '';
+    const s0 = Math.min(this.sel.s, b.length), e0 = Math.min(this.sel.e, b.length);
+    let nb;
+    if (kind === 'b') {
+      const mid = b.slice(s0, e0) || 'متن پررنگ';
+      nb = b.slice(0, s0) + '**' + mid + '**' + b.slice(e0);
+    } else {
+      const pre = { h: '## ', li: '- ', q: '> ' }[kind];
+      const st = s0 === 0 ? 0 : b.lastIndexOf('\n', s0 - 1) + 1;
+      const rest = b.slice(st);
+      const had = ['## ', '- ', '> '].find(p => rest.indexOf(p) === 0);
+      const bare = had ? rest.slice(had.length) : rest;
+      nb = b.slice(0, st) + (had === pre ? '' : pre) + bare;
+    }
+    this.patch(id, { body: nb });
+    this.setState({ textTab: 'edit' });
+  }
+  setSet(p) { this.setState({ set: Object.assign({}, this.state.set, p) }); }
+  setPv(p) { this.setState({ pv: Object.assign({}, this.state.pv, p) }); }
+  look(type) {
+    return {
+      section: { name: 'فصل', bg: '#262A4F', fg: '#FFFFFF', d: 'M4 6h16M4 12h10M4 18h7' },
+      video: { name: 'ویدیوی آپارات', bg: '#E4EEF7', fg: '#1F6FA8', d: 'M7 5h10a4 4 0 0 1 4 4v6a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a4 4 0 0 1 4-4zM10 9.5v5l4.5-2.5z' },
+      audio: { name: 'صوت', bg: '#E1F3F6', fg: '#1D7F92', d: 'M4 16v-4a8 8 0 0 1 16 0v4M5 14h1a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H5a2 2 0 0 1-2-2v-2a2 2 0 0 1 2-2zM19 14h-1a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h1a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2z' },
+      text: { name: 'متن', bg: '#EEF1F2', fg: '#3E4462', d: 'M7 3h7l5 5v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zM14 3v5h5M9 13h6M9 17h4' },
+      quiz: { name: 'آزمون کوتاه', bg: '#E2F4EA', fg: '#0A7A45', d: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM8.5 12.5l2.5 2.5 4.5-5' },
+      mission: { name: 'مأموریت میدانی', bg: '#FFF4D1', fg: '#8A6500', d: 'M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21zM12 7a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z' }
+    }[type];
+  }
+  readMins(body) { return Math.max(1, Math.ceil((body || '').length / 900)); }
+  meta(l) {
+    const f = l.files && l.files.length ? ' · ' + this.fa(l.files.length) + ' پیوست' : '';
+    if (l.type === 'video') return (l.hash ? 'آپارات · ' + this.fa(l.mins) + ' دقیقه' : 'آپارات · هنوز پیوند ندارد') + f;
+    if (l.type === 'audio') return (l.progress < 100 ? 'در حال بارگذاری · ٪' + this.fa(l.progress) : 'صوت · ' + this.fa(l.mins) + ' دقیقه') + f;
+    if (l.type === 'text') return 'متن · ' + (l.body.trim() ? 'حدود ' + this.fa(this.readMins(l.body)) + ' دقیقه خواندن' : 'خالی') + f;
+    if (l.type === 'quiz') return 'آزمون · ' + this.fa(l.questions.length) + ' پرسش · قبولی ٪' + this.fa(l.pass);
+    if (l.type === 'mission') return 'مأموریت · مهلت ' + l.due + ' · راهیار می‌خواند' + f;
+    return '';
+  }
+  pill(on, bg, fg, h) {
+    return 'height: ' + (h || 36) + 'px; padding: 0 14px; border-radius: 999px; font-size: 13px; font-weight: 600; ' + (on ? 'border: 1px solid ' + fg + '; background: ' + bg + '; color: ' + fg : 'border: 1px solid #CDD2DF; background: #FFFFFF; color: #3E4462');
+  }
+  chip(on) { return this.pill(on, '#E2F4EA', '#0A7A45'); }
+  sw(on) {
+    return {
+      track: 'flex: none; position: relative; width: 48px; height: 28px; padding: 0; border: 0; border-radius: 999px; background: ' + (on ? '#0A8449' : '#CDD2DF'),
+      knob: 'position: absolute; top: 3px; width: 22px; height: 22px; border-radius: 999px; background: #FFFFFF; transition: inset-inline-start .26s; inset-inline-start: ' + (on ? '23px' : '3px')
+    };
+  }
+  qRight(q) { return q.opts.map((o, i) => o.ok ? i : -1).filter(i => i >= 0); }
+  qCorrect(q, sel) {
+    if (q.kind === 'short') return null;
+    const r = this.qRight(q), s = (sel || []).slice().sort((a, b) => a - b);
+    return r.length === s.length && r.every((v, i) => v === s[i]);
+  }
+
+  renderVals() {
+    const s = this.state;
+    const fa = n => this.fa(n);
+    const ls = s.lessons;
+    const lessonsOnly = ls.filter(l => l.type !== 'section');
+    const go = screen => () => this.setState({ screen, drawer: null, settings: false, insertAt: null });
+    const parsed = this.parse(s.pasteText);
+    const okCount = parsed.filter(p => p.ok).length;
+    const notes = s.notes || {};
+    const showNotes = s.role === 'maker' && s.status === 'returned';
+    const chipBase = 'flex: none; font-size: 12px; font-weight: 600; border-radius: 999px; padding: 3px 12px; ';
+    const STMAP = {
+      draft: ['پیش‌نویس', 'background: #EEF1F2; color: #3E4462'],
+      review: ['در بازبینی ستاد', 'background: #FFF4D1; color: #8A6500'],
+      returned: ['برگشته از ستاد', 'background: #E4EEF7; color: #1F6FA8'],
+      published: ['منتشر شده', 'background: #E2F4EA; color: #0A7A45']
+    };
+    const STATUS = STMAP[s.status];
+
+    const numOf = {};
+    let k = 0;
+    ls.forEach(l => { if (l.type !== 'section') { k += 1; numOf[l.id] = k; } });
+    let secN = 0;
+
+    const probs = [];
+    const warnStyle = 'text-align: start; display: flex; flex-direction: column; padding: 10px 12px; border: 0; border-radius: 12px; background: #FFF4D1; color: #8A6500';
+    const noteStyle = 'text-align: start; display: flex; flex-direction: column; padding: 10px 12px; border: 0; border-radius: 12px; background: #E4EEF7; color: #1F6FA8';
+    if (!s.courseTitle.trim()) probs.push({ where: 'دوره', what: 'هنوز اسم ندارد', open: () => {}, style: warnStyle });
+    if (!lessonsOnly.length) probs.push({ where: 'دوره', what: 'هنوز درسی ندارد', open: () => {}, style: warnStyle });
+    const base = 'flex: none; font-size: 12px; font-weight: 600; border-radius: 999px; padding: 2px 10px; ';
+    const rows = ls.map((l, i) => {
+      const look = this.look(l.type);
+      const pr = this.problem(l);
+      const up = this.isUp(l);
+      const note = showNotes ? notes[l.id] : null;
+      const isSec = l.type === 'section';
+      if (isSec) secN += 1;
+      const where = isSec ? 'فصل ' + fa(secN) : 'درس ' + fa(numOf[l.id]) + ' · ' + (l.title || look.name);
+      const openIt = () => this.setState({ drawer: l.id, settings: false, insertAt: null, textTab: 'edit' });
+      if (pr) probs.push({ where, what: pr, open: openIt, style: warnStyle });
+      if (note) probs.push({ where, what: 'یادداشت ستاد هنوز باز است', open: openIt, style: noteStyle });
+      let chip, chipStyle;
+      if (up) { chip = 'بارگذاری'; chipStyle = base + 'background: #E1F3F6; color: #1D7F92'; }
+      else if (pr) { chip = 'کامل کن: ' + pr; chipStyle = base + 'max-width: 240px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; background: #FFF4D1; color: #8A6500'; }
+      else if (note) { chip = 'یادداشت ستاد'; chipStyle = base + 'background: #E4EEF7; color: #1F6FA8'; }
+      else { chip = 'آماده'; chipStyle = base + 'background: #E2F4EA; color: #0A7A45'; }
+      const warn = pr && s.tried;
+      const over = s.drag != null && s.over === l.id && s.drag !== l.id;
+      const border = s.drawer === l.id ? '#0A7A45' : over ? '#0E9F5A' : warn ? '#F2B705' : note ? '#1F6FA8' : '#E3E6EE';
+      return {
+        isSection: isSec, isLesson: !isSec,
+        secLabel: 'فصل ' + fa(secN),
+        hasChipWarn: !!pr,
+        secStyle: 'display: flex; align-items: center; gap: 12px; padding: 14px 4px 6px; margin-top: ' + (i ? '16px' : '0') + '; border-bottom: 2px solid ' + (over ? '#0E9F5A' : warn ? '#F2B705' : '#262A4F') + (s.drag === l.id ? '; opacity: .4' : ''),
+        num: fa(numOf[l.id] || 0),
+        d: look.d,
+        iconStyle: 'flex: none; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: ' + look.bg + '; color: ' + look.fg,
+        titleShown: l.title || look.name + ' بی‌عنوان',
+        meta: this.meta(l),
+        uploading: up,
+        barStyle: 'display: block; height: 100%; width: ' + (l.progress || 0) + '%; background: #1D7F92; border-radius: 999px; transition: width .4s',
+        chip, chipStyle,
+        hasNote: !!note, note: note || '',
+        resolve: () => { const n = Object.assign({}, notes); delete n[l.id]; this.setState({ notes: n }); },
+        cardStyle: 'display: flex; flex-direction: column; background: #FFFFFF; border-radius: 18px; border: 1px solid ' + border + (over ? '; box-shadow: 0 0 0 3px #E2F4EA' : '') + (s.drag === l.id ? '; opacity: .4' : ''),
+        open: openIt,
+        up: () => this.moveTo(l.id, i - 1),
+        down: () => this.moveTo(l.id, i + 1),
+        dragStart: e => { try { e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', String(l.id)); } catch (x) {} this.setState({ drag: l.id }); },
+        dragOver: e => { e.preventDefault(); if (this.state.over !== l.id) this.setState({ over: l.id }); },
+        drop: e => { e.preventDefault(); const d = this.state.drag; if (d != null) this.moveTo(d, i); this.setState({ drag: null, over: null }); },
+        hasGap: i < ls.length - 1,
+        gapOpen: s.insertAt === i,
+        toggleGap: () => this.setState({ insertAt: s.insertAt === i ? null : i })
+      };
+    });
+
+    const readyN = lessonsOnly.filter(l => !this.problem(l) && !this.isUp(l)).length;
+    const secBad = ls.filter(l => l.type === 'section' && this.problem(l)).length;
+    const mins = lessonsOnly.reduce((a, l) => a + ((l.type === 'video' && l.hash) || l.type === 'audio' ? l.mins : 0) + (l.type === 'text' && l.body.trim() ? this.readMins(l.body) : 0), 0);
+    const KINDS = [['section', 'فصل', '#EEF1F2', '#262A4F'], ['video', 'ویدیوی آپارات', '#E4EEF7', '#1F6FA8'], ['audio', 'صوت', '#E1F3F6', '#1D7F92'], ['text', 'متن', '#EEF1F2', '#3E4462'], ['quiz', 'آزمون کوتاه', '#E2F4EA', '#0A7A45'], ['mission', 'مأموریت میدانی', '#FFF4D1', '#8A6500']];
+    const kStyle = (bg, fg) => 'height: 36px; padding: 0 14px; border: 0; border-radius: 999px; background: ' + bg + '; color: ' + fg + '; font-weight: 600; font-size: 13px';
+    const addKinds = KINDS.map(x => ({ label: x[1], style: kStyle(x[2], x[3]), ins: () => this.insertAt(x[0], (this.state.insertAt == null ? this.state.lessons.length - 1 : this.state.insertAt) + 1) }));
+    const endKinds = KINDS.filter(x => x[0] !== 'video').map(x => ({ label: x[1], style: kStyle(x[2], x[3]), ins: () => this.insertAt(x[0], this.state.lessons.length) }));
+
+    let dl = { iconStyle: '', d: '', questions: [], files: [], blocks: [], reportKinds: [], dues: [], passOpts: [], addQKinds: [] };
+    const cur = ls.find(l => l.id === s.drawer);
+    if (cur) {
+      const look = this.look(cur.type);
+      const id = cur.id;
+      const T = cur.type;
+      const HELP = {
+        section: 'فصل درس‌ها را دسته می‌کند. کنشگر آن را به‌شکل سرفصل در فهرست درس‌ها می‌بیند.',
+        video: 'کنشگر ویدیو را همین‌جا، از آپارات، می‌بیند و بعد «دیدم» را می‌زند تا درس بعد باز شود.',
+        audio: 'فایل روی سرور خود مدرسه می‌ماند. کنشگر می‌تواند تندتر هم گوش بدهد.',
+        text: 'متن کوتاه بهتر خوانده می‌شود. اگر بلند شد، به دو درس بشکنش.',
+        quiz: 'پاسخ کنشگر بعد از «بررسی پاسخ‌ها» درست یا نادرست نشان داده می‌شود و توضیح هر پرسش می‌آید.',
+        mission: 'کنشگر گزارش را می‌فرستد و راهیارش می‌خواند و پاسخ می‌دهد.'
+      };
+      const swR = this.sw(!!cur.retry), swS = this.sw(!!cur.shuffle);
+      const kinds = [['one', 'یک پاسخ'], ['many', 'چند پاسخ'], ['tf', 'درست / نادرست'], ['short', 'پاسخ کوتاه']];
+      const qs = cur.questions || [];
+      dl = {
+        iconStyle: 'flex: none; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: ' + look.bg + '; color: ' + look.fg,
+        d: look.d,
+        kicker: T === 'section' ? 'سرفصل' : 'درس ' + fa(numOf[id]) + ' از ' + fa(lessonsOnly.length),
+        typeName: look.name,
+        isVideo: T === 'video', isAudio: T === 'audio', isQuiz: T === 'quiz', isText: T === 'text', isMission: T === 'mission',
+        hasBody: T === 'video' || T === 'audio' || T === 'mission',
+        hasFiles: T !== 'quiz' && T !== 'section',
+        hasNote: showNotes && !!notes[id], note: notes[id] || '',
+        link: cur.link || '',
+        hasHash: !!cur.hash, noHash: !cur.hash,
+        minsFa: fa(cur.mins || 0),
+        file: cur.file || '',
+        replaceFile: () => this.patch(id, { file: 'نسخهٔ-تازه.mp3', progress: 0 }),
+        barStyle: 'display: block; height: 100%; width: ' + (cur.progress || 0) + '%; background: #1D7F92; border-radius: 999px; transition: width .4s',
+        uploadText: (cur.progress || 0) < 100 ? 'در حال بارگذاری · ٪' + fa(cur.progress || 0) + ' · می‌توانی همین حالا بقیه را پر کنی' : 'بارگذاری شد · ' + fa(cur.mins) + ' دقیقه',
+        titleLabel: T === 'section' ? 'عنوان فصل' : 'عنوان',
+        title: cur.title,
+        titlePh: T === 'video' ? 'با پیوند، خودش از آپارات پر می‌شود' : 'عنوان کوتاه و روشن',
+        setTitle: e => this.patch(id, { title: e.target.value }),
+        body: cur.body || '',
+        bodyLabel: T === 'mission' ? 'کنشگر در مسجد چه کند؟' : 'یادداشت زیر درس (اختیاری)',
+        bodyPh: T === 'mission' ? 'یک کار روشن و شدنی، با آنچه باید گزارش شود.' : 'مثلاً نکتهٔ مهم ویدیو یا منبع بیشتر',
+        bodyRows: 4,
+        setBody: e => this.patch(id, { body: e.target.value }),
+        onSel: e => { this.sel = { s: e.target.selectionStart || 0, e: e.target.selectionEnd || 0 }; },
+        editing: s.textTab === 'edit', viewing: s.textTab === 'view',
+        tabEdit: () => this.setState({ textTab: 'edit' }), tabView: () => this.setState({ textTab: 'view' }),
+        tabEditStyle: 'height: 32px; padding: 0 14px; border: 0; border-radius: 8px; font-size: 13px; font-weight: 700; ' + (s.textTab === 'edit' ? 'background: #FFFFFF; color: #262A4F' : 'background: transparent; color: #6C7290'),
+        tabViewStyle: 'height: 32px; padding: 0 14px; border: 0; border-radius: 8px; font-size: 13px; font-weight: 700; ' + (s.textTab === 'view' ? 'background: #FFFFFF; color: #262A4F' : 'background: transparent; color: #6C7290'),
+        fmtH: () => this.fmt(id, 'h'), fmtB: () => this.fmt(id, 'b'), fmtLi: () => this.fmt(id, 'li'), fmtQ: () => this.fmt(id, 'q'),
+        readTime: T === 'text' && (cur.body || '').trim() ? 'زمان خواندن: حدود ' + fa(this.readMins(cur.body)) + ' دقیقه.' : '',
+        blocks: this.blocks(cur.body),
+        setLink: e => {
+          const v = e.target.value;
+          const m = v.match(/aparat\.com\/v\/([A-Za-z0-9]+)/);
+          if (m) { const sm = this.samples()[m[1]]; this.patch(id, { link: v, hash: m[1], title: cur.title || (sm ? sm.t : 'ویدیوی آپارات'), mins: sm ? sm.m : 10 }); }
+          else this.patch(id, { link: v, hash: '' });
+        },
+        reportKinds: T === 'mission' ? [['text', 'متن'], ['photo', 'عکس'], ['voice', 'پیام صوتی']].map(x => ({ label: x[1], on: !!cur.report[x[0]], style: this.chip(!!cur.report[x[0]]), pick: () => { const r = Object.assign({}, cur.report); r[x[0]] = !r[x[0]]; this.patch(id, { report: r }); } })) : [],
+        dues: T === 'mission' ? ['سه روز', 'یک هفته', 'دو هفته'].map(x => ({ label: x, on: cur.due === x, style: this.chip(cur.due === x), pick: () => this.patch(id, { due: x }) })) : [],
+        passOpts: T === 'quiz' ? [50, 60, 80].map(x => ({ label: '٪' + fa(x), on: cur.pass === x, style: this.chip(cur.pass === x), pick: () => this.patch(id, { pass: x }) })) : [],
+        retry: !!cur.retry, shuffle: !!cur.shuffle,
+        toggleRetry: () => this.patch(id, { retry: !cur.retry }), toggleShuffle: () => this.patch(id, { shuffle: !cur.shuffle }),
+        retryTrack: swR.track, retryKnob: swR.knob, shuffleTrack: swS.track, shuffleKnob: swS.knob,
+        questions: qs.map((q, qi) => {
+          const many = q.kind === 'many', tf = q.kind === 'tf';
+          return {
+            num: fa(qi + 1),
+            text: q.text,
+            kinds: kinds.map(x => ({ label: x[1], on: q.kind === x[0], style: this.pill(q.kind === x[0], '#E4EEF7', '#1F6FA8', 30), pick: () => this.setKind(id, q, x[0]) })),
+            hasOpts: q.kind !== 'short', isShort: q.kind === 'short',
+            canAdd: !tf && q.opts.length < 6,
+            hint: many ? 'همهٔ پاسخ‌های درست را تیک بزن.' : 'دایرهٔ کنار پاسخ درست را بزن.',
+            answer: q.answer || '',
+            setAnswer: e => this.qPatch(id, q.id, { answer: e.target.value }),
+            explain: q.explain || '',
+            setExplain: e => this.qPatch(id, q.id, { explain: e.target.value }),
+            setText: e => this.qPatch(id, q.id, { text: e.target.value }),
+            addOpt: () => this.qPatch(id, q.id, { opts: q.opts.concat([{ t: '', ok: false }]) }),
+            remove: () => this.patch(id, { questions: qs.filter(x => x.id !== q.id) }),
+            up: () => { if (qi > 0) { const a = qs.slice(); a.splice(qi - 1, 0, a.splice(qi, 1)[0]); this.patch(id, { questions: a }); } },
+            down: () => { if (qi < qs.length - 1) { const a = qs.slice(); a.splice(qi + 1, 0, a.splice(qi, 1)[0]); this.patch(id, { questions: a }); } },
+            opts: q.opts.map((o, oi) => ({
+              t: o.t, ok: !!o.ok, fixed: tf,
+              ph: 'گزینهٔ ' + fa(oi + 1),
+              pickLabel: many ? 'این هم پاسخ درست است' : 'این پاسخ درست است',
+              canRemove: !tf && q.opts.length > 2,
+              remove: () => this.qPatch(id, q.id, { opts: q.opts.filter((x, j) => j !== oi) }),
+              set: e => this.qPatch(id, q.id, { opts: q.opts.map((x, j) => j === oi ? Object.assign({}, x, { t: e.target.value }) : x) }),
+              pick: () => this.qPatch(id, q.id, { opts: q.opts.map((x, j) => many ? (j === oi ? Object.assign({}, x, { ok: !x.ok }) : x) : Object.assign({}, x, { ok: j === oi })) }),
+              dotStyle: 'flex: none; width: 28px; height: 28px; border-radius: ' + (many ? '8px' : '999px') + '; display: flex; align-items: center; justify-content: center; padding: 0; ' + (o.ok ? 'border: 0; background: #0A8449; color: #FFFFFF' : 'border: 1.5px solid #CDD2DF; background: #FFFFFF; color: transparent')
+            }))
+          };
+        }),
+        addQKinds: T === 'quiz' ? [['one', '+ یک پاسخ'], ['many', '+ چند پاسخ'], ['tf', '+ درست / نادرست'], ['short', '+ پاسخ کوتاه']].map(x => ({
+          label: x[1],
+          add: () => {
+            const o = x[0] === 'tf' ? [['درست'], ['نادرست']] : x[0] === 'short' ? [] : [[''], [''], ['']];
+            this.patch(id, { questions: qs.concat([this.q(x[0], '', o, '')]) });
+          }
+        })) : [],
+        files: (cur.files || []).map((f, fi) => ({ name: f, remove: () => this.patch(id, { files: cur.files.filter((x, j) => j !== fi) }) })),
+        addFile: () => this.patch(id, { files: (cur.files || []).concat(['جزوهٔ ' + (cur.title || 'درس') + '.pdf']) }),
+        duplicate: () => this.dup(id),
+        remove: () => this.removeLesson(id),
+        removeLabel: T === 'section' ? 'حذف فصل' : 'حذف درس',
+        help: HELP[T]
+      };
+    }
+
+    const S = s.set;
+    const swO = this.sw(S.ordered), swC = this.sw(S.cert);
+    const coverCard = on => 'display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 14px; border-radius: 16px; text-align: start; background: #FFFFFF; ' + (on ? 'border: 1.5px solid #0A7A45' : 'border: 1px solid #E3E6EE');
+    const set = {
+      level: S.level, pre: S.pre, about: S.about,
+      audText: S.aud.length ? S.aud.join('، ') : 'هنوز معلوم نیست',
+      certText: S.cert ? 'دارد' : 'ندارد',
+      orderText: S.ordered ? 'به ترتیب' : 'آزاد',
+      setAbout: e => this.setSet({ about: e.target.value }),
+      levels: ['مقدماتی', 'میانه', 'پیشرفته'].map(x => ({ label: x, on: S.level === x, style: this.chip(S.level === x), pick: () => this.setSet({ level: x }) })),
+      auds: ['همهٔ کنشگران', 'امام جماعت', 'راهیار', 'خواهران', 'برادران'].map(x => {
+        const on = S.aud.indexOf(x) >= 0;
+        return { label: x, on, style: this.chip(on), pick: () => this.setSet({ aud: on ? S.aud.filter(y => y !== x) : S.aud.concat([x]) }) };
+      }),
+      pres: ['ندارد', 'شناخت مسجد', 'کار با نوجوان'].map(x => ({ label: x, on: S.pre === x, style: this.chip(S.pre === x), pick: () => this.setSet({ pre: x }) })),
+      ordered: S.ordered, cert: S.cert,
+      toggleOrdered: () => this.setSet({ ordered: !S.ordered }),
+      toggleCert: () => this.setSet({ cert: !S.cert }),
+      orderedTrack: swO.track, orderedKnob: swO.knob, certTrack: swC.track, certKnob: swC.knob,
+      coverAuto: () => this.setSet({ cover: 'auto' }), coverUpload: () => this.setSet({ cover: 'upload' }),
+      coverAutoStyle: coverCard(S.cover === 'auto'), coverUploadStyle: coverCard(S.cover === 'upload')
+    };
+
+    // preview (learner)
+    const P = s.pv;
+    const playable = ls.map((l, i) => l.type === 'section' ? -1 : i).filter(i => i >= 0);
+    const firstOpen = playable.find(i => P.done.indexOf(i) < 0);
+    const isLocked = i => S.ordered && P.done.indexOf(i) < 0 && i !== firstOpen && i !== P.at;
+    const items = ls.map((l, i) => {
+      const lk = this.look(l.type);
+      const locked = l.type !== 'section' && isLocked(i);
+      const metaP = l.type === 'video' ? 'ویدیو · ' + fa(l.mins) + ' دقیقه' : l.type === 'audio' ? 'صوت · ' + fa(l.mins) + ' دقیقه' : l.type === 'text' ? 'متن · ' + fa(this.readMins(l.body)) + ' دقیقه خواندن' : l.type === 'quiz' ? 'آزمون · ' + fa(l.questions.length) + ' پرسش' : 'مأموریت میدانی';
+      return {
+        isSection: l.type === 'section', isLesson: l.type !== 'section',
+        title: l.title || lk.name, meta: metaP, d: lk.d,
+        iconStyle: 'flex: none; width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: ' + lk.bg + '; color: ' + lk.fg,
+        done: P.done.indexOf(i) >= 0, locked,
+        style: 'display: flex; align-items: center; gap: 12px; padding: 12px; background: #FFFFFF; border: 1px solid #E3E6EE; border-radius: 16px; text-align: start; color: #3E4462' + (locked ? '; opacity: .55' : ''),
+        open: () => { if (!locked) this.setPv({ at: i, checked: false, sel: {}, text: {}, playing: false }); }
+      };
+    });
+    const doneN = P.done.length;
+    const totalP = playable.length;
+    const next = () => {
+      const pp = this.state.pv;
+      const done = pp.done.indexOf(pp.at) >= 0 ? pp.done : pp.done.concat([pp.at]);
+      const nx = playable.find(i => i > pp.at);
+      this.setPv({ done, at: nx == null ? -1 : nx, checked: false, sel: {}, text: {}, playing: false, report: '' });
+    };
+    const pc = P.at >= 0 ? ls[P.at] : null;
+    let pl = { qs: [], blocks: [], files: [] };
+    if (pc && pc.type !== 'section') {
+      const T = pc.type;
+      const qs = T === 'quiz' ? pc.questions : [];
+      const scored = qs.filter(q => q.kind !== 'short');
+      const rightN = scored.filter(q => this.qCorrect(q, P.sel[q.id])).length;
+      const pct = scored.length ? Math.round(rightN / scored.length * 100) : 100;
+      const pass = pct >= (pc.pass || 60);
+      const allAnswered = scored.every(q => (P.sel[q.id] || []).length > 0);
+      const speeds = ['۱×', '۱٫۲۵×', '۱٫۵×', '۲×'];
+      let ctaLabel, cta, ctaOn = true;
+      if (T === 'quiz') {
+        if (!P.checked) { ctaLabel = allAnswered ? 'بررسی پاسخ‌ها' : 'اول به همهٔ پرسش‌ها پاسخ بده'; ctaOn = allAnswered; cta = () => { if (allAnswered) this.setPv({ checked: true }); }; }
+        else if (pass || !pc.retry) { ctaLabel = 'درس بعد'; cta = next; }
+        else { ctaLabel = 'دوباره امتحان می‌دهم'; cta = () => this.setPv({ checked: false, sel: {}, text: {} }); }
+      } else if (T === 'mission') { ctaLabel = 'فرستادن گزارش برای راهیار'; cta = () => { next(); this.toast('گزارش برای راهیار رفت (در نمونه چیزی فرستاده نمی‌شود)'); }; }
+      else { ctaLabel = T === 'video' ? 'دیدم، درس بعد' : T === 'audio' ? 'گوش دادم، درس بعد' : 'خواندم، درس بعد'; cta = next; }
+      pl = {
+        kicker: 'درس ' + fa(numOf[pc.id]) + ' از ' + fa(totalP),
+        title: pc.title || this.look(T).name,
+        isVideo: T === 'video', isAudio: T === 'audio', isText: T === 'text', isQuiz: T === 'quiz', isMission: T === 'mission',
+        mins: fa(pc.mins || 0),
+        hasNote: (T === 'video' || T === 'audio' || T === 'mission') && !!(pc.body || '').trim(), note: pc.body || '',
+        blocks: T === 'text' ? this.blocks(pc.body) : [],
+        hasFiles: !!(pc.files && pc.files.length), files: (pc.files || []).map(f => ({ name: f })),
+        togglePlay: () => this.setPv({ playing: !P.playing }),
+        playLabel: P.playing ? 'توقف' : 'پخش',
+        playD: P.playing ? 'M8 6h3v12H8zM13 6h3v12h-3z' : 'M9 7v10l8-5z',
+        audioBar: 'display: block; height: 100%; background: #1D7F92; border-radius: 999px; transition: width .4s; width: ' + (P.playing ? '35%' : '0%'),
+        audioTime: (P.playing ? fa(Math.round((pc.mins || 0) * 0.35)) + ':۰۰' : '۰:۰۰') + ' از ' + fa(pc.mins || 0) + ':۰۰',
+        speed: speeds[P.speed || 0],
+        cycleSpeed: () => this.setPv({ speed: ((P.speed || 0) + 1) % speeds.length }),
+        missionMeta: T === 'mission' ? 'مأموریت میدانی · مهلت ' + pc.due + ' · گزارشت را راهیارت می‌خواند' : '',
+        wantText: T === 'mission' && !!pc.report.text, wantPhoto: T === 'mission' && !!pc.report.photo, wantVoice: T === 'mission' && !!pc.report.voice,
+        report: P.report, setReport: e => this.setPv({ report: e.target.value }),
+        checked: P.checked,
+        resultText: (pass ? 'قبول شدی: ' : 'هنوز قبول نشدی: ') + fa(rightN) + ' از ' + fa(scored.length) + ' پاسخ درست (٪' + fa(pct) + '). ' + (pass ? '' : pc.retry ? 'توضیح‌ها را بخوان و دوباره امتحان بده.' : ''),
+        resultStyle: 'padding: 12px 14px; border-radius: 12px; font-size: 14px; font-weight: 600; ' + (pass ? 'background: #E2F4EA; color: #0A7A45' : 'background: #FBE6EB; color: #A8314F'),
+        qs: qs.map((q, qi) => {
+          const sel = P.sel[q.id] || [];
+          const many = q.kind === 'many';
+          const ok = this.qCorrect(q, sel);
+          const KL = { one: 'یک پاسخ', many: 'چند پاسخ', tf: 'درست یا نادرست', short: 'پاسخ کوتاه' }[q.kind];
+          return {
+            num: fa(qi + 1), text: q.text, kindLabel: KL, isShort: q.kind === 'short',
+            answer: P.text[q.id] || '',
+            setAnswer: e => { const t = Object.assign({}, this.state.pv.text); t[q.id] = e.target.value; this.setPv({ text: t }); },
+            showExplain: P.checked && (q.kind === 'short' ? !!(q.answer || q.explain) : true),
+            explainText: q.kind === 'short' ? 'پاسخ نمونه: ' + (q.answer || q.explain) : (ok ? 'درست است. ' : 'نادرست. پاسخ درست: ' + this.qRight(q).map(i => q.opts[i].t).join('، ') + '. ') + (q.explain || ''),
+            explainStyle: 'padding: 10px 12px; border-radius: 10px; font-size: 13px; line-height: 1.9; ' + (q.kind === 'short' ? 'background: #E1F3F6; color: #1D7F92' : ok ? 'background: #E2F4EA; color: #0A7A45' : 'background: #FBE6EB; color: #A8314F'),
+            opts: q.kind === 'short' ? [] : q.opts.map((o, oi) => {
+              const on = sel.indexOf(oi) >= 0;
+              let st = 'display: flex; align-items: center; gap: 10px; text-align: start; padding: 11px 14px; border-radius: 12px; font-size: 14px; ';
+              if (!P.checked) st += on ? 'border: 1.5px solid #0A7A45; background: #E2F4EA; color: #262A4F' : 'border: 1px solid #CDD2DF; background: #FFFFFF; color: #3E4462';
+              else if (o.ok) st += 'border: 1.5px solid #0A7A45; background: #E2F4EA; color: #0A7A45; font-weight: 700';
+              else if (on) st += 'border: 1.5px solid #C23A5B; background: #FBE6EB; color: #A8314F';
+              else st += 'border: 1px solid #E3E6EE; background: #FFFFFF; color: #6C7290';
+              return {
+                t: o.t, on, style: st,
+                markStyle: 'flex: none; width: 18px; height: 18px; box-sizing: border-box; border-radius: ' + (many ? '5px' : '999px') + '; ' + (on ? 'border: 5px solid #0A8449; background: #FFFFFF' : 'border: 1.5px solid #CDD2DF; background: #FFFFFF'),
+                pick: () => {
+                  const pp = this.state.pv;
+                  if (pp.checked) return;
+                  const cs = pp.sel[q.id] || [];
+                  const isOn = cs.indexOf(oi) >= 0;
+                  const ns = Object.assign({}, pp.sel);
+                  ns[q.id] = many ? (isOn ? cs.filter(x => x !== oi) : cs.concat([oi])) : [oi];
+                  this.setPv({ sel: ns });
+                }
+              };
+            })
+          };
+        }),
+        ctaLabel, cta,
+        ctaStyle: 'width: 100%; height: 50px; border: 0; border-radius: 14px; font-size: 15px; font-weight: 700; ' + (ctaOn ? 'background: #0A8449; color: #FFFFFF' : 'background: #EEF1F2; color: #6C7290')
+      };
+    }
+    const pv = {
+      isList: !pl.ctaLabel, isLesson: !!pl.ctaLabel,
+      items,
+      meta: fa(totalP) + ' درس · ' + fa(mins) + ' دقیقه · بنیاد هدایت',
+      barStyle: 'height: 100%; background: #0E9F5A; border-radius: 999px; transition: width .48s; width: ' + (totalP ? Math.round(doneN / totalP * 100) : 0) + '%',
+      progressText: fa(doneN) + ' از ' + fa(totalP) + ' درس',
+      finished: totalP > 0 && doneN >= totalP,
+      finishText: S.cert ? 'همهٔ درس‌ها را گذراندی. گواهی‌ات آماده است.' : 'همهٔ درس‌ها را گذراندی.',
+      hasNext: firstOpen != null,
+      nextLabel: doneN === 0 ? 'شروع دوره' : 'ادامه از درس ' + fa(firstOpen != null ? numOf[ls[firstOpen].id] : 0),
+      openNext: () => { if (firstOpen != null) this.setPv({ at: firstOpen, checked: false, sel: {}, text: {} }); },
+      toList: () => this.setPv({ at: -1 })
+    };
+
+    // staff review
+    const noteCount = Object.keys(notes).length;
+    const rvRows = ls.map((l, i) => {
+      const lk = this.look(l.type);
+      return {
+        isSection: l.type === 'section', isLesson: l.type !== 'section',
+        num: fa(numOf[l.id] || 0), title: l.title || lk.name, meta: this.meta(l), d: lk.d,
+        iconStyle: 'flex: none; width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: ' + lk.bg + '; color: ' + lk.fg,
+        editing: s.noteFor === l.id,
+        hasNote: !!notes[l.id] && s.noteFor !== l.id, note: notes[l.id] || '',
+        startNote: () => this.setState({ noteFor: l.id, noteDraft: notes[l.id] || '' }),
+        dropNote: () => { const n = Object.assign({}, notes); delete n[l.id]; this.setState({ notes: n }); },
+        preview: () => this.setState({ screen: 'preview', pvBack: 'review', pv: Object.assign(this.pv0(), { at: i, done: playable.filter(j => j < i) }) })
+      };
+    });
+    const CHK = ['محتوا با رویکرد بنیاد هم‌خوان است', 'صدا و تصویر قابل استفاده است', 'آزمون‌ها و مأموریت روشن‌اند'];
+    const checks = CHK.map((c, i) => ({
+      label: c, on: !!s.checks[i],
+      toggle: () => { const a = this.state.checks.slice(); a[i] = !a[i]; this.setState({ checks: a }); },
+      boxStyle: 'flex: none; width: 22px; height: 22px; border-radius: 6px; display: flex; align-items: center; justify-content: center; ' + (s.checks[i] ? 'background: #0A8449; color: #FFFFFF' : 'border: 1.5px solid #CDD2DF; color: transparent')
+    }));
+    const hasRvNotes = noteCount > 0 || !!s.general.trim();
+
+    const course = (title, meta, st, action, mode) => ({ title, meta, status: st[0], chipStyle: chipBase + st[1], action, open: () => this.setState(this.initFor(mode, title)) });
+    const curAction = { draft: 'ادامهٔ ساختن', review: 'دیدن', returned: 'دیدن یادداشت‌ها', published: 'ویرایش' }[s.status];
+    const courses = [
+      { title: s.courseTitle || 'دورهٔ بی‌نام', meta: fa(lessonsOnly.length) + ' درس · ' + fa(readyN) + ' آماده', status: STATUS[0], chipStyle: chipBase + STATUS[1], action: curAction, open: () => this.setState({ screen: 'build', role: 'maker' }) },
+      course('اقتصاد مسجد', '۸ درس · ۲ یادداشت ستاد', STMAP.returned, 'دیدن یادداشت‌ها', 'returned'),
+      course('هیئت امنای فعال', '۳ فایل صوتی · در حال بارگذاری', STMAP.draft, 'ادامهٔ ساختن', 'audio'),
+      course('آشنایی با راهیاری', '۸ درس · کنشگرها می‌بینند', STMAP.published, 'ویرایش', 'published')
+    ];
+
+    const name = s.courseTitle.trim();
+    const banners = {
+      review: ['این دوره پیش ستاد است', 'اگر چیزی را عوض کنی، با همین بازبینی دیده می‌شود.', 'background: #FFF4D1; color: #8A6500'],
+      returned: [noteCount ? 'ستاد دوره را با ' + fa(noteCount) + ' یادداشت برگرداند' : 'همهٔ یادداشت‌ها را درست کردی. حالا دوباره بفرست.', s.general ? '«' + s.general + '» · کارشناس ستاد' : 'یادداشت‌ها زیر همان درس‌ها آمده‌اند.', 'background: #E4EEF7; color: #1F6FA8'],
+      published: ['این دوره منتشر شده است', 'تغییرهایت تا تأیید ستاد به کنشگرها نشان داده نمی‌شود و پیشرفت کسانی که شروع کرده‌اند سر جایش می‌ماند.', 'background: #E2F4EA; color: #0A7A45']
+    }[s.status];
+    const roleStyle = on => 'height: 28px; padding: 0 12px; border-radius: 999px; font-size: 13px; font-weight: 700; ' + (on ? 'border: 0; background: #FFFFFF; color: #262A4F' : 'border: 1px solid rgba(255,255,255,.35); background: transparent; color: #ECEEF6');
+    const canSubmit = lessonsOnly.length > 0 && !probs.length && !secBad && readyN === lessonsOnly.length;
+
+    return {
+      roleMakerStyle: roleStyle(s.role === 'maker'), roleStaffStyle: roleStyle(s.role === 'staff'),
+      asMaker: () => this.setState({ role: 'maker', screen: 'list', drawer: null, settings: false }),
+      asStaff: () => this.setState({ role: 'staff', screen: 'queue', drawer: null, settings: false }),
+      isList: s.screen === 'list', isStart: s.screen === 'start', isPaste: s.screen === 'paste', isBuild: s.screen === 'build',
+      isSent: s.screen === 'sent', isPreview: s.screen === 'preview', isQueue: s.screen === 'queue', isReview: s.screen === 'review',
+      courses,
+      courseTitle: s.courseTitle,
+      courseTitleShown: name || 'دورهٔ تازه',
+      setCourseTitle: e => this.setState({ courseTitle: e.target.value }),
+      courseDesc: s.courseDesc,
+      setCourseDesc: e => this.setState({ courseDesc: e.target.value }),
+      goList: () => this.setState({ screen: 'list', role: 'maker', drawer: null, settings: false }),
+      goStart: () => this.setState(this.initFor('start', null)),
+      goStartKeep: go('start'),
+      goPaste: go('paste'),
+      goScratch: go('build'),
+      goAudio: () => {
+        const add = [this.audioFile('جلسه-۱-مقدمه.mp3', 'جلسه ۱ مقدمه', 22, 0), this.audioFile('جلسه-۲-هیئت-امنا.mp3', 'جلسه ۲ هیئت امنا', 25, 0), this.audioFile('جلسه-۳-برنامه-رمضان.mp3', 'جلسه ۳ برنامهٔ رمضان', 19, 0)];
+        this.setState({ screen: 'build', lessons: ls.concat(add) });
+      },
+      pasteText: s.pasteText,
+      setPaste: e => this.setState({ pasteText: e.target.value }),
+      parsed,
+      pasteSummary: okCount ? fa(okCount) + ' ویدیو پیدا شد' : 'هنوز پیوندی پیدا نشد',
+      buildLabel: 'ساختن ' + fa(okCount) + ' درس',
+      buildFromPaste: () => { if (okCount) this.setState({ screen: 'build', lessons: ls.concat(parsed.filter(p => p.ok).map(p => this.video(p.hash))) }); },
+      rows, addKinds, endKinds,
+      dragEnd: () => this.setState({ drag: null, over: null }),
+      noLessons: ls.length === 0,
+      courseMeta: fa(lessonsOnly.length) + ' درس' + (mins ? ' · ' + fa(mins) + ' دقیقه' : ''),
+      problems: probs,
+      allReady: canSubmit,
+      readyText: fa(readyN) + ' از ' + fa(lessonsOnly.length) + ' درس آماده',
+      readyBarStyle: 'height: 100%; background: #0E9F5A; border-radius: 999px; transition: width .48s; width: ' + (lessonsOnly.length ? Math.round(readyN / lessonsOnly.length * 100) : 0) + '%',
+      showBanner: s.tried && probs.length > 0,
+      bannerText: 'هنوز نمی‌شود فرستاد: ' + fa(probs.length) + ' مورد مانده. از فهرست کنار، هر کدام را بزن تا همان‌جا باز شود.',
+      showStatusBanner: !!banners,
+      statusBannerTitle: banners ? banners[0] : '', statusBannerText: banners ? banners[1] : '',
+      statusBannerStyle: 'display: flex; flex-direction: column; gap: 4px; padding: 16px 18px; border-radius: 16px; ' + (banners ? banners[2] : ''),
+      statusChip: STATUS[0], statusChipStyle: chipBase + STATUS[1],
+      submitLabel: { draft: 'فرستادن برای بازبینی', review: 'فرستادن دوباره', returned: 'فرستادن دوباره', published: 'فرستادن تغییرها برای ستاد' }[s.status],
+      submit: () => {
+        if (canSubmit) this.setState({ screen: 'sent', status: 'review', tried: false, drawer: null, settings: false, notes: {}, general: '', checks: [false, false, false] });
+        else this.setState({ tried: true });
+      },
+      quickPaste: s.quickPaste,
+      setQuickPaste: e => this.setState({ quickPaste: e.target.value }),
+      addQuick: () => {
+        const ok = this.parse(s.quickPaste).filter(p => p.ok);
+        if (ok.length) { this.setState({ lessons: ls.concat(ok.map(p => this.video(p.hash))), quickPaste: '' }); this.toast(fa(ok.length) + ' ویدیو اضافه شد'); }
+      },
+      drawerOpen: !!cur,
+      dl,
+      settingsOpen: s.settings,
+      openSettings: () => this.setState({ settings: true, drawer: null }),
+      set,
+      close: () => this.setState({ drawer: null, settings: false }),
+      openPreview: () => this.setState({ screen: 'preview', pvBack: 'build', drawer: null, settings: false, pv: this.pv0() }),
+      pv, pl,
+      pvBackLabel: s.pvBack === 'review' ? '‹ بازگشت به بازبینی' : '‹ بازگشت به سازنده',
+      pvBackGo: () => this.setState({ screen: s.pvBack }),
+      pvReset: () => this.setState({ pv: this.pv0() }),
+      sentText: '«' + (name || 'دوره') + '» با ' + fa(lessonsOnly.length) + ' درس پیش ستاد است. نتیجهٔ بازبینی همین‌جا و با پیام بله به تو خبر داده می‌شود.',
+      backToBuild: go('build'),
+      reviewAsStaff: () => this.setState({ role: 'staff', screen: 'review' }),
+      queueHasCurrent: s.status === 'review',
+      queueHasDone: s.status === 'published' || s.status === 'returned',
+      queueMeta: fa(lessonsOnly.length) + ' درس · ' + fa(mins) + ' دقیقه · فرستاده‌شده امروز',
+      openReview: () => this.setState({ screen: 'review' }),
+      goQueue: () => this.setState({ screen: 'queue' }),
+      rvRows,
+      noteDraft: s.noteDraft,
+      setNoteDraft: e => this.setState({ noteDraft: e.target.value }),
+      saveNote: () => { const n = Object.assign({}, notes); if (s.noteDraft.trim()) n[s.noteFor] = s.noteDraft.trim(); else delete n[s.noteFor]; this.setState({ notes: n, noteFor: null, noteDraft: '' }); },
+      cancelNote: () => this.setState({ noteFor: null, noteDraft: '' }),
+      checks,
+      general: s.general,
+      setGeneral: e => this.setState({ general: e.target.value }),
+      reviewSummary: noteCount ? fa(noteCount) + ' یادداشت روی درس‌ها' + (s.general.trim() ? ' و یک یادداشت کلی' : '') : s.general.trim() ? 'یک یادداشت کلی' : 'یادداشتی نگذاشته‌ای.',
+      rvHasNotes: hasRvNotes, rvNoNotes: !hasRvNotes,
+      previewAll: () => this.setState({ screen: 'preview', pvBack: 'review', pv: this.pv0() }),
+      publish: () => { this.setState({ status: 'published', screen: 'queue', noteFor: null }); this.toast('«' + (name || 'دوره') + '» منتشر شد'); },
+      returnIt: () => { this.setState({ status: 'returned', screen: 'queue', noteFor: null }); this.toast('دوره با ' + fa(noteCount) + ' یادداشت برای سازنده برگشت'); },
+      hasToast: !!s.toast, toastText: s.toast || '', hasUndo: !!s.undo,
+      undo: () => {
+        const u = this.state.undo; if (!u) return;
+        const a = this.state.lessons.slice(); a.splice(Math.min(u.i, a.length), 0, u.l);
+        clearTimeout(this.tt);
+        this.setState({ lessons: a, toast: null, undo: null });
+      }
+    };
+  }
+}
+
+</script>
+</body>
+</html>

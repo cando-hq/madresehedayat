@@ -1,0 +1,483 @@
+{
+ "v": 3,
+ "layout": "files",
+ "createdOnFiles": {
+  "v": 1,
+  "at": "2026-11-10T21:45:00Z"
+ },
+ "title": "دیزاین‌سیستم مدرسهٔ هدایت",
+ "namespace": "MadreseHedayat",
+ "libraries": [],
+ "sections": {},
+ "groups": [
+  "Logos",
+  "Motifs",
+  "Patterns",
+  "Icons"
+ ],
+ "assetGroups": {
+  "Logos": {
+   "name": "Logos",
+   "tile": "l",
+   "order": [
+    "logo-full.png",
+    "logo-mark.png",
+    "logo-type-ink.png",
+    "logo-type.png",
+    "logo-type-white.png"
+   ],
+   "files": {
+    "logo-full.png": {
+     "name": "logo-full.png",
+     "blob": "6eca72a446dfc853ccbfee1311a594d0",
+     "size": 164554,
+     "type": "image/png"
+    },
+    "logo-mark.png": {
+     "name": "logo-mark.png",
+     "blob": "f03c6d182e7d7ed399619f8ae3481622",
+     "size": 92159,
+     "type": "image/png"
+    },
+    "logo-type-ink.png": {
+     "name": "logo-type-ink.png",
+     "blob": "ce0aed006fce62a276b4a6c135c5fb9e",
+     "size": 32894,
+     "type": "image/png"
+    },
+    "logo-type.png": {
+     "name": "logo-type.png",
+     "blob": "e3ae114b2f6a5d014c305b9ae78ea772",
+     "size": 61250,
+     "type": "image/png"
+    },
+    "logo-type-white.png": {
+     "name": "logo-type-white.png",
+     "blob": "0014ba8b693716c33d0fd1f561df59ef",
+     "size": 32857,
+     "type": "image/png"
+    }
+   }
+  },
+  "Motifs": {
+   "name": "Motifs",
+   "tile": "m",
+   "order": [
+    "neshan-flat.svg",
+    "neshan-ink.svg",
+    "neshan-white.svg",
+    "taq.svg",
+    "barg.svg",
+    "shoale.svg"
+   ],
+   "files": {
+    "neshan-flat.svg": {
+     "name": "neshan-flat.svg",
+     "blob": "931809b193dc6d87fa9311968d93fe81",
+     "size": 43834,
+     "type": "image/svg+xml"
+    },
+    "neshan-ink.svg": {
+     "name": "neshan-ink.svg",
+     "blob": "b0d55ac096ca822a3878966f4376c109",
+     "size": 43834,
+     "type": "image/svg+xml"
+    },
+    "neshan-white.svg": {
+     "name": "neshan-white.svg",
+     "blob": "1cbaa8b8b60019468713f09f827d949e",
+     "size": 43834,
+     "type": "image/svg+xml"
+    },
+    "taq.svg": {
+     "name": "taq.svg",
+     "blob": "4780ddea38f8b4df9c7f0178d39ecd58",
+     "size": 43835,
+     "type": "image/svg+xml"
+    },
+    "barg.svg": {
+     "name": "barg.svg",
+     "blob": "49b406a5980761a0e0b7812154e88e24",
+     "size": 43835,
+     "type": "image/svg+xml"
+    },
+    "shoale.svg": {
+     "name": "shoale.svg",
+     "blob": "ae5bab12b36a8750c88ef78430131c6f",
+     "size": 43836,
+     "type": "image/svg+xml"
+    }
+   }
+  },
+  "Patterns": {
+   "name": "Patterns",
+   "tile": "l",
+   "order": [
+    "chiraghan-navy.svg",
+    "neshan-leaf.svg",
+    "neshan-white.svg",
+    "bargriz-leaf.svg",
+    "bargriz-white.svg"
+   ],
+   "files": {
+    "chiraghan-navy.svg": {
+     "name": "chiraghan-navy.svg",
+     "blob": "838cb5a5b4447bf6104cb0af6b60c712",
+     "size": 44386,
+     "type": "image/svg+xml"
+    },
+    "neshan-leaf.svg": {
+     "name": "neshan-leaf.svg",
+     "blob": "98e15f918877e5503386e4a520d24aa1",
+     "size": 44402,
+     "type": "image/svg+xml"
+    },
+    "neshan-white.svg": {
+     "name": "neshan-white.svg",
+     "blob": "bb904bd9913384f31a6396f63bdd3ee3",
+     "size": 44414,
+     "type": "image/svg+xml"
+    },
+    "bargriz-leaf.svg": {
+     "name": "bargriz-leaf.svg",
+     "blob": "a807bd503409659302496dde807f3df5",
+     "size": 46993,
+     "type": "image/svg+xml"
+    },
+    "bargriz-white.svg": {
+     "name": "bargriz-white.svg",
+     "blob": "4e340335a2374a0d27b6ba351c3d59ed",
+     "size": 47005,
+     "type": "image/svg+xml"
+    }
+   }
+  },
+  "Icons": {
+   "name": "Icons",
+   "tile": "xs",
+   "order": [
+    "masjed.svg",
+    "masjed-bulk.svg",
+    "zendeh.svg",
+    "zendeh-bulk.svg",
+    "dore.svg",
+    "dore-bulk.svg",
+    "dars.svg",
+    "dars-bulk.svg",
+    "mamuriyat.svg",
+    "mamuriyat-bulk.svg",
+    "gozaresh.svg",
+    "gozaresh-bulk.svg",
+    "barname.svg",
+    "barname-bulk.svg",
+    "govahi.svg",
+    "govahi-bulk.svg",
+    "jaraqe.svg",
+    "jaraqe-bulk.svg",
+    "koneshgar.svg",
+    "koneshgar-bulk.svg",
+    "rahyar.svg",
+    "rahyar-bulk.svg",
+    "haste.svg",
+    "haste-bulk.svg",
+    "payam.svg",
+    "payam-bulk.svg",
+    "payam-hamegani.svg",
+    "payam-hamegani-bulk.svg",
+    "puyesh.svg",
+    "puyesh-bulk.svg",
+    "poshtibani.svg",
+    "poshtibani-bulk.svg",
+    "jabe-abzar.svg",
+    "jabe-abzar-bulk.svg",
+    "setad.svg",
+    "setad-bulk.svg",
+    "daneh.svg",
+    "daneh-bulk.svg",
+    "javaneh.svg",
+    "javaneh-bulk.svg",
+    "nahal.svg",
+    "nahal-bulk.svg",
+    "derakht.svg",
+    "derakht-bulk.svg"
+   ],
+   "files": {
+    "barname-bulk.svg": {
+     "name": "barname-bulk.svg",
+     "blob": "ce76f16adf90a398b8ef2741bb9cb2a2",
+     "size": 555,
+     "type": "image/svg+xml"
+    },
+    "barname.svg": {
+     "name": "barname.svg",
+     "blob": "6d7b9dcaaba6d7367d49f845169a92f8",
+     "size": 508,
+     "type": "image/svg+xml"
+    },
+    "daneh-bulk.svg": {
+     "name": "daneh-bulk.svg",
+     "blob": "713df7995586f0e0b93addc1c6de34ba",
+     "size": 399,
+     "type": "image/svg+xml"
+    },
+    "daneh.svg": {
+     "name": "daneh.svg",
+     "blob": "a6e90b510197aacca651209151af572d",
+     "size": 352,
+     "type": "image/svg+xml"
+    },
+    "dars-bulk.svg": {
+     "name": "dars-bulk.svg",
+     "blob": "653841ea21e1bd7220bbc907110d555d",
+     "size": 491,
+     "type": "image/svg+xml"
+    },
+    "dars.svg": {
+     "name": "dars.svg",
+     "blob": "75f08689a835b609910acc92b4d5118d",
+     "size": 444,
+     "type": "image/svg+xml"
+    },
+    "derakht-bulk.svg": {
+     "name": "derakht-bulk.svg",
+     "blob": "5820c918c373717eaa2bad0241031331",
+     "size": 467,
+     "type": "image/svg+xml"
+    },
+    "derakht.svg": {
+     "name": "derakht.svg",
+     "blob": "82284e1f7ba2e5642a4c0923a6e972ba",
+     "size": 420,
+     "type": "image/svg+xml"
+    },
+    "dore-bulk.svg": {
+     "name": "dore-bulk.svg",
+     "blob": "3ff4abc4c6b4bea1738ab07dc9722d80",
+     "size": 467,
+     "type": "image/svg+xml"
+    },
+    "dore.svg": {
+     "name": "dore.svg",
+     "blob": "78556c819feeb74ccb7ad0e1c761b51b",
+     "size": 420,
+     "type": "image/svg+xml"
+    },
+    "govahi-bulk.svg": {
+     "name": "govahi-bulk.svg",
+     "blob": "c40fb158e296bc935c42e846317c4f76",
+     "size": 491,
+     "type": "image/svg+xml"
+    },
+    "govahi.svg": {
+     "name": "govahi.svg",
+     "blob": "8e1f2572d1a4f6652a00e087c3196aff",
+     "size": 444,
+     "type": "image/svg+xml"
+    },
+    "gozaresh-bulk.svg": {
+     "name": "gozaresh-bulk.svg",
+     "blob": "eedd089ca98f72ad070e101dd72332ab",
+     "size": 477,
+     "type": "image/svg+xml"
+    },
+    "gozaresh.svg": {
+     "name": "gozaresh.svg",
+     "blob": "1c20de6a5eddd6d75bfe256a1d40e014",
+     "size": 430,
+     "type": "image/svg+xml"
+    },
+    "haste-bulk.svg": {
+     "name": "haste-bulk.svg",
+     "blob": "54554847486182a7f635b5bd5e7cc8f8",
+     "size": 565,
+     "type": "image/svg+xml"
+    },
+    "haste.svg": {
+     "name": "haste.svg",
+     "blob": "9cdf61aa1d3e6a3c1bccc3f09881f184",
+     "size": 471,
+     "type": "image/svg+xml"
+    },
+    "jabe-abzar-bulk.svg": {
+     "name": "jabe-abzar-bulk.svg",
+     "blob": "3c72fccedb19a7efb87a78db259a4c00",
+     "size": 471,
+     "type": "image/svg+xml"
+    },
+    "jabe-abzar.svg": {
+     "name": "jabe-abzar.svg",
+     "blob": "13f4f4dbc8b96a5a9458739dfc5e7492",
+     "size": 424,
+     "type": "image/svg+xml"
+    },
+    "jaraqe-bulk.svg": {
+     "name": "jaraqe-bulk.svg",
+     "blob": "97699ebec90dcfc02150763bce5a0a5b",
+     "size": 360,
+     "type": "image/svg+xml"
+    },
+    "jaraqe.svg": {
+     "name": "jaraqe.svg",
+     "blob": "404ad3a6c1693838ae0a0ec356ebd4c7",
+     "size": 313,
+     "type": "image/svg+xml"
+    },
+    "javaneh-bulk.svg": {
+     "name": "javaneh-bulk.svg",
+     "blob": "a3b1c6c4d6da23aac03c482afabeaadd",
+     "size": 472,
+     "type": "image/svg+xml"
+    },
+    "javaneh.svg": {
+     "name": "javaneh.svg",
+     "blob": "e5e402771d5dec68afe5bfd60acaab7a",
+     "size": 378,
+     "type": "image/svg+xml"
+    },
+    "koneshgar-bulk.svg": {
+     "name": "koneshgar-bulk.svg",
+     "blob": "ec77d4eac94ddedf50a29760b2b7277a",
+     "size": 504,
+     "type": "image/svg+xml"
+    },
+    "koneshgar.svg": {
+     "name": "koneshgar.svg",
+     "blob": "369b34e41f61f51250fea3661486c318",
+     "size": 410,
+     "type": "image/svg+xml"
+    },
+    "mamuriyat-bulk.svg": {
+     "name": "mamuriyat-bulk.svg",
+     "blob": "955ffe8d2f5434570e517b53822241e7",
+     "size": 395,
+     "type": "image/svg+xml"
+    },
+    "mamuriyat.svg": {
+     "name": "mamuriyat.svg",
+     "blob": "bf71ebc2d878ecdf4605f6d3d6f02167",
+     "size": 348,
+     "type": "image/svg+xml"
+    },
+    "masjed-bulk.svg": {
+     "name": "masjed-bulk.svg",
+     "blob": "e011edd43f956ce86fbcfef1e5dd6500",
+     "size": 665,
+     "type": "image/svg+xml"
+    },
+    "masjed.svg": {
+     "name": "masjed.svg",
+     "blob": "1318b8057c06f2aab893336401c61efb",
+     "size": 571,
+     "type": "image/svg+xml"
+    },
+    "nahal-bulk.svg": {
+     "name": "nahal-bulk.svg",
+     "blob": "44978a4410a61f1802e9eecaf8ca021e",
+     "size": 585,
+     "type": "image/svg+xml"
+    },
+    "nahal.svg": {
+     "name": "nahal.svg",
+     "blob": "d329267bafb6d8c464193fb921598b50",
+     "size": 444,
+     "type": "image/svg+xml"
+    },
+    "payam-bulk.svg": {
+     "name": "payam-bulk.svg",
+     "blob": "794eef46572a35a2e7a1cd1d154ee0e3",
+     "size": 473,
+     "type": "image/svg+xml"
+    },
+    "payam-hamegani-bulk.svg": {
+     "name": "payam-hamegani-bulk.svg",
+     "blob": "a19066c1c6e4f4a5ad81707e969b5309",
+     "size": 457,
+     "type": "image/svg+xml"
+    },
+    "payam-hamegani.svg": {
+     "name": "payam-hamegani.svg",
+     "blob": "a9b7d56aafc39fdd3ad5a6b8d0c12bd6",
+     "size": 410,
+     "type": "image/svg+xml"
+    },
+    "payam.svg": {
+     "name": "payam.svg",
+     "blob": "f6d80af8e09d16c849eeba598c00305b",
+     "size": 426,
+     "type": "image/svg+xml"
+    },
+    "poshtibani-bulk.svg": {
+     "name": "poshtibani-bulk.svg",
+     "blob": "765b3511bd3986b09c70f4c7162bf343",
+     "size": 535,
+     "type": "image/svg+xml"
+    },
+    "poshtibani.svg": {
+     "name": "poshtibani.svg",
+     "blob": "e6df4a30d90735d9a6eaa517486231c7",
+     "size": 441,
+     "type": "image/svg+xml"
+    },
+    "puyesh-bulk.svg": {
+     "name": "puyesh-bulk.svg",
+     "blob": "cec75b1ea5f19bf66777b5f118cd39e2",
+     "size": 355,
+     "type": "image/svg+xml"
+    },
+    "puyesh.svg": {
+     "name": "puyesh.svg",
+     "blob": "da259b04491428a62b2bcbf1ec7f35bf",
+     "size": 308,
+     "type": "image/svg+xml"
+    },
+    "rahyar-bulk.svg": {
+     "name": "rahyar-bulk.svg",
+     "blob": "bbcc0da3253496c31716a10431cfdc6b",
+     "size": 339,
+     "type": "image/svg+xml"
+    },
+    "rahyar.svg": {
+     "name": "rahyar.svg",
+     "blob": "748f88c030ea2384909d2c5d7a5f5c27",
+     "size": 292,
+     "type": "image/svg+xml"
+    },
+    "setad-bulk.svg": {
+     "name": "setad-bulk.svg",
+     "blob": "dd88e7e16096cccb3b0cc84f74f13f18",
+     "size": 432,
+     "type": "image/svg+xml"
+    },
+    "setad.svg": {
+     "name": "setad.svg",
+     "blob": "4ece5832f6924e855dc17025d8873984",
+     "size": 385,
+     "type": "image/svg+xml"
+    },
+    "zendeh-bulk.svg": {
+     "name": "zendeh-bulk.svg",
+     "blob": "c37a8c5294b33d12ebd8480530db00e3",
+     "size": 621,
+     "type": "image/svg+xml"
+    },
+    "zendeh.svg": {
+     "name": "zendeh.svg",
+     "blob": "9e18153fc8d7e1578bcff4dc5a7bc685",
+     "size": 574,
+     "type": "image/svg+xml"
+    }
+   }
+  }
+ },
+ "blobs": {},
+ "docs": {
+  "readme": "project/README.md",
+  "sections": []
+ },
+ "lastChange": {
+  "by": "Claude",
+  "at": "2026-11-10T22:52:00Z",
+  "via": "claude.ai",
+  "note": "نظام حرکت (سه مدت، یک منحنی، ورود پله‌ای) و ریتم فاصله‌ها"
+ }
+}

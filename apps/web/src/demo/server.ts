@@ -282,7 +282,7 @@ const HOOK: Any = { subscribedCourseIds: () => [], certOrgName: () => null, even
 
 // احراز هویت
 on('POST', '/auth/otp', (_m, b) => { const mob = normMobile(b.mobile); if (!mob) throw E(400, 'bad_mobile', 'شماره باید ۱۱ رقم باشد و با ۰۹ شروع شود'); DBV.otpMobile = mob; const ch = b.via === 'sms' ? 'SMS' : 'BALE'; return { sent: true, channel: ch, alt: ch === 'SMS' ? 'BALE' : 'SMS', resendIn: 60, isNew: !DBV.users.some((u) => u.mobile === mob), devCode: DEMO_CODE }; });
-on('GET', '/auth/options', () => ({ sso: false, bale: false, baleBot: true }));
+on('GET', '/auth/options', () => ({ sso: false, bale: false, baleBot: true, login: 'bale' }));
 on('POST', '/auth/verify', (_m, b) => {
   const mob = normMobile(b.mobile);
   if (String(b.code) !== DEMO_CODE) throw E(400, 'otp_wrong', 'کد درست نیست؛ در نسخهٔ نمایشی کد ۱۲۳۴۵ است');

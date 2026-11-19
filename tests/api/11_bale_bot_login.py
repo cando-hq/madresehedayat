@@ -20,10 +20,12 @@ N = f'{random.randint(1000, 9999)}'
 M = '0912777' + N
 psql(f"delete from otp_requests")
 print('۱. پیامک راه نیفتاده: صفحهٔ ورود به بات بله می‌فرستد')
-o = requests.get(f'{B2}/auth/options').json(); ok(o.get('baleBot') is True, 'گزینهٔ بات روشن است', o)
+o = requests.get(f'{B2}/auth/options').json(); ok(o.get('baleBot') is True and o.get('login') == 'bale', 'گزینهٔ بات روشن است و راه ورود فقط بله', o)
 s = requests.Session(); s.headers['X-Forwarded-For'] = rand_ip()
 j = s.post(f'{B2}/auth/otp', json={'mobile': M}).json()
 ok(j.get('channel') == 'BALE_BOT' and re.fullmatch(r'https://ble\.ir/\w+\?start=login', j.get('botUrl') or '') and 'devCode' not in j, 'کانال بات و نشانی بات', j)
+j2 = requests.post(f'{B2}/auth/otp', json={'mobile': '0912888' + N, 'via': 'sms'}, headers={'X-Forwarded-For': rand_ip()}).json()
+ok(j2.get('channel') == 'BALE_BOT', 'درخواست پیامک هم به بات می‌رود (پیامک خاموش است)', j2)
 print('۲. /start: بات دکمهٔ «شماره‌ام را بفرست» می‌دهد')
 push(message_id=1, chat={'id': 501}, **{'from': {'id': 501}}, text='/start login')
 s1 = sent_after(0); kb = s1[-1].get('reply_markup', {}).get('keyboard', [[{}]])[0][0]

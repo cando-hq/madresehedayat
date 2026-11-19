@@ -47,6 +47,8 @@ export class AuthService {
 
   /** پیامک واقعاً می‌رود؟ (در محیط اجرا با SMS_PROVIDER=console هیچ پیامکی نمی‌رود) */
   private get smsReady() { return config.smsProvider !== 'console' || config.isDev; }
+  /** راه ورود این سرور: پیامک، یا اگر پیامک راه نیفتاده فقط بات بله، یا هیچ (ورود بسته) */
+  get loginMode(): 'sms' | 'bale' | 'off' { return this.smsReady ? 'sms' : this.messenger.baleBotUrl ? 'bale' : 'off'; }
 
   /**
    * ورود با بات بله: بله شمارهٔ کاربر را تأیید کرده (دکمهٔ «شماره‌ام را بفرست»)، کد همان‌جا در گفت‌وگو می‌رود.
@@ -92,6 +94,8 @@ export class AuthService {
     if (recent.length >= MAX_PER_HOUR) {
       throw new HttpException({ code: 'otp_limit', message: 'در این یک ساعت کد زیادی خواستی؛ یک ساعت دیگر دوباره امتحان کن' }, HttpStatus.TOO_MANY_REQUESTS);
     }
+    if (this.loginMode === 'off') throw new BadRequestException({ code: 'login_off', message: 'ورود فعلاً بسته است؛ به ستاد مدرسه خبر بده' });
+    if (via === 'sms' && !this.smsReady) via = undefined; // پیامک خاموش است؛ همان راه بله
     if (via === 'bale' && !this.safir.enabled) throw new BadRequestException({ code: 'bale_off', message: 'فرستادن کد در بله فعلاً روشن نیست؛ با پیامک بگیر' });
     const code = String(randomInt(10000, 100000)); // هیچ‌وقت با صفر شروع نمی‌شود (بله کد را عدد می‌خواند)
     const [row] = await this.db.insert(otpRequests).values({ mobile: mobileKey(mobile), codeHash: this.otpHash(mobile, code), expiresAt: new Date(Date.now() + OTP_TTL_MS) }).returning({ id: otpRequests.id });

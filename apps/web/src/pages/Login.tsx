@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { CircleAlert, KeyRound, ShieldCheck } from 'lucide-react';
+import { CircleAlert, KeyRound, Send, ShieldCheck } from 'lucide-react';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { eitaaApp, eitaaContact, inEitaa } from '../lib/eitaa';
 import { Link, useNavigate, useSearchParams } from 'react-router';
@@ -25,6 +25,9 @@ export default function Login() {
   const homeOf = (u: Me | null | undefined) => asked || (!u || u.onboarded !== false ? '/'
     : u.roles.some((r) => r === 'HQ_ADMIN' || r === 'HQ_OPERATOR') ? '/admin' : u.publisher ? '/pub' : u.roles.includes('INSTRUCTOR') ? '/studio' : u.roles.includes('RAHYAR') ? '/rahyar' : '/');
   const next = homeOf(me);
+  // پیامک راه نیفتاده و بات بله روشن است: ورود فقط با بله
+  const opts = useQuery({ queryKey: ['auth-options'], queryFn: () => api<AuthOptions>('/auth/options'), staleTime: 3600_000, retry: false });
+  const baleOnly = opts.data?.login === 'bale';
   const [step, setStep] = useState<Step>('mobile');
   const [mobile, setMobile] = useState('');
   const [code, setCode] = useState('');
@@ -61,7 +64,7 @@ export default function Login() {
     setErr(''); setBusy(true);
     try {
       const contact = await eitaaContact();
-      if (!contact) { setErr('شماره از ایتا نرسید؛ با کد پیامکی وارد شو.'); return; }
+      if (!contact) { setErr('شماره از ایتا نرسید؛ شماره‌ات را بزن و با کد وارد شو.'); return; }
       const r = await api<{ needsRegistration: boolean; regToken?: string; user?: any }>('/auth/eitaa/contact', { body: { contact } });
       if (r.needsRegistration) { setRegToken(r.regToken!); setStep('register'); } else setMe(r.user);
     } catch (e) { setErr((e as Error).message); } finally { setBusy(false); }
@@ -76,7 +79,8 @@ export default function Login() {
     try {
       const r = await api<{ resendIn: number; isNew: boolean; devCode?: string; channel: 'SMS' | 'BALE' | 'EITAA' | 'BALE_BOT'; alt?: 'SMS' | 'BALE' | null; botUrl?: string | null }>('/auth/otp', { body: { mobile: m, ...(via ? { via } : {}) } });
       setMobile(m); setIsNew(r.isNew); setChannel(r.channel ?? 'SMS'); setBotUrl(r.botUrl ?? null); setAlt(r.alt !== undefined ? r.alt : r.channel && r.channel !== 'SMS' && r.channel !== 'BALE_BOT' ? 'SMS' : null); setDevCode(r.devCode ?? null); setWait(r.resendIn); setCode(''); setInfo(''); setStep('code');
-      setTimeout(() => codeRef.current?.focus(), 50);
+      // در حالت بات، صفحه‌کلید گوشی روی دکمهٔ بات نیاید؛ کاربر اول بات را باز می‌کند
+      if (r.channel !== 'BALE_BOT') setTimeout(() => codeRef.current?.focus(), 50);
     } catch (e) {
       const a = e as ApiError;
       if (a.code === 'otp_wait') { setMobile(m); setStep('code'); setWait(a.data?.wait ?? 60); setInfo(a.message); setTimeout(() => codeRef.current?.focus(), 50); return; }
@@ -115,8 +119,8 @@ export default function Login() {
           </div>
           {step === 'mobile' && (
             <form onSubmit={sendCode} noValidate className="rise flex flex-1 flex-col sm:flex-none">
-              <h1 className="text-[26px] font-extrabold leading-tight">ورود به مدرسه</h1>
-              <p className="mt-2 text-[15px] text-muted">شماره‌ات را بزن تا کد ورود برایت بفرستیم.</p>
+              <h1 className="text-[26px] font-extrabold leading-tight">{baleOnly ? 'ورود با بله' : 'ورود به مدرسه'}</h1>
+              <p className="mt-2 text-[15px] text-muted">{baleOnly ? 'شماره‌ات را بزن؛ کد ورود را بات مدرسه در بله به تو می‌دهد.' : 'شماره‌ات را بزن تا کد ورود برایت بفرستیم.'}</p>
               {expired && <p className="mt-4 rounded-xl bg-flame-soft px-3 py-2 text-sm text-flame-ink" role="status">برای امنیت حسابت دوباره وارد شو؛ بعد به همان صفحه برمی‌گردی.</p>}
               <div className="field mt-8">
                 <label htmlFor="mobile" className="sr-only">شمارهٔ موبایل</label>
@@ -128,7 +132,7 @@ export default function Login() {
                 <p className="text-sm text-body"><b className="text-ink">سلام{eitaa.name ? ` ${eitaa.name}` : ''}!</b> از ایتا آمده‌ای؛ با شمارهٔ ایتایت بدون کد وارد شو.</p>
                 <button type="button" className="btn btn-primary" disabled={busy} onClick={withEitaaPhone}>ورود با شمارهٔ ایتا</button>
               </div>}
-              <button className={`btn btn-lg mt-6 w-full ${eitaa ? 'btn-secondary' : 'btn-primary'}`} disabled={busy}>{busy ? 'در حال فرستادن…' : 'کد را بفرست'}</button>
+              <button className={`btn btn-lg mt-6 w-full ${eitaa ? 'btn-secondary' : 'btn-primary'}`} disabled={busy}>{busy ? 'یک لحظه…' : baleOnly ? <><Send className="size-5" />ادامه با بله</> : 'کد را بفرست'}</button>
               <SsoButton />
               <p className="mt-auto pt-10 text-center text-[13px] text-muted sm:mt-8 sm:pt-0">ورود یعنی پذیرفتن <Link to="/terms" className="inline-block py-2 font-semibold text-leaf-ink">شرایط و حریم خصوصی</Link></p>
             </form>
@@ -136,18 +140,25 @@ export default function Login() {
           {step === 'code' && (
             <form onSubmit={verify} noValidate className="rise">
               <h1 className="text-[26px] font-extrabold leading-tight">{channel === 'BALE_BOT' ? 'کد را از بله بگیر' : 'کد را بزن'}</h1>
-              <p className="mt-2 text-[15px] text-muted">
-                {channel === 'BALE_BOT' ? 'بات مدرسه را در بله باز کن و «شماره‌ام را بفرست» را بزن. کد برای ' : channel === 'SMS' ? 'پیامک شد به ' : `در ${channel === 'BALE' ? 'بله' : 'ایتا'} رفت برای `}
+              {channel === 'BALE_BOT' ? <>
+                <p className="mt-2 text-[15px] text-muted">برای <b dir="ltr" className="tnum text-ink">{maskMobile(mobile)}</b>
+                  <button type="button" className="ms-2 inline-block py-1 font-bold text-leaf-ink" onClick={back}>عوض کن</button></p>
+                <ol className="mt-5 grid gap-3 text-[15px] text-body">
+                  <li className="flex gap-3"><Num n={1} /><span>بات مدرسه را در بله باز کن.</span></li>
+                  <li className="flex gap-3"><Num n={2} /><span>در بات دکمهٔ «شماره‌ام را بفرست» را بزن.</span></li>
+                  <li className="flex gap-3"><Num n={3} /><span>کد پنج‌رقمی را که بات داد این‌جا بزن.</span></li>
+                </ol>
+                {botUrl && <a href={botUrl} target="_blank" rel="noopener noreferrer" className="btn btn-primary btn-lg mt-6 w-full"><Send className="size-5" />باز کردن بات در بله</a>}
+              </> : <p className="mt-2 text-[15px] text-muted">
+                {channel === 'SMS' ? 'پیامک شد به ' : `در ${channel === 'BALE' ? 'بله' : 'ایتا'} رفت برای `}
                 <b dir="ltr" className="tnum text-ink">{maskMobile(mobile)}</b>
-                {channel === 'BALE_BOT' && ' همان‌جا می‌آید.'}
                 <button type="button" className="ms-2 inline-block py-1 font-bold text-leaf-ink" onClick={back}>عوض کن</button>
-              </p>
-              {channel === 'BALE_BOT' && botUrl && <a href={botUrl} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-lg mt-6 w-full">باز کردن بات در بله</a>}
+              </p>}
               <OtpBoxes inputRef={codeRef} value={digits} invalid={!!err} onChange={(v) => { setCode(v); setErr(''); }} />
               <div className="mt-3 min-h-6 text-center" aria-live="polite">
                 {err ? <p className="err justify-center" role="alert"><CircleAlert className="size-4" />{err}</p> : info ? <p className="hint">{info}</p> : devCode ? <p className="hint">آزمایشی: کد <b className="tnum">{fa(devCode)}</b></p> : null}
               </div>
-              <button className="btn btn-primary btn-lg mt-6 w-full" disabled={busy || digits.length < 5}>{busy ? 'در حال بررسی…' : isNew ? 'ادامه' : 'ورود'}</button>
+              <button className={`btn btn-lg mt-6 w-full ${channel === 'BALE_BOT' && digits.length < 5 ? 'btn-secondary' : 'btn-primary'}`} disabled={busy || digits.length < 5}>{busy ? 'در حال بررسی…' : isNew ? 'ادامه' : 'ورود'}</button>
               <div className="mt-5 grid justify-items-center gap-1 text-sm">
                 {channel === 'BALE_BOT' ? null : wait > 0 ? <span className="tnum py-2 text-muted">کد تازه تا {fa(Math.floor(wait / 60))}:{fa(String(wait % 60).padStart(2, '0'))}</span>
                   : <button type="button" className="py-2 font-bold text-leaf-ink" onClick={() => sendCode()} disabled={busy}>کد تازه بگیر</button>}
@@ -164,6 +175,9 @@ export default function Login() {
     </div>
   );
 }
+
+type AuthOptions = { sso: boolean; bale: boolean; baleBot: boolean; login?: 'sms' | 'bale' | 'off' };
+const Num = ({ n }: { n: number }) => <span className="grid size-6 shrink-0 place-items-center rounded-full bg-leaf-soft text-[13px] font-extrabold text-leaf-ink tnum">{fa(n)}</span>;
 
 /** پنج خانهٔ کد: یک input واقعی (برای پر شدن خودکار کد پیامکی و صفحه‌خوان) روی پنج خانهٔ نمایشی */
 function OtpBoxes({ value, onChange, invalid, inputRef }: { value: string; onChange: (v: string) => void; invalid: boolean; inputRef: React.RefObject<HTMLInputElement | null> }) {
@@ -186,7 +200,7 @@ function OtpBoxes({ value, onChange, invalid, inputRef }: { value: string; onCha
 
 function SsoButton() {
   const [msg, setMsg] = useState('');
-  const opts = useQuery({ queryKey: ['auth-options'], queryFn: () => api<{ sso: boolean; bale: boolean }>('/auth/options'), staleTime: 3600_000, retry: false });
+  const opts = useQuery({ queryKey: ['auth-options'], queryFn: () => api<AuthOptions>('/auth/options'), staleTime: 3600_000, retry: false });
   if (!opts.data?.sso) return null; // تا «ورود با سامانهٔ پایه» وصل نشده، دکمه‌اش هم نیست
   return (
     <>

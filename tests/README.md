@@ -33,6 +33,7 @@ npm run db:migrate && SEED_DEMO=true npm run seed
 PORT=3100 SMS_PROVIDER=console STAFF_MFA=on \
 EITAA_APP_TOKEN=test:eitaa-token \
 BBB_URL=http://127.0.0.1:9300/bigbluebutton/api BBB_SECRET=testsecret \
+BALE_SAFIR_URL=http://127.0.0.1:9310/api/v3 BALE_SAFIR_API_KEY=test-safir-key BALE_SAFIR_BOT_ID=12345 \
 node dist/main.js
 ```
 

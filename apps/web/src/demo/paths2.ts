@@ -394,13 +394,14 @@ export function registerPaths2(X: Any) {
   });
   on('POST', '/v2/admin/review/([^/]+)/([^/]+)', (m: Any, b: Any) => {
     const u = staff(); const [, kind, id] = m; const ok = b.action === 'publish';
-    if (!ok && !b.note?.trim()) throw E(400, 'need_note', 'برای برگرداندن، دلیل را بنویس');
+    const notes: Record<string, string> = {}; for (const [k, v] of Object.entries(b.notes ?? {})) if (typeof v === 'string' && v.trim()) notes[k] = v.trim().slice(0, 500);
+    if (!ok && !b.note?.trim() && !Object.keys(notes).length) throw E(400, 'need_note', 'برای برگرداندن، دلیل را بنویس');
     let title = '', owner: string[] = [];
     if (kind === 'path') { const p = PATH(id); p.status = ok ? 'PUBLISHED' : 'RETURNED'; p.returnNote = ok ? null : b.note; p.reviewedAt = now(); title = p.title; owner = adminsOf(p.publisherId); }
-    else if (kind === 'course') { const c = C(id); c.reviewStatus = ok ? 'PUBLISHED' : 'RETURNED'; if (ok) { c.status = 'PUBLISHED'; c.publishedAt = now(); } c.returnNote = ok ? null : b.note; title = c.title; owner = adminsOf(c.publisherId); }
+    else if (kind === 'course') { const c = C(id); c.reviewStatus = ok ? 'PUBLISHED' : 'RETURNED'; if (ok) { c.status = 'PUBLISHED'; c.publishedAt = now(); } c.returnNote = ok ? null : (b.note?.trim() || null); c.reviewNotes = ok ? {} : notes; title = c.title; owner = adminsOf(c.publisherId); }
     else if (kind === 'live') { const e = DB().events.find((x: Any) => x.id === id); if (!e) throw E(404, 'no_event', ''); e.reviewStatus = ok ? 'PUBLISHED' : 'RETURNED'; if (ok) e.status = 'PUBLISHED'; e.returnNote = ok ? null : b.note; title = e.title; owner = adminsOf(e.publisherId); }
     else if (kind === 'publisher') { const p = pub(id); if (!p) throw E(404, 'no_pub', ''); p.status = ok ? 'ACTIVE' : 'REJECTED'; p.note = b.note ?? null; title = p.name; }
-    if (owner.length) notify(owner, { kind: 'review', title: ok ? `«${title}» منتشر شد` : `«${title}» برگشت: ${b.note}`, link: '/pub' });
+    if (owner.length) notify(owner, { kind: 'review', title: ok ? `«${title}» منتشر شد` : `«${title}» برگشت${b.note?.trim() ? `: ${b.note.trim()}` : ` با ${Object.keys(notes).length} یادداشت`}`, link: '/pub' });
     DB().audit.unshift({ id: rid(), actorId: u.id, action: ok ? 'review.publish' : 'review.return', target: id, createdAt: now() });
     return { ok: true };
   });
@@ -430,11 +431,13 @@ export function registerPaths2(X: Any) {
     if (!String(c.about ?? '').trim()) p.push('توضیح دوره خالی است');
     if (!ls.length) p.push('دوره هنوز درسی ندارد');
     for (const l of ls) { const e = lessonProblem(l.type, l.content); if (e) p.push(`درس «${l.title}»: ${e}`); }
+    for (const id of Object.keys(c.reviewNotes ?? {})) p.push(`یادداشت ستاد روی «${ls.find((l: Any) => l.id === id)?.title ?? 'یک درس'}» هنوز باز است`);
     if (p.length) throw E(400, 'not_ready', p.length === 1 ? p[0] : `${p.length} مورد مانده؛ فهرستش بالای صفحه است`, { problems: p });
   };
   X.readyOrThrow = readyOrThrow;
-  X.wrap('GET', '/admin/courses/([^/]+)', (orig: Any) => (m: Any, b: Any, q: Any) => { const r = orig(m, b, q); return { ...r, modules: (r.modules ?? []).map((md: Any) => ({ ...md, lessons: md.lessons.map((l: Any) => ({ ...l, problem: lessonProblem(l.type, l.content) })) })) }; });
-  X.wrap('POST', '/v2/pub/courses/([^/]+)/submit', (orig: Any) => (m: Any, b: Any, q: Any) => { X.readyOrThrow?.(C(m[1])); return orig(m, b, q); });
+  X.wrap('GET', '/admin/courses/([^/]+)', (orig: Any) => (m: Any, b: Any, q: Any) => { const r = orig(m, b, q); const cc = C(m[1]); return { ...r, reviewStatus: cc.reviewStatus ?? null, returnNote: cc.returnNote ?? null, reviewNotes: cc.reviewNotes ?? {}, modules: (r.modules ?? []).map((md: Any) => ({ ...md, lessons: md.lessons.map((l: Any) => ({ ...l, problem: lessonProblem(l.type, l.content) })) })) }; });
+  X.wrap('POST', '/v2/pub/courses/([^/]+)/submit', (orig: Any) => (m: Any, b: Any, q: Any) => { const c = C(m[1]); X.readyOrThrow?.(c); const r = orig(m, b, q); c.returnNote = null; c.reviewNotes = {}; return r; });
+  on('DELETE', '/admin/courses/([^/]+)/review-notes/([^/]+)', (m: Any) => { const c = C(m[1]); const n = { ...(c.reviewNotes ?? {}) }; delete n[m[2]]; c.reviewNotes = n; return { ok: true, open: Object.keys(n).length }; });
   X.wrap('POST', '/auth/register', (orig: Any) => (m: Any, b: Any, q: Any) => { const r = orig(m, b, q); return { ...r, user: { ...r.user, onboarded: false, actorRole: null } }; });
 }
 
@@ -472,7 +475,7 @@ export function registerStudio(X: Any) {
     DB().courses.push(c); DB().modules.push({ id: rid(), courseId: c.id, title: 'درس‌ها', order: 0 }); return c;
   });
   on('POST', '/v2/studio/courses/([^/]+)/submit', (m: Any) => { const u = needOstad(); const c = C(m[1]); if (c.instructorId !== u.id) throw E(403, 'forbidden', 'این دوره مال شما نیست'); if (!allLessons(c.id).length) throw E(400, 'not_ready', 'دوره هنوز درسی ندارد'); c.reviewStatus = 'IN_REVIEW'; c.submittedAt = now(); notify(DB().roles.filter((r: Any) => r.role === 'HQ_ADMIN').map((r: Any) => r.userId), { kind: 'review', title: `دورهٔ تازه برای بازبینی: ${c.title}`, body: nm(u.id), link: '/admin/review' }); return { ok: true }; });
-  X.wrap('POST', '/v2/studio/courses/([^/]+)/submit', (orig: Any) => (m: Any, b: Any, q: Any) => { X.readyOrThrow?.(C(m[1])); return orig(m, b, q); });
+  X.wrap('POST', '/v2/studio/courses/([^/]+)/submit', (orig: Any) => (m: Any, b: Any, q: Any) => { const c = C(m[1]); X.readyOrThrow?.(c); const r = orig(m, b, q); c.returnNote = null; c.reviewNotes = {}; return r; });
   // برگزارکننده استاد را به دوره می‌سپارد
   on('POST', '/v2/pub/courses/([^/]+)/instructor', (m: Any, b: Any) => {
     const u = me(); const pid = DB().roles.find((r: Any) => r.userId === u.id && r.role === 'ORG_ADMIN')?.networkId; const c = C(m[1]); if (!pid || c.publisherId !== pid) throw E(403, 'forbidden', 'این دوره مال شما نیست');

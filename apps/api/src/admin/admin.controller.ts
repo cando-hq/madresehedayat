@@ -88,6 +88,8 @@ export class AdminController {
   @Get('courses/:id') @Roles('HQ_ADMIN', 'HQ_OPERATOR', 'ORG_ADMIN', 'INSTRUCTOR') async course(@CurrentUser() u: AuthUser, @Param('id') id: string) { await this.own(u, id); return this.admin.getCourse(id); }
   @Get('courses/:id/problems') @Roles('HQ_ADMIN', 'HQ_OPERATOR', 'ORG_ADMIN', 'INSTRUCTOR') async problems(@CurrentUser() u: AuthUser, @Param('id') id: string) { await this.own(u, id); return this.admin.publishProblems(id); }
   @Patch('courses/:id') @Roles('HQ_ADMIN', 'HQ_OPERATOR', 'ORG_ADMIN', 'INSTRUCTOR') async updateCourse(@CurrentUser() u: AuthUser, @Param('id') id: string, @Body() d: UpdateCourseDto) { await this.own(u, id); if (!u.roles.includes('HQ_ADMIN') && !u.roles.includes('HQ_OPERATOR')) delete (d as any).status; return this.admin.updateCourse(u.id, id, d); }
+  /** سازنده یادداشت ستاد روی یک درس را «درست کردم» می‌زند */
+  @Delete('courses/:id/review-notes/:lessonId') @Roles('HQ_ADMIN', 'HQ_OPERATOR', 'ORG_ADMIN', 'INSTRUCTOR') async resolveNote(@Param('id') id: string, @Param('lessonId') lessonId: string, @CurrentUser() u: AuthUser) { await this.own(u, id); return this.admin.resolveReviewNote(id, lessonId); }
   @Delete('courses/:id') @Roles('HQ_ADMIN') deleteCourse(@CurrentUser() u: AuthUser, @Param('id') id: string) { return this.admin.deleteCourse(u.id, id); }
   @Put('courses/:id/dependencies') deps(@CurrentUser() u: AuthUser, @Param('id') id: string, @Body() d: DepsDto) { return this.admin.setDependencies(u.id, id, d.deps); }
   @Post('courses/:id/modules') @Roles('HQ_ADMIN', 'HQ_OPERATOR', 'ORG_ADMIN', 'INSTRUCTOR') async addModule(@CurrentUser() u: AuthUser, @Param('id') id: string, @Body() d: TitleDto) { await this.own(u, id); return this.admin.addModule(id, d.title); }

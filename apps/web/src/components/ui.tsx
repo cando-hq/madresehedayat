@@ -153,6 +153,31 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 }
 
 /* ───────── پنجرهٔ گفت‌وگو ───────── */
+/** پنل کناری (برای ویرایش درس و تنظیمات): از سمت چپ صفحه باز می‌شود و فهرست پشتش دیده می‌ماند */
+export function Drawer({ open, onClose, title, kicker, icon, children, footer }: { open: boolean; onClose: () => void; title: string; kicker?: string; icon?: ReactNode; children: ReactNode; footer?: ReactNode }) {
+  const ref = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    const d = ref.current; if (!d) return;
+    if (open && !d.open) d.showModal(); else if (!open && d.open) d.close();
+  }, [open]);
+  return (
+    <dialog ref={ref} onClose={onClose} onClick={(e) => { if (e.target === ref.current) onClose(); }}
+      className="drawer m-0 ms-auto h-dvh max-h-dvh w-[min(560px,100%)] max-w-none border-0 bg-card p-0 text-body shadow-lift backdrop:bg-ink/30">
+      {open && (
+        <div className="flex h-full flex-col">
+          <div className="flex items-center gap-3 border-b border-line px-5 py-4">
+            {icon}
+            <div className="min-w-0 flex-1">{kicker && <span className="block text-xs text-muted">{kicker}</span>}<h2 className="truncate text-base font-extrabold">{title}</h2></div>
+            <button className="btn btn-ghost btn-icon btn-sm" onClick={onClose} aria-label="بستن"><X className="size-5" /></button>
+          </div>
+          <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">{children}</div>
+          {footer && <div className="flex flex-wrap items-center gap-2 border-t border-line px-5 py-3">{footer}</div>}
+        </div>
+      )}
+    </dialog>
+  );
+}
+
 export function Dialog({ open, onClose, title, children, wide }: { open: boolean; onClose: () => void; title: string; children: ReactNode; wide?: boolean }) {
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => {

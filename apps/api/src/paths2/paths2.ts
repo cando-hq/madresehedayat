@@ -7,7 +7,7 @@
  */
 import { BadRequestException, Body, Controller, ForbiddenException, Get, HttpCode, Injectable, NotFoundException, Param, Patch, Post, Query } from '@nestjs/common';
 import { AdminService } from '../admin/admin.service';
-import { ArrayMaxSize, IsArray, IsBoolean, IsIn, IsNumber, IsOptional, IsString, Length } from 'class-validator';
+import { ArrayMaxSize, IsArray, IsBoolean, IsIn, IsNumber, IsObject, IsOptional, IsString, Length } from 'class-validator';
 import { and, asc, desc, eq, inArray, isNotNull, sql } from 'drizzle-orm';
 import { AuthUser, CurrentUser, MaybeUser, Public, Roles } from '../common/auth.decorators';
 import { decJson, mobileKey } from '../common/crypto';
@@ -49,7 +49,7 @@ class OnboardDto {
   @IsOptional() @IsBoolean() enrollMain?: boolean;
 }
 class MosqueDto { @IsString() @Length(3, 80) name: string; @IsOptional() @IsString() countyId?: string; @IsOptional() @IsString() @Length(0, 160) address?: string; @IsOptional() @IsNumber() lat?: number; @IsOptional() @IsNumber() lng?: number }
-class ReviewDto { @IsIn(['publish', 'return']) action: 'publish' | 'return'; @IsOptional() @IsString() @Length(0, 500) note?: string }
+class ReviewDto { @IsIn(['publish', 'return']) action: 'publish' | 'return'; @IsOptional() @IsString() @Length(0, 500) note?: string; @IsOptional() @IsObject() notes?: Record<string, string> }
 class InviteDto { @IsString() mobile: string; @IsString() pathId: string }
 class InviteMobileDto { @IsString() mobile: string }
 class CourseDto { @IsString() @Length(2, 80) title: string; @IsOptional() @IsIn(['all', 'approve', 'none']) libraryShare?: string }
@@ -66,6 +66,12 @@ export class Paths2Service {
   /** پیش از فرستادن برای بازبینی همان بررسی‌های انتشار؛ دورهٔ ناقص به ستاد نمی‌رسد */
   private async readyOrThrow(courseId: string) {
     const p = await this.admin.publishProblems(courseId);
+    const c = await this.db.query.courses.findFirst({ where: eq(courses.id, courseId) });
+    const open = Object.keys((c?.reviewNotes as Record<string, string>) ?? {});
+    if (open.length) {
+      const ls = await this.db.select({ id: lessons.id, title: lessons.title }).from(lessons).where(inArray(lessons.id, open));
+      for (const id of open) p.push(`یادداشت ستاد روی «${ls.find((l) => l.id === id)?.title ?? 'یک درس'}» هنوز باز است`);
+    }
     if (p.length) throw new BadRequestException({ code: 'not_ready', message: p.length === 1 ? p[0] : `${p.length} مورد مانده؛ فهرستش بالای صفحه است`, problems: p });
   }
 
@@ -376,7 +382,7 @@ export class Paths2Service {
   async submitCourse(u: AuthUser, id: string) {
     const pub = await this.needPub(u); const c = await this.db.query.courses.findFirst({ where: eq(courses.id, id) }); if (!c || c.publisherId !== pub.id) throw new ForbiddenException(err('forbidden', 'این دوره مال شما نیست'));
     await this.readyOrThrow(c.id);
-    await this.db.update(courses).set({ reviewStatus: 'IN_REVIEW', submittedAt: new Date() }).where(eq(courses.id, c.id));
+    await this.db.update(courses).set({ reviewStatus: 'IN_REVIEW', submittedAt: new Date(), returnNote: null, reviewNotes: {} }).where(eq(courses.id, c.id));
     await this.notifyStaff(`دورهٔ تازه برای بازبینی: ${c.title}`, pub.name); return { ok: true };
   }
   async rahyars(u: AuthUser) {
@@ -482,7 +488,7 @@ export class Paths2Service {
   async studioSubmit(u: AuthUser, id: string) {
     await this.needOstad(u); const c = await this.db.query.courses.findFirst({ where: eq(courses.id, id) }); if (!c || c.instructorId !== u.id) throw new ForbiddenException(err('forbidden', 'این دوره مال شما نیست'));
     await this.readyOrThrow(c.id);
-    await this.db.update(courses).set({ reviewStatus: 'IN_REVIEW', submittedAt: new Date() }).where(eq(courses.id, c.id));
+    await this.db.update(courses).set({ reviewStatus: 'IN_REVIEW', submittedAt: new Date(), returnNote: null, reviewNotes: {} }).where(eq(courses.id, c.id));
     await this.notifyStaff(`دورهٔ تازه برای بازبینی: ${c.title}`, await this.name(u.id)); return { ok: true };
   }
   async assignInstructor(u: AuthUser, id: string, mobile: string) {
@@ -521,14 +527,17 @@ export class Paths2Service {
   }
   async review(u: AuthUser, kind: string, id: string, d: ReviewDto) {
     const ok = d.action === 'publish';
-    if (!ok && !d.note?.trim()) throw new BadRequestException(err('need_note', 'برای برگرداندن، دلیل را بنویس'));
+    // یادداشت روی درس‌ها: فقط رشته، کوتاه، حداکثر ۱۰۰ درس
+    const notes: Record<string, string> = {};
+    for (const [k, v] of Object.entries(d.notes ?? {}).slice(0, 100)) if (typeof v === 'string' && v.trim() && /^[\w-]{1,40}$/.test(k)) notes[k] = v.trim().slice(0, 500);
+    if (!ok && !d.note?.trim() && !Object.keys(notes).length) throw new BadRequestException(err('need_note', 'برای برگرداندن، دلیل را بنویس'));
     let title = '', owners: string[] = [];
     if (kind === 'path') { const p = await this.path(id); await this.db.update(paths2).set({ status: ok ? 'PUBLISHED' : 'RETURNED', returnNote: ok ? null : d.note, reviewedAt: new Date() }).where(eq(paths2.id, p.id)); title = p.title; owners = await this.adminsOf(p.publisherId); }
-    else if (kind === 'course') { const c = await this.db.query.courses.findFirst({ where: eq(courses.id, id) }); if (!c) throw new NotFoundException(err('no_course', 'دوره پیدا نشد')); await this.db.update(courses).set({ reviewStatus: ok ? 'PUBLISHED' : 'RETURNED', returnNote: ok ? null : d.note, ...(ok ? { status: 'PUBLISHED' as const, publishedAt: new Date() } : {}) }).where(eq(courses.id, c.id)); title = c.title; owners = await this.adminsOf(c.publisherId); }
+    else if (kind === 'course') { const c = await this.db.query.courses.findFirst({ where: eq(courses.id, id) }); if (!c) throw new NotFoundException(err('no_course', 'دوره پیدا نشد')); await this.db.update(courses).set({ reviewStatus: ok ? 'PUBLISHED' : 'RETURNED', returnNote: ok ? null : (d.note?.trim() || null), reviewNotes: ok ? {} : notes, ...(ok ? { status: 'PUBLISHED' as const, publishedAt: new Date() } : {}) }).where(eq(courses.id, c.id)); title = c.title; owners = await this.adminsOf(c.publisherId); }
     else if (kind === 'live') { const e = await this.db.query.events.findFirst({ where: eq(events.id, id) }); if (!e) throw new NotFoundException(err('no_event', 'برنامه پیدا نشد')); await this.db.update(events).set({ reviewStatus: ok ? 'PUBLISHED' : 'RETURNED', returnNote: ok ? null : d.note, ...(ok ? { status: 'PUBLISHED' as const } : {}) }).where(eq(events.id, e.id)); title = e.title; owners = await this.adminsOf(e.publisherId); }
     else if (kind === 'publisher') { const p = await this.pubById(id); if (!p) throw new NotFoundException(err('no_pub', 'برگزارکننده پیدا نشد')); await this.db.update(publishers).set({ status: ok ? 'ACTIVE' : 'REJECTED', note: d.note ?? null }).where(eq(publishers.id, id)); title = p.name; }
     else throw new BadRequestException(err('bad_kind', 'نوع نامعتبر'));
-    if (owners.length) await this.notify.send(owners, { kind: 'REVIEW', title: ok ? `«${title}» منتشر شد` : `«${title}» برگشت: ${d.note}`, link: '/pub' });
+    if (owners.length) await this.notify.send(owners, { kind: 'REVIEW', title: ok ? `«${title}» منتشر شد` : `«${title}» برگشت${d.note?.trim() ? `: ${d.note.trim()}` : ` با ${Object.keys(notes).length} یادداشت`}`, link: '/pub' });
     await this.db.insert(auditLogs).values({ actorId: u.id, action: ok ? 'review.publish' : 'review.return', target: id } as any);
     return { ok: true };
   }

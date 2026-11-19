@@ -7,6 +7,7 @@ import type { PathCard } from '../lib/types';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { Dialog, ErrorBox, LESSON_ICON, Spinner, useToast } from '../components/ui';
+import { RichText } from '../components/RichText';
 import { LessonRating, useFeedbackContext } from '../components/Feedback';
 import { useOpenLink } from '../lib/open';
 import { api, ApiError } from '../lib/api';
@@ -171,7 +172,7 @@ function LessonBody({ l, onChange }: { l: LessonDetail; onChange: (c?: Completio
   switch (l.type) {
     case 'TEXT': return (
       <div className="grid gap-6">
-        <div className="prose-fa">{String(c.body ?? '').split(/\n{2,}/).map((p: string, i: number) => <p key={i}>{p}</p>)}</div>
+        <RichText body={String(c.body ?? '')} />
         {Array.isArray(c.keyPoints) && c.keyPoints.length > 0 && (
           <div className="rounded-2xl bg-flame-soft p-5"><b className="flex items-center gap-2 text-flame-ink"><Lightbulb className="size-5" />نکته‌های کلیدی</b>
             <ul className="mt-2 grid gap-1.5 text-ink">{c.keyPoints.map((k: string) => <li key={k}>• {k}</li>)}</ul></div>

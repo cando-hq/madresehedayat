@@ -1,37 +1,48 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowDown, ArrowUp, CircleAlert, ExternalLink, Music, Pencil, Plus, Trash2, Upload, Video, X } from 'lucide-react';
+import { ArrowDown, ArrowUp, Check, CircleAlert, Copy, Eye, GripVertical, Music, Pencil, Plus, Settings2, Trash2, Upload, Video, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router';
-import { CourseIcon, Dialog, ErrorBox, ICONS, LESSON_ICON, Spinner, useToast } from '../../components/ui';
+import { CourseIcon, Dialog, Drawer, ErrorBox, ICONS, LESSON_ICON, Spinner, useToast } from '../../components/ui';
+import { CoursePreview } from '../../components/CoursePreview';
+import { applyFormat, RichText } from '../../components/RichText';
 import { api, ApiError, uploadFile } from '../../lib/api';
 import { useTools } from '../Tools';
 import { fa, jDate, LESSON_LABEL, minutes, STATUS_LABEL } from '../../lib/fa';
 import type { LessonType } from '../../lib/types';
 import type { AdminCourse } from './Courses';
-import { STATUS_CHIP } from './Courses';
 
 interface ALesson { problem?: string | null; id: string; title: string; type: LessonType; order: number; durationSec: number; required: boolean; isFinalQuiz: boolean; content: any; skillIds?: string[] }
 interface ASkill { id: string; title: string }
 interface FullCourse extends AdminCourse {
   about: string | null; level: string | null; instructor: string | null; passScore: number; missionRule: 'ON_SUBMIT' | 'ON_APPROVAL';
   hasCertificate: boolean; outcomes: string[]; skills?: ASkill[];
+  reviewStatus?: 'IN_REVIEW' | 'PUBLISHED' | 'RETURNED' | null; returnNote?: string | null; reviewNotes?: Record<string, string>;
   modules: { id: string; title: string; order: number; lessons: ALesson[] }[];
   dependencies: { requiresId: string; kind: 'PREREQUISITE' | 'COREQUISITE'; title: string }[];
 }
+type Mods = FullCourse['modules'];
 
 const COLORS = [['green', 'سبز'], ['dome', 'فیروزه‌ای'], ['deep', 'آبی'], ['flame', 'زرد'], ['rose', 'سرخ']];
-const TYPES: LessonType[] = ['TEXT', 'VIDEO', 'AUDIO', 'QUIZ', 'PRACTICE', 'WORKSHEET', 'MISSION', 'TOOL', 'LIVE'];
+/** نوع‌های درس در منوی «افزودن»؛ پنج تای اول پرکاربردند */
+const ADD_TYPES: [LessonType, string][] = [['VIDEO', 'ویدیو'], ['AUDIO', 'صوت'], ['TEXT', 'متن'], ['QUIZ', 'آزمون'], ['MISSION', 'مأموریت'], ['PRACTICE', 'تمرین'], ['WORKSHEET', 'برگهٔ کار'], ['TOOL', 'ابزار کار'], ['LIVE', 'جلسهٔ زنده']];
+const NEW_TITLE: Record<string, string> = { VIDEO: 'ویدیوی تازه', AUDIO: 'صوت تازه', TEXT: 'متن تازه', QUIZ: 'آزمون کوتاه', MISSION: 'مأموریت میدانی', PRACTICE: 'تمرین تازه', WORKSHEET: 'برگهٔ کار', TOOL: 'کار با ابزار', LIVE: 'جلسهٔ زنده' };
+export const TYPE_TINT: Record<string, string> = { VIDEO: 'tint-deep cover', AUDIO: 'tint-dome cover', TEXT: 'bg-sunken text-body', QUIZ: 'tint-green cover', MISSION: 'tint-flame cover', PRACTICE: 'tint-peri cover', WORKSHEET: 'tint-amber cover', TOOL: 'tint-sky cover', LIVE: 'tint-rose cover' };
 
 export default function CourseEditor() {
   const { id } = useParams();
   const qc = useQueryClient();
   const toast = useToast();
   const nav = useNavigate();
-  const base = useLocation().pathname.startsWith('/pub') ? '/pub' : useLocation().pathname.startsWith('/studio') ? '/studio' : '/admin/courses';
+  const path = useLocation().pathname;
+  const base = path.startsWith('/pub') ? '/pub' : path.startsWith('/studio') ? '/studio' : '/admin/courses';
   const q = useQuery({ queryKey: ['admin-course', id], queryFn: () => api<FullCourse>(`/admin/courses/${id}`) });
-  const [editLesson, setEditLesson] = useState<ALesson | null>(null);
+  const [editId, setEditId] = useState<string | null>(null);
+  const [settings, setSettings] = useState(false);
+  const [preview, setPreview] = useState<{ start: string | null } | null>(null);
   const [problems, setProblems] = useState<string[]>([]);
-  // فهرست کمبودها مال لحظهٔ فرستادن است؛ با هر تغییر دوره کهنه می‌شود (نشان «ناقص» کنار هر درس می‌ماند)
+  const [undo, setUndo] = useState<{ l: ALesson; moduleId: string; index: number } | null>(null);
+  const undoTimer = useRef<number>(0);
+  // فهرست کمبودها مال لحظهٔ فرستادن است؛ با هر تغییر دوره کهنه می‌شود (نشان «کامل کن» کنار هر درس می‌ماند)
   useEffect(() => { setProblems([]); }, [q.dataUpdatedAt]);
   const inval = () => { qc.invalidateQueries({ queryKey: ['admin-course', id] }); qc.invalidateQueries({ queryKey: ['admin-courses'] }); };
   const patch = useMutation({
@@ -47,47 +58,172 @@ export default function CourseEditor() {
   const creator = !base.startsWith('/admin');
   const submit = useMutation({
     mutationFn: () => api(`/v2${base}/courses/${id}/submit`, { method: 'POST' }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-course', id] }); setProblems([]); toast('برای بازبینی ستاد فرستاده شد؛ نتیجه را پیام می‌دهیم'); },
+    onSuccess: () => { inval(); setProblems([]); toast('برای بازبینی ستاد فرستاده شد؛ نتیجه را پیام می‌دهیم'); },
     onError: (e) => { const a = e as ApiError; if (a.data?.problems) { setProblems(a.data.problems); window.scrollTo({ top: 0, behavior: 'smooth' }); } toast(a.message, 'err'); },
   });
+  useEffect(() => () => window.clearTimeout(undoTimer.current), []);
   if (q.isLoading) return <Spinner />;
   if (q.error) return <ErrorBox error={q.error} />;
   const c = q.data!;
+  const notes = c.reviewNotes ?? {};
+  const flat = c.modules.flatMap((m) => m.lessons.map((l) => ({ ...l, moduleId: m.id })));
+  const num = new Map(flat.map((l, i) => [l.id, i + 1]));
+  const edit = flat.find((l) => l.id === editId) ?? null;
+  const readyN = flat.filter((l) => !l.problem).length;
+  const totalSec = flat.reduce((a, l) => a + (l.durationSec || 0), 0);
+  const issues = [
+    ...(!flat.length ? [{ id: null as string | null, where: 'دوره', what: 'هنوز درسی ندارد', tone: 'warn' }] : []),
+    ...flat.filter((l) => l.problem).map((l) => ({ id: l.id as string | null, where: `درس ${fa(num.get(l.id)!)} · ${l.title}`, what: l.problem!, tone: 'warn' })),
+    ...flat.filter((l) => notes[l.id]).map((l) => ({ id: l.id as string | null, where: `درس ${fa(num.get(l.id)!)} · ${l.title}`, what: 'یادداشت ستاد هنوز باز است', tone: 'note' })),
+  ];
+  const rs = c.reviewStatus;
+  const inReview = creator && c.status !== 'PUBLISHED' && rs === 'IN_REVIEW';
+  const returned = rs === 'RETURNED';
+  const order = (mods: Mods) => api(`/admin/courses/${c.id}/order`, { method: 'PUT', body: { modules: mods.map((m) => ({ id: m.id, lessons: m.lessons.map((l) => l.id) })) } });
+  /** ساختن درس در جای مشخص؛ درس تازه ته بخش ساخته می‌شود و بعد به جایش می‌رود */
+  const createAt = async (moduleId: string, index: number, type: LessonType, title: string, extra?: Record<string, unknown>) => {
+    const l = await api<{ id: string }>(`/admin/modules/${moduleId}/lessons`, { body: { title: title.slice(0, 160), type } });
+    if (extra) await api(`/admin/lessons/${l.id}`, { method: 'PATCH', body: extra });
+    const mods = c.modules.map((m) => ({ ...m, lessons: [...m.lessons] }));
+    const m = mods.find((x) => x.id === moduleId)!;
+    m.lessons.splice(Math.min(index, m.lessons.length), 0, { id: l.id } as ALesson);
+    await order(mods);
+    return l.id;
+  };
+  const addLesson = (moduleId: string, index: number, type: LessonType) =>
+    createAt(moduleId, index, type, NEW_TITLE[type] ?? LESSON_LABEL[type]).then((nid) => { inval(); setEditId(nid); }).catch((e) => toast((e as Error).message, 'err'));
+  const duplicate = (l: ALesson & { moduleId: string }) => {
+    const m = c.modules.find((x) => x.id === l.moduleId)!;
+    createAt(l.moduleId, m.lessons.findIndex((x) => x.id === l.id) + 1, l.type, `${l.title} (رونوشت)`, { content: l.content, durationSec: l.durationSec, required: l.required, isFinalQuiz: false, ...(l.skillIds?.length ? { skillIds: l.skillIds } : {}) })
+      .then((nid) => { inval(); setEditId(nid); toast('رونوشت ساخته شد'); }).catch((e) => toast((e as Error).message, 'err'));
+  };
+  const remove = (l: ALesson & { moduleId: string }) => {
+    const m = c.modules.find((x) => x.id === l.moduleId)!;
+    const index = m.lessons.findIndex((x) => x.id === l.id);
+    api(`/admin/lessons/${l.id}`, { method: 'DELETE' }).then(() => {
+      setEditId(null); inval(); setUndo({ l, moduleId: l.moduleId, index });
+      window.clearTimeout(undoTimer.current); undoTimer.current = window.setTimeout(() => setUndo(null), 8000);
+    }).catch((e) => toast((e as Error).message, 'err'));
+  };
+  const restore = () => {
+    if (!undo) return; const u = undo; setUndo(null);
+    createAt(u.moduleId, u.index, u.l.type, u.l.title, { content: u.l.content, durationSec: u.l.durationSec, required: u.l.required, isFinalQuiz: u.l.isFinalQuiz, ...(u.l.skillIds?.length ? { skillIds: u.l.skillIds } : {}) })
+      .then(() => { inval(); toast('درس برگشت'); }).catch((e) => toast((e as Error).message, 'err'));
+  };
+  const resolve = (lessonId: string) => api(`/admin/courses/${c.id}/review-notes/${lessonId}`, { method: 'DELETE' }).then(inval).catch((e) => toast((e as Error).message, 'err'));
+  const canSubmit = creator && c.status !== 'PUBLISHED' && !inReview;
+  const statusChip = creator
+    ? inReview ? ['در بازبینی ستاد', 'chip chip-flame'] : returned ? ['برگشته از ستاد', 'chip tint-deep cover'] : c.status === 'PUBLISHED' ? ['منتشر شده', 'chip chip-leaf'] : ['پیش‌نویس', 'chip']
+    : [STATUS_LABEL[c.status], c.status === 'PUBLISHED' ? 'chip chip-leaf' : c.status === 'REVIEW' ? 'chip chip-flame' : 'chip'];
 
   return (
-    <div className="rise grid gap-6">
-      <nav className="text-sm text-muted"><Link to={base} className="text-leaf-ink">{base === '/pub' ? 'محتوای ما' : base === '/studio' ? 'دوره‌های من' : 'دوره‌ها'}</Link> / {c.title}</nav>
-      <header className="flex flex-wrap items-center gap-3">
-        <h1 className="me-auto text-[clamp(22px,2.6vw,28px)] font-extrabold">{c.title}</h1>
-        {creator ? (c.status !== 'PUBLISHED' && (c as any).reviewStatus === 'IN_REVIEW' ? <span className="chip chip-flame">در بازبینی ستاد</span> : <span className={STATUS_CHIP[c.status]}>{STATUS_LABEL[c.status]}</span>) : <span className={STATUS_CHIP[c.status]}>{STATUS_LABEL[c.status]}</span>}
-        {c.status === 'PUBLISHED' && <Link to={`/courses/${c.slug}`} className="btn btn-ghost btn-sm" target="_blank"><ExternalLink className="size-4" />دیدن در مدرسه</Link>}
-        {creator ? (c.status !== 'PUBLISHED' && (c as any).reviewStatus !== 'IN_REVIEW' && <button className="btn btn-primary btn-sm" disabled={submit.isPending} onClick={() => submit.mutate()}>فرستادن برای بازبینی</button>) : <>
-        {c.status === 'DRAFT' && <button className="btn btn-secondary btn-sm" onClick={() => patch.mutate({ status: 'REVIEW' })}>فرستادن برای بازبینی</button>}
-        {(c.status === 'DRAFT' || c.status === 'REVIEW') && <button className="btn btn-primary btn-sm" onClick={() => patch.mutate({ status: 'PUBLISHED' })}>انتشار</button>}
-        {c.status === 'REVIEW' && <button className="btn btn-ghost btn-sm" onClick={() => patch.mutate({ status: 'DRAFT' })}>برگرداندن به پیش‌نویس</button>}
-        {c.status === 'PUBLISHED' && <button className="btn btn-secondary btn-sm" onClick={() => patch.mutate({ status: 'PUBLISHED', bumpVersion: true })}>انتشار نسخهٔ تازه</button>}
-        {c.status === 'PUBLISHED' && <button className="btn btn-ghost btn-sm" onClick={() => patch.mutate({ status: 'ARCHIVED' })}>بایگانی</button>}
-        {c.status === 'ARCHIVED' && <button className="btn btn-secondary btn-sm" onClick={() => patch.mutate({ status: 'PUBLISHED' })}>انتشار دوباره</button>}</>}
-      </header>
-      {problems.length > 0 && (
-        <div className="rounded-2xl bg-rose-soft p-4 text-sm text-rose"><b className="flex items-center gap-2"><CircleAlert className="size-4" />{creator ? 'پیش از فرستادن این‌ها را کامل کن:' : 'پیش از انتشار این‌ها را درست کنید:'}</b>
-          <ul className="mt-2 list-disc ps-5">{problems.map((p) => <li key={p}>{p}</li>)}</ul></div>
-      )}
-      {c.status === 'PUBLISHED' && <p className="rounded-2xl bg-sunken p-3 text-sm text-muted">این دوره منتشر شده است. اصلاحات جزئی به همه می‌رسد؛ برای تغییر اساسی «انتشار نسخهٔ تازه» را بزنید تا یادگیرنده‌های فعلی روی نسخهٔ قبلی بمانند.</p>}
+    <div className="rise grid gap-5 pb-24">
+      <div className="sticky top-0 z-20 -mx-1 flex flex-wrap items-center gap-2 border-b border-line bg-bg/95 px-1 py-3 backdrop-blur">
+        <Link to={base} className="text-sm text-muted no-underline hover:text-ink">‹ {base === '/pub' ? 'محتوای ما' : base === '/studio' ? 'دوره‌های من' : 'دوره‌ها'}</Link>
+        <span className={statusChip[1]}>{statusChip[0]}</span>
+        <span className="me-auto" />
+        <button className="btn btn-ghost btn-sm" onClick={() => setPreview({ start: null })}><Eye className="size-4" />از چشم کنشگر</button>
+        {c.status === 'PUBLISHED' && <Link to={`/courses/${c.slug}`} className="btn btn-ghost btn-sm" target="_blank">دیدن در مدرسه</Link>}
+        {creator ? (canSubmit && <button className="btn btn-primary btn-sm" disabled={submit.isPending} onClick={() => submit.mutate()}>{returned ? 'فرستادن دوباره' : 'فرستادن برای بازبینی'}</button>) : <>
+          {c.status === 'DRAFT' && <button className="btn btn-secondary btn-sm" onClick={() => patch.mutate({ status: 'REVIEW' })}>فرستادن برای بازبینی</button>}
+          {(c.status === 'DRAFT' || c.status === 'REVIEW') && <button className="btn btn-primary btn-sm" onClick={() => patch.mutate({ status: 'PUBLISHED' })}>انتشار</button>}
+          {c.status === 'REVIEW' && <button className="btn btn-ghost btn-sm" onClick={() => patch.mutate({ status: 'DRAFT' })}>برگرداندن به پیش‌نویس</button>}
+          {c.status === 'PUBLISHED' && <button className="btn btn-secondary btn-sm" onClick={() => patch.mutate({ status: 'PUBLISHED', bumpVersion: true })}>انتشار نسخهٔ تازه</button>}
+          {c.status === 'PUBLISHED' && <button className="btn btn-ghost btn-sm" onClick={() => patch.mutate({ status: 'ARCHIVED' })}>بایگانی</button>}
+          {c.status === 'ARCHIVED' && <button className="btn btn-secondary btn-sm" onClick={() => patch.mutate({ status: 'PUBLISHED' })}>انتشار دوباره</button>}</>}
+      </div>
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
-        <Outline c={c} onEdit={setEditLesson} inval={inval} />
-        <div className="grid content-start gap-6">
+      <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
+        <div className="grid min-w-0 gap-5">
+          <Cover c={c} lessons={flat.length} totalSec={totalSec} save={(b) => patch.mutate(b)} />
+
+          {problems.length > 0 && (
+            <div className="rounded-2xl bg-flame-soft p-4 text-sm text-flame-ink" role="alert"><b className="flex items-center gap-2"><CircleAlert className="size-4" />{creator ? 'هنوز نمی‌شود فرستاد. این‌ها مانده:' : 'پیش از انتشار این‌ها را درست کنید:'}</b>
+              <ul className="mt-2 list-disc ps-5">{problems.map((p) => <li key={p}>{p}</li>)}</ul></div>
+          )}
+          {inReview && <Banner tone="flame" title="این دوره پیش ستاد است">اگر چیزی را عوض کنی، ستاد همان را می‌بیند. نتیجه را پیام می‌دهیم.</Banner>}
+          {returned && <Banner tone="deep" title={Object.keys(notes).length ? `ستاد دوره را با ${fa(Object.keys(notes).length)} یادداشت برگرداند` : 'ستاد دوره را برگرداند'}>
+            {c.returnNote ? `«${c.returnNote}»` : 'یادداشت‌ها زیر همان درس‌ها آمده‌اند.'} درست کردی، «فرستادن دوباره» را بزن.</Banner>}
+          {c.status === 'PUBLISHED' && <Banner tone="leaf" title="این دوره منتشر شده است">اصلاحات جزئی به همه می‌رسد. برای تغییر اساسی، «انتشار نسخهٔ تازه» تا یادگیرنده‌های فعلی روی نسخهٔ قبلی بمانند.</Banner>}
+
+          <Outline c={c} notes={notes} num={num} onOpen={setEditId} openId={editId} inval={inval} order={order} addLesson={addLesson} resolve={resolve} />
+        </div>
+
+        <aside className="grid gap-4 xl:sticky xl:top-20">
+          <section className="card grid gap-3 p-5">
+            <span className="text-sm text-muted">آمادگی دوره</span>
+            <b className="text-xl text-ink">{fa(readyN)} از {fa(flat.length)} درس آماده</b>
+            <div className="h-1.5 overflow-hidden rounded-full bg-sunken"><div className="h-full rounded-full bg-leaf transition-[width] duration-500" style={{ width: `${flat.length ? Math.round((readyN / flat.length) * 100) : 0}%` }} /></div>
+            {!issues.length && <p className="text-sm text-leaf-ink">همه‌چیز آماده است{creator && canSubmit ? '؛ می‌توانی برای ستاد بفرستی.' : '.'}</p>}
+            {issues.length > 0 && <ul className="grid gap-1.5">{issues.map((x, i) => (
+              <li key={i}><button className={`grid w-full rounded-xl px-3 py-2 text-start text-sm ${x.tone === 'note' ? 'bg-deep-soft text-deep' : 'bg-flame-soft text-flame-ink'}`} onClick={() => x.id && setEditId(x.id)} disabled={!x.id}>
+                <b className="truncate">{x.where}</b><span>{x.what}</span></button></li>))}</ul>}
+          </section>
+          <section className="card grid gap-2 p-5 text-sm">
+            <span className="text-muted">مشخصات دوره</span>
+            <Row k="سطح" v={c.level || '—'} />
+            <Row k="حد قبولی آزمون" v={`٪${fa(c.passScore)}`} />
+            <Row k="گواهی" v={c.hasCertificate ? 'دارد' : 'ندارد'} />
+            <Row k="تکمیل مأموریت" v={c.missionRule === 'ON_APPROVAL' ? 'با تأیید راهیار' : 'با فرستادن گزارش'} />
+            <Row k="پیش‌نیاز" v={c.dependencies.length ? c.dependencies.map((d) => d.title).join('، ') : 'ندارد'} />
+            <button className="btn btn-ghost btn-sm mt-1 w-fit text-leaf-ink" onClick={() => setSettings(true)}><Settings2 className="size-4" />تنظیمات دوره</button>
+          </section>
+        </aside>
+      </div>
+
+      <Drawer open={!!edit} onClose={() => setEditId(null)} title={edit ? LESSON_LABEL[edit.type] : ''} kicker={edit ? `درس ${fa(num.get(edit.id)!)} از ${fa(flat.length)}` : ''}
+        icon={edit ? <TypeTile type={edit.type} /> : null}>
+        {edit && <LessonEditor key={edit.id} l={edit} skills={c.skills ?? []} note={notes[edit.id]} onResolve={() => resolve(edit.id)}
+          onSaved={() => { inval(); setEditId(null); }} onDuplicate={() => duplicate(edit)} onDelete={() => remove(edit)} />}
+      </Drawer>
+
+      <Drawer open={settings} onClose={() => setSettings(false)} title="تنظیمات دوره" kicker={c.title}>
+        {settings && <div className="grid gap-5">
           <MetaForm c={c} save={(b) => patch.mutate(b)} saving={patch.isPending} />
           <SkillsEditor c={c} save={(skills) => patch.mutate({ skills })} saving={patch.isPending} />
           <Dependencies c={c} inval={inval} />
-          <button className="btn btn-ghost btn-sm w-fit text-rose" onClick={() => { if (window.confirm('این دوره حذف شود؟')) del.mutate(); }}><Trash2 className="size-4" />حذف دوره</button>
-        </div>
-      </div>
-      <Dialog open={!!editLesson} onClose={() => setEditLesson(null)} title={editLesson ? `${LESSON_LABEL[editLesson.type]}: ${editLesson.title}` : ''} wide>
-        {editLesson && <LessonEditor key={editLesson.id} l={editLesson} skills={c.skills ?? []} onSaved={() => { inval(); setEditLesson(null); }} />}
-      </Dialog>
+          {!creator && <button className="btn btn-ghost btn-sm w-fit text-rose" onClick={() => { if (window.confirm('این دوره حذف شود؟')) del.mutate(); }}><Trash2 className="size-4" />حذف دوره</button>}
+        </div>}
+      </Drawer>
+
+      {preview && <CoursePreview course={c} startId={preview.start} onClose={() => setPreview(null)} />}
+
+      {undo && <div role="status" className="fixed inset-x-0 bottom-6 z-50 mx-auto flex w-fit items-center gap-4 rounded-2xl bg-ink px-5 py-3 text-sm text-white shadow-lift">
+        <span>«{undo.l.title}» حذف شد</span><button className="font-extrabold text-flame" onClick={restore}>برگرداندن</button></div>}
     </div>
+  );
+}
+
+function Row({ k, v }: { k: string; v: string }) {
+  return <div className="flex justify-between gap-3"><span>{k}</span><b className="text-end text-ink">{v}</b></div>;
+}
+
+function Banner({ tone, title, children }: { tone: 'flame' | 'deep' | 'leaf'; title: string; children: React.ReactNode }) {
+  const cls = { flame: 'bg-flame-soft text-flame-ink', deep: 'bg-deep-soft text-deep', leaf: 'bg-leaf-soft text-leaf-ink' }[tone];
+  return <div role="status" className={`grid gap-1 rounded-2xl px-5 py-4 ${cls}`}><b>{title}</b><p className="text-sm text-body">{children}</p></div>;
+}
+
+function TypeTile({ type, size = 'md' }: { type: string; size?: 'sm' | 'md' }) {
+  const I = LESSON_ICON[type];
+  return <span className={`grid shrink-0 place-items-center rounded-xl ${TYPE_TINT[type] ?? 'bg-sunken'} ${size === 'sm' ? 'size-9' : 'size-11'}`}><I className="size-5" /></span>;
+}
+
+/** سرِ دوره: جلد در قاب طاق، اسم و یک جملهٔ معرفی که همین‌جا عوض می‌شوند */
+function Cover({ c, lessons, totalSec, save }: { c: FullCourse; lessons: number; totalSec: number; save: (b: Record<string, unknown>) => void }) {
+  const [title, setTitle] = useState(c.title);
+  const [sub, setSub] = useState(c.subtitle ?? '');
+  useEffect(() => { setTitle(c.title); setSub(c.subtitle ?? ''); }, [c.title, c.subtitle]);
+  return (
+    <section className="card flex flex-wrap items-stretch gap-5 p-5">
+      <div className={`tint-${c.color} cover grid h-36 w-28 shrink-0 place-items-end justify-center rounded-t-full rounded-b-2xl pb-5`} aria-hidden="true"><CourseIcon name={c.icon} className="size-10" /></div>
+      <div className="grid min-w-0 flex-1 content-center gap-2">
+        <input className="-ms-2 rounded-xl border border-transparent bg-transparent px-2 text-[clamp(20px,2.4vw,26px)] font-extrabold text-ink hover:border-line focus:border-leaf-ink" aria-label="اسم دوره" value={title} maxLength={120}
+          onChange={(e) => setTitle(e.target.value)} onBlur={() => { const t = title.trim(); if (t.length >= 3 && t !== c.title) save({ title: t }); else setTitle(c.title); }} />
+        <span className="text-sm text-muted">{fa(lessons)} درس{totalSec ? ` · ${minutes(totalSec)}` : ''}{c.instructor ? ` · ${c.instructor}` : ''}</span>
+        <input className="input h-11 bg-bg text-sm" placeholder="در یک جمله: این دوره به کنشگر چه می‌دهد؟" aria-label="معرفی کوتاه دوره" value={sub} maxLength={200}
+          onChange={(e) => setSub(e.target.value)} onBlur={() => { if (sub.trim() !== (c.subtitle ?? '')) save({ subtitle: sub.trim() }); }} />
+      </div>
+    </section>
   );
 }
 
@@ -149,72 +285,143 @@ function Dependencies({ c, inval }: { c: FullCourse; inval: () => void }) {
   );
 }
 
-function Outline({ c, onEdit, inval }: { c: FullCourse; onEdit: (l: ALesson) => void; inval: () => void }) {
+
+/* ───────── فهرست درس‌ها: فصل‌ها، کارت درس، کشیدن و رها کردن، افزودن لای درس‌ها ───────── */
+
+function Outline({ c, notes, num, onOpen, openId, inval, order, addLesson, resolve }: {
+  c: FullCourse; notes: Record<string, string>; num: Map<string, number>; onOpen: (id: string) => void; openId: string | null; inval: () => void;
+  order: (m: Mods) => Promise<unknown>; addLesson: (moduleId: string, index: number, type: LessonType) => void; resolve: (lessonId: string) => void;
+}) {
   const toast = useToast();
-  const [adding, setAdding] = useState<string | null>(null);
-  const [nl, setNl] = useState<{ title: string; type: LessonType }>({ title: '', type: 'TEXT' });
-  const [bulk, setBulk] = useState<{ moduleId: string; kind: 'aparat' | 'audio' } | null>(null);
+  const [gap, setGap] = useState<string | null>(null); // «moduleId:index»
+  const [drag, setDrag] = useState<string | null>(null);
+  const [over, setOver] = useState<string | null>(null);
+  const [rename, setRename] = useState<{ id: string; t: string } | null>(null);
+  const [bulk, setBulk] = useState<{ moduleId: string; kind: 'aparat' | 'audio'; text?: string } | null>(null);
+  const [paste, setPaste] = useState('');
   const call = (p: Promise<unknown>, ok?: string) => p.then(() => { inval(); if (ok) toast(ok); }).catch((e) => toast((e as Error).message, 'err'));
-  const order = (mods: FullCourse['modules']) => call(api(`/admin/courses/${c.id}/order`, { method: 'PUT', body: { modules: mods.map((m) => ({ id: m.id, lessons: m.lessons.map((l) => l.id) })) } }));
+  const clone = () => c.modules.map((m) => ({ ...m, lessons: [...m.lessons] }));
   const moveLesson = (mi: number, li: number, d: -1 | 1) => {
-    const mods = c.modules.map((m) => ({ ...m, lessons: [...m.lessons] }));
+    const mods = clone();
     const ls = mods[mi].lessons; const j = li + d;
     if (j >= 0 && j < ls.length) { [ls[li], ls[j]] = [ls[j], ls[li]]; }
     else if (j < 0 && mi > 0) { mods[mi - 1].lessons.push(ls.splice(li, 1)[0]); }
     else if (j >= ls.length && mi < mods.length - 1) { mods[mi + 1].lessons.unshift(ls.splice(li, 1)[0]); }
     else return;
-    order(mods);
+    call(order(mods));
   };
-  const moveModule = (mi: number, d: -1 | 1) => { const mods = [...c.modules]; const j = mi + d; if (j < 0 || j >= mods.length) return; [mods[mi], mods[j]] = [mods[j], mods[mi]]; order(mods); };
+  const moveModule = (mi: number, d: -1 | 1) => { const mods = clone(); const j = mi + d; if (j < 0 || j >= mods.length) return; [mods[mi], mods[j]] = [mods[j], mods[mi]]; call(order(mods)); };
+  /** رها کردن درس روی درس دیگر (جای آن) یا روی سرِ فصل (اول آن فصل) */
+  const dropOn = (targetModule: string, targetLesson: string | null) => {
+    const id = drag; setDrag(null); setOver(null);
+    if (!id || id === targetLesson) return;
+    const mods = clone();
+    let moved: ALesson | undefined;
+    for (const m of mods) { const i = m.lessons.findIndex((l) => l.id === id); if (i >= 0) moved = m.lessons.splice(i, 1)[0]; }
+    if (!moved) return;
+    const tm = mods.find((m) => m.id === targetModule)!;
+    const at = targetLesson ? tm.lessons.findIndex((l) => l.id === targetLesson) : 0;
+    tm.lessons.splice(at < 0 ? tm.lessons.length : at, 0, moved);
+    call(order(mods));
+  };
+  const last = c.modules[c.modules.length - 1];
+  const items = parseAparatLines(paste);
+
+  const Gap = ({ m, index }: { m: Mods[number]; index: number }) => {
+    const k = `${m.id}:${index}`, open = gap === k;
+    return (
+      <div className="gap-row grid justify-items-center py-1">
+        <button type="button" className="gap-add flex h-7 items-center gap-1.5 rounded-full border border-dashed border-line-strong bg-bg px-3 text-xs text-body" aria-expanded={open} onClick={() => setGap(open ? null : k)}><Plus className="size-3.5" />افزودن این‌جا</button>
+        {open && <div className="mt-2 flex max-w-xl flex-wrap justify-center gap-1.5 rounded-2xl border border-line bg-card p-2 shadow-lift">
+          {ADD_TYPES.map(([t, label]) => <button key={t} type="button" className={`chip h-8 cursor-pointer px-3 ${TYPE_TINT[t]}`} onClick={() => { setGap(null); addLesson(m.id, index, t); }}>{label}</button>)}
+        </div>}
+      </div>
+    );
+  };
+
   return (
-    <section className="grid content-start gap-4">
-      <div className="flex items-center justify-between"><h2 className="text-base font-extrabold">بخش‌ها و درس‌ها</h2>
-        <button className="btn btn-secondary btn-sm" onClick={() => call(api(`/admin/courses/${c.id}/modules`, { body: { title: `بخش ${fa(c.modules.length + 1)}` } }), 'بخش تازه اضافه شد')}><Plus className="size-4" />بخش تازه</button></div>
+    <section className="grid content-start gap-2" onDragEnd={() => { setDrag(null); setOver(null); }}>
       {c.modules.map((m, mi) => (
-        <div key={m.id} className="card overflow-hidden">
-          <div className="flex items-center gap-2 border-b border-line bg-sunken px-4 py-2.5">
-            <span className="text-xs text-muted">بخش {fa(mi + 1)}</span>
-            <b className="flex-1 text-ink">{m.title}</b>
-            <button className="btn btn-ghost btn-icon btn-sm" aria-label="تغییر نام بخش" onClick={() => { const t = window.prompt('نام تازهٔ بخش', m.title); if (t?.trim()) call(api(`/admin/modules/${m.id}`, { method: 'PATCH', body: { title: t.trim() } })); }}><Pencil className="size-4" /></button>
-            <button className="btn btn-ghost btn-icon btn-sm" aria-label="بالا" onClick={() => moveModule(mi, -1)} disabled={mi === 0}><ArrowUp className="size-4" /></button>
-            <button className="btn btn-ghost btn-icon btn-sm" aria-label="پایین" onClick={() => moveModule(mi, 1)} disabled={mi === c.modules.length - 1}><ArrowDown className="size-4" /></button>
-            {!m.lessons.length && <button className="btn btn-ghost btn-icon btn-sm text-rose" aria-label="حذف بخش" onClick={() => call(api(`/admin/modules/${m.id}`, { method: 'DELETE' }), 'بخش حذف شد')}><Trash2 className="size-4" /></button>}
+        <div key={m.id} className="grid">
+          <div className={`flex items-center gap-2 border-b-2 pb-1.5 pt-4 ${over === 'm:' + m.id ? 'border-leaf' : 'border-ink'}`}
+            onDragOver={(e) => { if (drag) { e.preventDefault(); setOver('m:' + m.id); } }} onDrop={(e) => { e.preventDefault(); dropOn(m.id, m.lessons[0]?.id ?? null); }}>
+            <div className="grid min-w-0 flex-1">
+              <span className="text-xs text-muted">فصل {fa(mi + 1)}</span>
+              {rename?.id === m.id
+                ? <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); const t = rename.t.trim(); setRename(null); if (t && t !== m.title) call(api(`/admin/modules/${m.id}`, { method: 'PATCH', body: { title: t } })); }}>
+                    <input className="input h-10" value={rename.t} autoFocus onChange={(e) => setRename({ id: m.id, t: e.target.value })} aria-label="عنوان فصل" onBlur={(e) => e.currentTarget.form?.requestSubmit()} /></form>
+                : <button type="button" className="truncate text-start text-lg font-extrabold text-ink" onClick={() => setRename({ id: m.id, t: m.title })}>{m.title}</button>}
+            </div>
+            <button className="btn btn-ghost btn-icon btn-sm" aria-label="تغییر نام فصل" onClick={() => setRename({ id: m.id, t: m.title })}><Pencil className="size-4" /></button>
+            <button className="btn btn-ghost btn-icon btn-sm" aria-label="فصل بالاتر" onClick={() => moveModule(mi, -1)} disabled={mi === 0}><ArrowUp className="size-4" /></button>
+            <button className="btn btn-ghost btn-icon btn-sm" aria-label="فصل پایین‌تر" onClick={() => moveModule(mi, 1)} disabled={mi === c.modules.length - 1}><ArrowDown className="size-4" /></button>
+            {!m.lessons.length && c.modules.length > 1 && <button className="btn btn-ghost btn-icon btn-sm text-rose" aria-label="حذف فصل" onClick={() => call(api(`/admin/modules/${m.id}`, { method: 'DELETE' }), 'فصل حذف شد')}><Trash2 className="size-4" /></button>}
           </div>
-          <ul>{m.lessons.map((l, li) => { const I = LESSON_ICON[l.type]; return (
-            <li key={l.id} className="flex items-center gap-2 border-b border-line px-3 py-2 last:border-0">
-              <I className="size-4 shrink-0 text-muted" />
-              <button className="min-w-0 flex-1 text-start" onClick={() => onEdit(l)}><span className="block truncate font-semibold text-ink">{l.title}</span>
-                <span className="text-xs text-muted">{LESSON_LABEL[l.type]}{l.durationSec ? ` · ${minutes(l.durationSec)}` : ''}{!l.required ? ' · اختیاری' : ''}{l.isFinalQuiz ? ' · آزمون پایانی' : ''}</span>{l.problem && <span className="mt-0.5 flex items-center gap-1 text-xs font-semibold text-rose"><CircleAlert className="size-3.5 shrink-0" />ناقص: {l.problem}</span>}</button>
-              <button className="btn btn-ghost btn-icon btn-sm" aria-label="بالا" onClick={() => moveLesson(mi, li, -1)}><ArrowUp className="size-4" /></button>
-              <button className="btn btn-ghost btn-icon btn-sm" aria-label="پایین" onClick={() => moveLesson(mi, li, 1)}><ArrowDown className="size-4" /></button>
-              <button className="btn btn-ghost btn-icon btn-sm text-rose" aria-label="حذف درس" onClick={() => { if (window.confirm(`درس «${l.title}» حذف شود؟`)) call(api(`/admin/lessons/${l.id}`, { method: 'DELETE' }), 'درس حذف شد'); }}><Trash2 className="size-4" /></button>
-            </li>
-          ); })}</ul>
-          {adding === m.id ? (
-            <form className="flex flex-wrap gap-2 border-t border-line p-3" onSubmit={(e) => { e.preventDefault(); if (nl.title.trim()) call(api(`/admin/modules/${m.id}/lessons`, { body: nl }), 'درس اضافه شد').then(() => { setAdding(null); setNl({ title: '', type: 'TEXT' }); }); }}>
-              <input className="input h-10 min-w-0 flex-1" placeholder="عنوان درس" value={nl.title} onChange={(e) => setNl({ ...nl, title: e.target.value })} autoFocus />
-              <select className="input h-10 w-auto" value={nl.type} onChange={(e) => setNl({ ...nl, type: e.target.value as LessonType })}>{TYPES.map((t) => <option key={t} value={t}>{LESSON_LABEL[t]}</option>)}</select>
-              <button className="btn btn-primary btn-sm h-10">افزودن</button><button type="button" className="btn btn-ghost btn-sm h-10" onClick={() => setAdding(null)}>انصراف</button>
-            </form>
-          ) : <div className="flex flex-wrap items-center gap-x-1 border-t border-line px-2 py-1">
-              <button className="flex items-center gap-2 rounded-xl px-2 py-2 text-sm font-semibold text-leaf-ink hover:bg-sunken" onClick={() => setAdding(m.id)}><Plus className="size-4" />درس تازه در این بخش</button>
-              <span className="ms-auto" />
-              <button className="flex items-center gap-1.5 rounded-xl px-2 py-2 text-sm text-muted hover:bg-sunken hover:text-ink" onClick={() => setBulk({ moduleId: m.id, kind: 'aparat' })}><Video className="size-4" />چند ویدیوی آپارات</button>
-              <button className="flex items-center gap-1.5 rounded-xl px-2 py-2 text-sm text-muted hover:bg-sunken hover:text-ink" onClick={() => setBulk({ moduleId: m.id, kind: 'audio' })}><Music className="size-4" />چند فایل صوتی</button>
-            </div>}
+          <Gap m={m} index={0} />
+          {!m.lessons.length && <p className="rounded-2xl border border-dashed border-line-strong p-5 text-center text-sm text-muted"
+            onDragOver={(e) => { if (drag) e.preventDefault(); }} onDrop={(e) => { e.preventDefault(); dropOn(m.id, null); }}>این فصل هنوز درسی ندارد. با «افزودن این‌جا» بساز یا درسی را این‌جا بکش.</p>}
+          {m.lessons.map((l, li) => {
+            const note = notes[l.id];
+            const chip = l.problem ? ['chip chip-flame max-w-56 truncate', `کامل کن: ${l.problem}`] : note ? ['chip tint-deep cover', 'یادداشت ستاد'] : ['chip chip-leaf', 'آماده'];
+            return (
+              <div key={l.id}>
+                <div draggable onDragStart={(e) => { e.dataTransfer.effectAllowed = 'move'; try { e.dataTransfer.setData('text/plain', l.id); } catch { /* */ } setDrag(l.id); }}
+                  onDragOver={(e) => { if (drag) { e.preventDefault(); if (over !== l.id) setOver(l.id); } }} onDrop={(e) => { e.preventDefault(); dropOn(m.id, l.id); }}
+                  className={`lesson-card card grid ${drag === l.id ? 'is-drag' : ''} ${over === l.id && drag !== l.id ? 'is-over' : ''} ${openId === l.id ? 'border-leaf-ink' : note ? 'border-deep' : ''}`}>
+                  <div className="flex items-center gap-1">
+                    <span className="cursor-grab ps-2 text-line-strong" aria-hidden="true"><GripVertical className="size-4" /></span>
+                    <button type="button" className="flex min-w-0 flex-1 items-center gap-3 rounded-2xl px-2 py-3 text-start" onClick={() => onOpen(l.id)}>
+                      <span className="tnum w-6 shrink-0 text-center text-sm text-muted">{fa(num.get(l.id)!)}</span>
+                      <TypeTile type={l.type} />
+                      <span className="grid min-w-0 flex-1">
+                        <b className="truncate text-ink">{l.title}</b>
+                        <span className="truncate text-xs text-muted">{LESSON_LABEL[l.type]}{l.durationSec ? ` · ${minutes(l.durationSec)}` : ''}{!l.required ? ' · اختیاری' : ''}{l.isFinalQuiz ? ' · آزمون پایانی' : ''}{l.type === 'QUIZ' ? ` · ${fa(l.content?.questions?.length ?? 0)} پرسش` : ''}</span>
+                      </span>
+                      <span className="hidden shrink-0 sm:block"><span className={chip[0]}>{chip[1]}</span></span>
+                    </button>
+                    <span className="grid pe-1">
+                      <button className="btn btn-ghost btn-icon btn-sm h-7" aria-label="بالاتر" onClick={() => moveLesson(mi, li, -1)}><ArrowUp className="size-4" /></button>
+                      <button className="btn btn-ghost btn-icon btn-sm h-7" aria-label="پایین‌تر" onClick={() => moveLesson(mi, li, 1)}><ArrowDown className="size-4" /></button>
+                    </span>
+                  </div>
+                  {l.problem && <span className="-mt-1 px-4 pb-3 text-xs font-semibold text-flame-ink sm:hidden">کامل کن: {l.problem}</span>}
+                  {note && <div className="mx-4 mb-3 flex flex-wrap items-center gap-3 rounded-xl bg-deep-soft px-3 py-2 text-sm text-deep">
+                    <span className="min-w-0 flex-1"><b>یادداشت ستاد: </b>{note}</span>
+                    <button className="btn btn-sm h-8 rounded-full border border-deep bg-transparent text-deep" onClick={() => resolve(l.id)}><Check className="size-4" />درستش کردم</button></div>}
+                </div>
+                <Gap m={m} index={li + 1} />
+              </div>
+            );
+          })}
         </div>
       ))}
-      {bulk && <BulkAdd moduleId={bulk.moduleId} kind={bulk.kind} onClose={() => setBulk(null)} onDone={inval} />}
+
+      <div className="mt-3 grid gap-3 rounded-3xl border-2 border-dashed border-line-strong bg-card p-5">
+        <b className="text-ink">افزودن به آخر دوره</b>
+        <div className="flex flex-wrap gap-2">
+          <textarea className="input ltr h-12 min-h-12 min-w-0 flex-1 basis-80 resize-y py-2.5 text-sm" dir="auto" rows={1} value={paste} onChange={(e) => setPaste(e.target.value)} aria-label="پیوند آپارات"
+            placeholder="پیوند ویدیوی آپارات را این‌جا بچسبان؛ چندتا هم می‌شود، هر کدام یک خط" />
+          <button className="btn btn-secondary h-12" disabled={!items.length || items.some((x) => !x.hash)} onClick={() => { setBulk({ moduleId: last.id, kind: 'aparat', text: paste }); setPaste(''); }}><Video className="size-4" />{items.length > 1 ? `افزودن ${fa(items.length)} ویدیو` : 'افزودن ویدیو'}</button>
+        </div>
+        {items.some((x) => !x.hash) && <p className="err text-sm">خطی که پیوند آپارات نیست را بردار.</p>}
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="text-sm text-muted">یا:</span>
+          <button className="chip tint-dome cover h-8 cursor-pointer px-3" onClick={() => setBulk({ moduleId: last.id, kind: 'audio' })}><Music className="size-3.5" />چند فایل صوتی</button>
+          {ADD_TYPES.filter(([t]) => t !== 'VIDEO').map(([t, label]) => <button key={t} type="button" className={`chip h-8 cursor-pointer px-3 ${TYPE_TINT[t]}`} onClick={() => addLesson(last.id, last.lessons.length, t)}>{label}</button>)}
+          <button className="chip h-8 cursor-pointer border border-ink bg-card px-3 text-ink" onClick={() => call(api(`/admin/courses/${c.id}/modules`, { body: { title: `فصل ${fa(c.modules.length + 1)}` } }), 'فصل تازه اضافه شد')}><Plus className="size-3.5" />فصل تازه</button>
+        </div>
+      </div>
+      {bulk && <BulkAdd moduleId={bulk.moduleId} kind={bulk.kind} initial={bulk.text} onClose={() => setBulk(null)} onDone={inval} />}
     </section>
   );
 }
 
-/* ───────── ویرایشگر درس ───────── */
+/* ───────── ویرایشگر درس (در پنل کناری) ───────── */
 
 const aparatHash = (v: string) => { const m = v.trim().match(/aparat\.com\/v\/([A-Za-z0-9]+)/) ?? v.trim().match(/videohash\/([A-Za-z0-9]+)/); return m ? m[1] : v.trim(); };
 const rid = () => Math.random().toString(36).slice(2, 8).padEnd(6, '0');
 
-function LessonEditor({ l, skills, onSaved }: { l: ALesson; skills: ASkill[]; onSaved: () => void }) {
+function LessonEditor({ l, skills, note, onResolve, onSaved, onDuplicate, onDelete }: { l: ALesson; skills: ASkill[]; note?: string; onResolve: () => void; onSaved: () => void; onDuplicate: () => void; onDelete: () => void }) {
   const toast = useToast();
   const [title, setTitle] = useState(l.title);
   const [mins, setMins] = useState(Math.round(l.durationSec / 60));
@@ -222,34 +429,40 @@ function LessonEditor({ l, skills, onSaved }: { l: ALesson; skills: ASkill[]; on
   const [isFinal, setIsFinal] = useState(l.isFinalQuiz);
   const [content, setContent] = useState<any>(l.content ?? {});
   const [skillIds, setSkillIds] = useState<string[]>((l.skillIds ?? []).filter((x) => skills.some((k) => k.id === x)));
-  const [problem, setProblem] = useState<string | null>(null);
+  const [problem, setProblem] = useState<string | null>(l.problem ?? null);
   const save = useMutation({
     mutationFn: () => api<{ problem: string | null }>(`/admin/lessons/${l.id}`, { method: 'PATCH', body: { title, durationSec: mins * 60, required, isFinalQuiz: isFinal, content, ...(skills.length ? { skillIds } : {}) } }),
     onSuccess: (r) => { if (r.problem) { setProblem(r.problem); toast('ذخیره شد، ولی هنوز کامل نیست', 'err'); } else { toast('درس ذخیره شد'); onSaved(); } },
     onError: (e) => toast((e as Error).message, 'err'),
   });
   return (
-    <div className="grid gap-4">
-      <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_140px]">
-        <div className="field"><label htmlFor="lt">عنوان درس</label><input id="lt" className="input" value={title} onChange={(e) => setTitle(e.target.value)} /></div>
+    <div className="grid gap-5">
+      {note && <div className="flex flex-wrap items-center gap-3 rounded-xl bg-deep-soft px-4 py-3 text-sm text-deep"><span className="min-w-0 flex-1"><b>یادداشت ستاد: </b>{note}</span>
+        <button className="btn btn-sm h-8 rounded-full border border-deep bg-transparent text-deep" onClick={onResolve}><Check className="size-4" />درستش کردم</button></div>}
+      <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_120px]">
+        <div className="field"><label htmlFor="lt">عنوان</label><input id="lt" className="input" value={title} onChange={(e) => setTitle(e.target.value)} /></div>
         <div className="field"><label htmlFor="lm">مدت (دقیقه)</label><input id="lm" type="number" min={0} className="input tnum" value={mins} onChange={(e) => setMins(Number(e.target.value))} /></div>
-      </div>
-      <div className="flex flex-wrap gap-5">
-        <label className="flex items-center gap-2"><input type="checkbox" className="size-5" checked={required} onChange={(e) => setRequired(e.target.checked)} />برای تکمیل دوره لازم است</label>
-        {l.type === 'QUIZ' && <label className="flex items-center gap-2"><input type="checkbox" className="size-5" checked={isFinal} onChange={(e) => setIsFinal(e.target.checked)} />آزمون پایانی دوره</label>}
       </div>
       <ContentEditor type={l.type} c={content} set={setContent} />
       {['TEXT', 'VIDEO', 'AUDIO'].includes(l.type) && <ChecksBuilder c={content} set={setContent} />}
+      <div className="flex flex-wrap gap-5 text-sm">
+        <label className="flex items-center gap-2"><input type="checkbox" className="size-5" checked={required} onChange={(e) => setRequired(e.target.checked)} />برای تمام کردن دوره لازم است</label>
+        {l.type === 'QUIZ' && <label className="flex items-center gap-2"><input type="checkbox" className="size-5" checked={isFinal} onChange={(e) => setIsFinal(e.target.checked)} />آزمون پایانی دوره</label>}
+      </div>
       {skills.length > 0 && (
         <fieldset className="grid gap-2 rounded-2xl border border-line p-4">
           <legend className="px-1 text-sm font-bold text-ink">این درس کدام مهارت را می‌سازد؟</legend>
           <div className="flex flex-wrap gap-2">{skills.map((k) => { const on = skillIds.includes(k.id); return (
             <button key={k.id} type="button" aria-pressed={on} onClick={() => setSkillIds(on ? skillIds.filter((x) => x !== k.id) : [...skillIds, k.id])} className={`chip h-9 cursor-pointer px-3.5 ${on ? 'chip-leaf' : ''}`}>{on && '✓ '}{k.title}</button>); })}</div>
-          <p className="hint">مهارت وقتی برای کنشگر «بلد» می‌شود که همهٔ درس‌های وصل‌شده به آن را تمام کند.</p>
         </fieldset>
       )}
-      {problem && <p className="err"><CircleAlert className="size-4" />{problem}</p>}
-      <div className="sticky bottom-0 -mx-6 -mb-6 flex gap-2 border-t border-line bg-card px-6 py-4"><button className="btn btn-primary" onClick={() => save.mutate()} disabled={save.isPending}>{save.isPending ? 'در حال ذخیره…' : 'ذخیرهٔ درس'}</button></div>
+      {problem && <p className="flex items-center gap-2 rounded-xl bg-flame-soft px-3 py-2 text-sm font-semibold text-flame-ink"><CircleAlert className="size-4 shrink-0" />کامل کن: {problem}</p>}
+      <div className="sticky bottom-0 -mx-5 -mb-5 flex flex-wrap gap-2 border-t border-line bg-card px-5 py-3">
+        <button className="btn btn-primary" onClick={() => save.mutate()} disabled={save.isPending}>{save.isPending ? 'در حال ذخیره…' : 'ذخیره و بستن'}</button>
+        <button className="btn btn-ghost" onClick={onDuplicate}><Copy className="size-4" />رونوشت</button>
+        <span className="me-auto" />
+        <button className="btn btn-ghost text-rose" onClick={onDelete}><Trash2 className="size-4" />حذف درس</button>
+      </div>
     </div>
   );
 }
@@ -266,9 +479,9 @@ function parseAparatLines(text: string) {
 const titleFromFile = (name: string) => name.replace(/\.[^.]+$/, '').replace(/^[\d۰-۹\s._\-–]+/, '').replace(/[_]+/g, ' ').trim() || name;
 
 /** ساختن چند درس با هم: چند پیوند آپارات (هر خط یکی) یا چند فایل صوتی؛ به ترتیب، ته همان بخش */
-function BulkAdd({ moduleId, kind, onClose, onDone }: { moduleId: string; kind: 'aparat' | 'audio'; onClose: () => void; onDone: () => void }) {
+function BulkAdd({ moduleId, kind, initial, onClose, onDone }: { moduleId: string; kind: 'aparat' | 'audio'; initial?: string; onClose: () => void; onDone: () => void }) {
   const toast = useToast();
-  const [text, setText] = useState('');
+  const [text, setText] = useState(initial ?? '');
   const [files, setFiles] = useState<File[]>([]);
   const [run, setRun] = useState<{ i: number; n: number; pct?: number } | null>(null);
   const items = kind === 'aparat' ? parseAparatLines(text) : [];
@@ -363,14 +576,39 @@ function Uploader({ accept, onDone, label }: { accept: string; onDone: (key: str
   );
 }
 
+/** متن درس با دکمه‌های قالب (تیتر، پررنگ، فهرست، نکته) و پیش‌نمایش همان‌طور که کنشگر می‌بیند */
+function TextEditor({ c, set }: { c: any; set: (c: any) => void }) {
+  const ta = useRef<HTMLTextAreaElement>(null);
+  const [view, setView] = useState(false);
+  const body = String(c.body ?? '');
+  const fmt = (k: 'h' | 'b' | 'li' | 'q') => { const el = ta.current; if (!el) return; set({ ...c, body: applyFormat(el, k) }); el.focus(); };
+  const readMin = Math.max(1, Math.ceil(body.length / 900));
+  return (
+    <>
+      <div className="grid gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <b className="me-auto text-sm text-ink">متن درس</b>
+          <div className="seg seg-pill">{[[false, 'نوشتن'], [true, 'پیش‌نمایش']].map(([v, t]) => <button key={String(v)} type="button" aria-pressed={view === v} onClick={() => setView(v as boolean)}>{t as string}</button>)}</div>
+        </div>
+        {view ? <div className="min-h-64 rounded-2xl border border-line p-4">{body.trim() ? <RichText body={body} /> : <p className="text-sm text-muted">هنوز متنی نیست.</p>}</div> : <>
+          <div className="flex flex-wrap gap-1.5">
+            <button type="button" className="btn btn-secondary btn-sm h-8 font-extrabold" onClick={() => fmt('h')}>تیتر</button>
+            <button type="button" className="btn btn-secondary btn-sm h-8 font-extrabold" onClick={() => fmt('b')}>پررنگ</button>
+            <button type="button" className="btn btn-secondary btn-sm h-8" onClick={() => fmt('li')}>فهرست</button>
+            <button type="button" className="btn btn-secondary btn-sm h-8" onClick={() => fmt('q')}>نکتهٔ برجسته</button>
+          </div>
+          <textarea ref={ta} id="body" aria-label="متن درس" className="input min-h-72 leading-8" value={body} onChange={(e) => set({ ...c, body: e.target.value })} placeholder="متن درس را این‌جا بنویس یا از Word بچسبان. بین بندها یک خط خالی بگذار." />
+          <span className="hint">چند کلمه را انتخاب کن و «پررنگ» را بزن، یا نشانگر را در یک خط بگذار و «تیتر» یا «فهرست» را بزن.{body.trim() ? ` زمان خواندن: حدود ${fa(readMin)} دقیقه.` : ''}</span>
+        </>}
+      </div>
+      <div className="field"><label htmlFor="kp">نکته‌های کلیدی <span className="font-normal text-muted">(هر خط یکی؛ اختیاری)</span></label><textarea id="kp" className="input" value={(c.keyPoints ?? []).join('\n')} onChange={(e) => set({ ...c, keyPoints: e.target.value.split('\n').filter((x) => x.trim()) })} /></div>
+    </>
+  );
+}
+
 function ContentEditor({ type, c, set }: { type: LessonType; c: any; set: (c: any) => void }) {
   switch (type) {
-    case 'TEXT': return (
-      <>
-        <div className="field"><label htmlFor="body">متن درس <span className="font-normal text-muted">(بین بندها یک خط خالی)</span></label><textarea id="body" className="input min-h-64" value={c.body ?? ''} onChange={(e) => set({ ...c, body: e.target.value })} /></div>
-        <div className="field"><label htmlFor="kp">نکته‌های کلیدی <span className="font-normal text-muted">(هر خط یکی؛ اختیاری)</span></label><textarea id="kp" className="input" value={(c.keyPoints ?? []).join('\n')} onChange={(e) => set({ ...c, keyPoints: e.target.value.split('\n').filter((x) => x.trim()) })} /></div>
-      </>
-    );
+    case 'TEXT': return <TextEditor c={c} set={set} />;
     case 'VIDEO': return (
       <div className="grid gap-4">
         <div className="seg w-fit">{[['aparat', 'آپارات'], ['file', 'فایل روی سرور مدرسه']].map(([k, t]) => <button type="button" key={k} aria-pressed={c.provider === k} onClick={() => set({ ...c, provider: k })}>{t}</button>)}</div>

@@ -163,6 +163,8 @@ export const courses = pgTable('courses', {
   libraryShare: text('library_share').notNull().default('all'), // all | approve | none
   reviewStatus: text('review_status'), // IN_REVIEW | PUBLISHED | RETURNED
   returnNote: text('return_note'),
+  /** یادداشت ستاد روی هر درس هنگام برگرداندن: { [lessonId]: متن }؛ سازنده با «درستش کردم» برمی‌دارد */
+  reviewNotes: jsonb('review_notes').$type<Record<string, string>>().notNull().default({}),
   submittedAt: timestamp('submitted_at', { withTimezone: true }),
   createdAt: createdAt(),
   updatedAt: updatedAt(),

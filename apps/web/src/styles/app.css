@@ -480,3 +480,13 @@ body { font-feature-settings: 'ss01' 0, 'ss02' 0, 'ss03' 0, 'swsh' 0, 'dlig' 0; 
 .hero-blue h2, .hero-blue h1 { color: #fff; }
 .seg > button[aria-pressed="true"] { border-bottom-color: var(--deep); }
 .bar > span { background: var(--deep); }
+
+/* پنل کناری سازندهٔ دوره */
+@keyframes drawer-in { from { opacity: .6; transform: translateX(-24px); } to { opacity: 1; transform: none; } }
+dialog.drawer[open] { animation: drawer-in var(--dur-base, 260ms) var(--ease-out, cubic-bezier(.22,1,.36,1)); }
+@media (prefers-reduced-motion: reduce) { dialog.drawer[open] { animation: none; } }
+.lesson-card { transition: border-color .15s, box-shadow .15s, opacity .15s; }
+.lesson-card.is-over { border-color: var(--leaf); box-shadow: 0 0 0 3px var(--leaf-soft); }
+.lesson-card.is-drag { opacity: .4; }
+.gap-add { opacity: .45; }
+.gap-row:hover .gap-add, .gap-add:focus-visible, .gap-add[aria-expanded="true"] { opacity: 1; }

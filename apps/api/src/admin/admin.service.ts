@@ -118,6 +118,14 @@ export class AdminService {
     return { ...c, modules: modulesWithProblems, dependencies: deps };
   }
 
+  async resolveReviewNote(id: string, lessonId: string) {
+    const c = await this.db.query.courses.findFirst({ where: eq(courses.id, id) });
+    if (!c) throw new NotFoundException({ code: 'no_course', message: 'دوره پیدا نشد' });
+    const n = { ...((c.reviewNotes as Record<string, string>) ?? {}) }; delete n[lessonId];
+    await this.db.update(courses).set({ reviewNotes: n }).where(eq(courses.id, id));
+    return { ok: true, open: Object.keys(n).length };
+  }
+
   async createCourse(actor: string, data: { title: string; slug?: string }) {
     const slug = (data.slug || this.slugify(data.title)) + '-' + Math.random().toString(36).slice(2, 6);
     const [c] = await this.db.insert(courses).values({ title: data.title.trim(), slug }).returning();

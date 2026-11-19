@@ -3,10 +3,12 @@
  * ستاد بازبین است، نه سازنده: هر چیزی یک بار پیش از انتشار این‌جا دیده می‌شود.
  */
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Building2, CheckCircle2, Eye } from 'lucide-react';
+import { Building2, CheckCircle2, Eye, MessageSquare, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router';
-import { Empty, Spinner, useToast } from '../../components/ui';
+import { Empty, LESSON_ICON, Spinner, useToast } from '../../components/ui';
+import { CoursePreview, type PCourse } from '../../components/CoursePreview';
+import { LESSON_LABEL, minutes } from '../../lib/fa';
 import { api } from '../../lib/api';
 import { fa, jDate, jShort } from '../../lib/fa';
 
@@ -20,9 +22,10 @@ export function ReviewQueue() {
   const [sel, setSel] = useState(0);
   const [note, setNote] = useState('');
   const [ticks, setTicks] = useState<Record<string, boolean>>({});
+  const [notes, setNotes] = useState<Record<string, string>>({});
   const act = useMutation({
-    mutationFn: ({ it, action }: { it: Item; action: 'publish' | 'return' }) => api(`/v2/admin/review/${it.kind}/${it.id}`, { body: { action, note } }),
-    onSuccess: (_r, v) => { qc.invalidateQueries({ queryKey: ['v2'] }); setNote(''); setTicks({}); setSel(0); toast(v.action === 'publish' ? 'منتشر شد' : 'برگشت با دلیل'); },
+    mutationFn: ({ it, action }: { it: Item; action: 'publish' | 'return' }) => api(`/v2/admin/review/${it.kind}/${it.id}`, { body: { action, note, ...(it.kind === 'course' ? { notes } : {}) } }),
+    onSuccess: (_r, v) => { qc.invalidateQueries({ queryKey: ['v2'] }); setNote(''); setTicks({}); setNotes({}); setSel(0); toast(v.action === 'publish' ? 'منتشر شد' : 'برگشت با دلیل'); },
   });
   if (q.isLoading) return <Spinner />;
   const d = q.data!;
@@ -33,18 +36,53 @@ export function ReviewQueue() {
       <div className="grid gap-3 sm:grid-cols-3">{[['در صف بازبینی', d.stats.queue], ['برگزارکنندهٔ فعال', d.stats.publishers], ['گام رشد تأییدشده، این فصل', d.stats.growthThisSeason]].map(([t, v]) => <div key={t as string} className="stat card p-4"><span className="text-sm text-muted">{t}</span><b className="n block">{fa(v as number)}</b></div>)}</div>
       {!d.items.length ? <Empty icon={CheckCircle2} title="هیچ موردی منتظر نیست">هر چه برسد، همین‌جا می‌آید.</Empty> : (
         <div className="grid gap-4 lg:grid-cols-[340px_1fr]">
-          <div className="card grid gap-1 p-2">{d.items.map((it, i) => <button key={it.kind + it.id} type="button" aria-pressed={i === sel} onClick={() => { setSel(i); setTicks({}); setNote(''); }} className={`grid gap-1 rounded-xl px-3 py-2.5 text-start ${i === sel ? 'bg-deep-soft' : 'hover:bg-sunken'}`}><span className="flex items-center gap-2"><span className={`chip ${KC[it.kind]}`}>{it.kindFa}</span><span className="text-xs text-muted">{it.publisher?.name ?? ''}</span><span className="ms-auto text-xs text-muted">{jShort(it.submittedAt)}</span></span><b className="text-sm text-ink">{it.title}</b></button>)}</div>
+          <div className="card grid gap-1 p-2">{d.items.map((it, i) => <button key={it.kind + it.id} type="button" aria-pressed={i === sel} onClick={() => { setSel(i); setTicks({}); setNote(''); setNotes({}); }} className={`grid gap-1 rounded-xl px-3 py-2.5 text-start ${i === sel ? 'bg-deep-soft' : 'hover:bg-sunken'}`}><span className="flex items-center gap-2"><span className={`chip ${KC[it.kind]}`}>{it.kindFa}</span><span className="text-xs text-muted">{it.publisher?.name ?? ''}</span><span className="ms-auto text-xs text-muted">{jShort(it.submittedAt)}</span></span><b className="text-sm text-ink">{it.title}</b></button>)}</div>
           {cur && (
             <div className="card grid gap-4 p-5">
               <div><span className="text-sm text-muted">{cur.kindFa}{cur.publisher ? `، ${cur.publisher.name}` : ''}، رسیده {jDate(cur.submittedAt)}</span><h2 className="text-xl font-extrabold">{cur.title}</h2></div>
               <div className="grid gap-2 sm:grid-cols-3">{cur.facts.map(([k, v]) => <div key={k} className="rounded-xl bg-sunken p-3"><span className="text-xs text-muted">{k}</span><b className="block text-sm text-ink">{k === 'زمان' ? jDate(v) : v}</b></div>)}</div>
               <div className="grid gap-2"><b className="text-sm text-ink">چک‌لیست بازبینی</b>{cur.checks.map((c) => <label key={c} className="flex items-center gap-3 rounded-xl bg-sunken px-3 py-2.5 text-sm"><input type="checkbox" className="size-5 accent-[var(--leaf)]" checked={!!ticks[c]} onChange={(e) => setTicks({ ...ticks, [c]: e.target.checked })} />{c}</label>)}</div>
-              <label className="field"><span>یادداشت برای برگزارکننده (برای برگرداندن، اجباری)</span><textarea className="input min-h-[80px] py-2" value={note} onChange={(e) => setNote(e.target.value)} /></label>
-              <div className="flex flex-wrap gap-2">{cur.preview && <Link to={cur.preview} className="btn btn-ghost"><Eye className="size-4" />پیش‌نمایش از دید کنشگر</Link>}<button className="btn btn-primary" disabled={act.isPending || !cur.checks.every((c) => ticks[c])} onClick={() => act.mutate({ it: cur, action: 'publish' })}>{cur.kind === 'publisher' ? 'بپذیر' : 'منتشر کن'}</button><button className="btn btn-secondary text-rose" disabled={act.isPending || !note.trim()} onClick={() => act.mutate({ it: cur, action: 'return' })}>برگردان برای اصلاح</button>{!cur.checks.every((c) => ticks[c]) && <span className="self-center text-xs text-muted">برای انتشار همهٔ چک‌لیست باید تیک بخورد</span>}</div>
+              {cur.kind === 'course' && <CourseLessons id={cur.id} notes={notes} setNotes={setNotes} />}
+              <label className="field"><span>{cur.kind === 'course' ? 'یادداشت کلی برای سازنده (اختیاری اگر روی درس‌ها یادداشت گذاشته‌ای)' : 'یادداشت برای برگزارکننده (برای برگرداندن، اجباری)'}</span><textarea className="input min-h-[80px] py-2" value={note} onChange={(e) => setNote(e.target.value)} /></label>
+              <div className="flex flex-wrap gap-2">{cur.preview && cur.kind !== 'course' && <Link to={cur.preview} className="btn btn-ghost"><Eye className="size-4" />پیش‌نمایش از دید کنشگر</Link>}<button className="btn btn-primary" disabled={act.isPending || !cur.checks.every((c) => ticks[c]) || Object.keys(notes).length > 0} onClick={() => act.mutate({ it: cur, action: 'publish' })}>{cur.kind === 'publisher' ? 'بپذیر' : 'منتشر کن'}</button><button className="btn btn-secondary text-rose" disabled={act.isPending || (!note.trim() && !Object.keys(notes).length)} onClick={() => act.mutate({ it: cur, action: 'return' })}>{Object.keys(notes).length ? `برگردان با ${fa(Object.keys(notes).length)} یادداشت` : 'برگردان برای اصلاح'}</button>{Object.keys(notes).length > 0 && <span className="self-center text-xs text-muted">تا یادداشت روی درس‌ها هست، دوره منتشر نمی‌شود</span>}{!cur.checks.every((c) => ticks[c]) && <span className="self-center text-xs text-muted">برای انتشار همهٔ چک‌لیست باید تیک بخورد</span>}</div>
             </div>
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+/** درس‌های دوره برای بازبین: دیدن هر درس از چشم کنشگر و یادداشت روی همان درس */
+function CourseLessons({ id, notes, setNotes }: { id: string; notes: Record<string, string>; setNotes: (n: Record<string, string>) => void }) {
+  const q = useQuery({ queryKey: ['admin-course', id], queryFn: () => api<PCourse & { id: string }>(`/admin/courses/${id}`) });
+  const [edit, setEdit] = useState<{ id: string; t: string } | null>(null);
+  const [pv, setPv] = useState<{ start: string | null } | null>(null);
+  if (q.isLoading) return <Spinner />;
+  if (!q.data) return null;
+  const c = q.data;
+  let n = 0;
+  return (
+    <div className="grid gap-2">
+      <div className="flex items-center gap-2"><b className="me-auto text-sm text-ink">درس‌ها</b><button type="button" className="btn btn-ghost btn-sm" onClick={() => setPv({ start: null })}><Eye className="size-4" />کل دوره از چشم کنشگر</button></div>
+      {c.modules.map((m) => (
+        <div key={m.id} className="grid gap-1.5">
+          {c.modules.length > 1 && <span className="pt-2 text-sm font-extrabold text-ink">{m.title}</span>}
+          {m.lessons.map((l) => { n += 1; const I = LESSON_ICON[l.type]; const open = edit?.id === l.id; return (
+            <div key={l.id} className="grid gap-2 rounded-xl border border-line p-2.5">
+              <div className="flex items-center gap-2.5">
+                <span className="tnum w-5 text-center text-xs text-muted">{fa(n)}</span><I className="size-4 shrink-0 text-muted" />
+                <span className="min-w-0 flex-1"><b className="block truncate text-sm text-ink">{l.title}</b><span className="text-xs text-muted">{LESSON_LABEL[l.type]}{l.durationSec ? ` · ${minutes(l.durationSec)}` : ''}</span></span>
+                <button type="button" className="btn btn-ghost btn-sm h-8" onClick={() => setPv({ start: l.id })}>دیدن</button>
+                <button type="button" className="btn btn-ghost btn-sm h-8 text-deep" onClick={() => setEdit({ id: l.id, t: notes[l.id] ?? '' })}><MessageSquare className="size-4" />یادداشت</button>
+              </div>
+              {open && <div className="grid gap-2"><textarea className="input min-h-16 py-2 text-sm" autoFocus value={edit.t} maxLength={500} placeholder="چه چیزی را درست کند؟ روشن و مهربان بنویس." onChange={(e) => setEdit({ id: l.id, t: e.target.value })} />
+                <div className="flex gap-2"><button type="button" className="btn btn-secondary btn-sm" onClick={() => { const x = { ...notes }; if (edit.t.trim()) x[l.id] = edit.t.trim(); else delete x[l.id]; setNotes(x); setEdit(null); }}>ثبت یادداشت</button><button type="button" className="btn btn-ghost btn-sm" onClick={() => setEdit(null)}>انصراف</button></div></div>}
+              {!open && notes[l.id] && <div className="flex items-center gap-2 rounded-lg bg-deep-soft px-3 py-2 text-sm text-deep"><span className="min-w-0 flex-1">{notes[l.id]}</span><button type="button" className="btn btn-ghost btn-icon btn-sm h-7" aria-label="حذف یادداشت" onClick={() => { const x = { ...notes }; delete x[l.id]; setNotes(x); }}><Trash2 className="size-4" /></button></div>}
+            </div>); })}
+        </div>
+      ))}
+      {pv && <CoursePreview course={c} startId={pv.start} onClose={() => setPv(null)} />}
     </div>
   );
 }

@@ -18,7 +18,7 @@ export function DemoBar() {
         <div className="rise grid max-h-[min(70vh,560px)] max-w-[min(440px,calc(100vw-24px))] gap-2.5 overflow-y-auto rounded-2xl bg-ink px-4 py-3 text-xs leading-6 text-bg shadow-lift">
           <div className="flex items-start gap-2">
             <Info className="mt-1 size-4 shrink-0 text-flame" />
-            <span className="flex-1">نسخهٔ نمایشی؛ داده‌ها فقط در مرورگر شماست. کد ورود همیشه <b>۱۲۳۴۵</b> است. با هر شماره‌ای ثبت‌نام کنید، یا یکی از نقش‌های آماده را ببینید:</span>
+            <span className="flex-1">نسخهٔ نمایشی؛ داده‌ها فقط در مرورگر شماست. کد ورود همیشه <b>۱۲۳۴۵</b> است. با هر شماره‌ای ثبت‌نام کن، یا یکی از نقش‌های آماده را ببین:</span>
             <button onClick={() => setOpen(false)} aria-label="بستن"><X className="size-4" /></button>
           </div>
           <div className="grid gap-1.5 sm:grid-cols-2">

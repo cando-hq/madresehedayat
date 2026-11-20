@@ -56,7 +56,7 @@ export class PeersService {
     const me = (await this.db.query.users.findFirst({ where: eq(users.id, u.id) }))!;
     const [g] = await this.db.insert(gaade).values({ title: d.title.trim(), kind: 'CUSTOM', hostId: u.id, rhythm: d.rhythm || 'ماهانه', place: d.place || 'مسجد', next: { at: d.at || new Date(Date.now() + 7 * DAY).toISOString(), where: d.place || 'مسجد', topic: d.topic.trim() } }).returning();
     await this.db.insert(gaadeMembers).values({ gaadeId: g.id, userId: u.id, rsvp: 'YES' });
-    for (const x of (d.invite ?? []).filter((x) => x !== u.id)) { await this.db.insert(gaadeMembers).values({ gaadeId: g.id, userId: x, rsvp: null }).onConflictDoNothing(); await this.notify.send(x, { kind: 'GAADE', title: `دعوت به «${g.title}»`, body: `${me.firstName} ${me.lastName} شما را به گعده دعوت کرد`, link: `/gaade/${g.id}` }); }
+    for (const x of (d.invite ?? []).filter((x) => x !== u.id)) { await this.db.insert(gaadeMembers).values({ gaadeId: g.id, userId: x, rsvp: null }).onConflictDoNothing(); await this.notify.send(x, { kind: 'GAADE', title: `دعوت به «${g.title}»`, body: `${me.firstName} ${me.lastName} تو را به گعده دعوت کرد`, link: `/gaade/${g.id}` }); }
     return { id: g.id };
   }
   async candidates(u: AuthUser) {
@@ -79,8 +79,8 @@ export class PeersService {
     if (!(await this.isMember(g.id, u.id))) { await this.db.insert(gaadeMembers).values({ gaadeId: g.id, userId: u.id, rsvp: null }); const me = (await this.db.query.users.findFirst({ where: eq(users.id, u.id) }))!; await this.notify.send(g.hostId, { kind: 'GAADE', title: `عضو تازه در «${g.title}»`, body: `${me.firstName} ${me.lastName}`, link: `/gaade/${g.id}` }); }
     return { ok: true };
   }
-  async leave(u: AuthUser, id: string) { const g = await this.G(id); if (g.hostId === u.id) throw new BadRequestException(err('host', 'میزبان نمی‌تواند گعده را ترک کند؛ اول میزبانی را به عضو دیگری بسپارید')); await this.db.delete(gaadeMembers).where(and(eq(gaadeMembers.gaadeId, g.id), eq(gaadeMembers.userId, u.id))); return { ok: true }; }
-  async rsvp(u: AuthUser, id: string, d: RsvpDto) { if (!(await this.isMember(id, u.id))) throw new ForbiddenException(err('forbidden', 'عضو این گعده نیستید')); await this.db.update(gaadeMembers).set({ rsvp: d.rsvp }).where(and(eq(gaadeMembers.gaadeId, id), eq(gaadeMembers.userId, u.id))); return { ok: true }; }
+  async leave(u: AuthUser, id: string) { const g = await this.G(id); if (g.hostId === u.id) throw new BadRequestException(err('host', 'میزبان نمی‌تواند گعده را ترک کند؛ اول میزبانی را به عضو دیگری بسپار')); await this.db.delete(gaadeMembers).where(and(eq(gaadeMembers.gaadeId, g.id), eq(gaadeMembers.userId, u.id))); return { ok: true }; }
+  async rsvp(u: AuthUser, id: string, d: RsvpDto) { if (!(await this.isMember(id, u.id))) throw new ForbiddenException(err('forbidden', 'عضو این گعده نیستی')); await this.db.update(gaadeMembers).set({ rsvp: d.rsvp }).where(and(eq(gaadeMembers.gaadeId, id), eq(gaadeMembers.userId, u.id))); return { ok: true }; }
   async setNext(u: AuthUser, id: string, d: NextDto) {
     const g = await this.G(id); if (g.hostId !== u.id) throw new ForbiddenException(err('forbidden', 'فقط میزبان جلسه را تنظیم می‌کند'));
     if (new Date(d.at).getTime() < Date.now() - DAY) throw new BadRequestException(err('past', 'زمان گذشته است. تاریخ را درست کن.'));
@@ -92,7 +92,7 @@ export class PeersService {
     if (ms.length) await this.notify.send(ms, { kind: 'GAADE', title: `جلسهٔ تازهٔ «${g.title}»`, body: next.topic, link: `/gaade/${g.id}` });
     return next;
   }
-  async addNote(u: AuthUser, id: string, d: NoteDto) { const g = await this.G(id); if (!(await this.isMember(g.id, u.id))) throw new ForbiddenException(err('forbidden', 'عضو این گعده نیستید')); await this.db.insert(gaadeNotes).values({ gaadeId: g.id, userId: u.id, topic: g.next?.topic ?? null, experience: d.experience.trim(), knot: d.knot?.trim() || null, promise: d.promise.trim() }); return { ok: true }; }
+  async addNote(u: AuthUser, id: string, d: NoteDto) { const g = await this.G(id); if (!(await this.isMember(g.id, u.id))) throw new ForbiddenException(err('forbidden', 'عضو این گعده نیستی')); await this.db.insert(gaadeNotes).values({ gaadeId: g.id, userId: u.id, topic: g.next?.topic ?? null, experience: d.experience.trim(), knot: d.knot?.trim() || null, promise: d.promise.trim() }); return { ok: true }; }
   async invite(u: AuthUser, id: string, d: InviteDto) { const g = await this.G(id); if (g.hostId !== u.id) throw new ForbiddenException(err('forbidden', 'فقط میزبان دعوت می‌کند')); for (const x of d.userIds) { if (!(await this.isMember(g.id, x))) { await this.db.insert(gaadeMembers).values({ gaadeId: g.id, userId: x, rsvp: null }).onConflictDoNothing(); await this.notify.send(x, { kind: 'GAADE', title: `دعوت به «${g.title}»`, link: `/gaade/${g.id}` }); } } return { ok: true }; }
 
   // ── پرسش از همتایان
@@ -119,13 +119,13 @@ export class PeersService {
     as.sort((a, b) => Number(b.best) - Number(a.best) || b.votes - a.votes);
     return { ...(await this.qView(q, u.id)), answers: as };
   }
-  async answer(u: AuthUser, id: string, d: AnswerDto) { const q = await this.db.query.questions.findFirst({ where: eq(questions.id, id) }); if (!q) throw new NotFoundException(err('not_found', 'پرسش پیدا نشد')); await this.db.insert(answers).values({ questionId: q.id, userId: u.id, body: d.body.trim() }); if (q.userId !== u.id) await this.notify.send(q.userId, { kind: 'QUESTION', title: 'پاسخ تازه به پرسش شما', body: q.title, link: `/questions/${q.id}` }); return { ok: true }; }
+  async answer(u: AuthUser, id: string, d: AnswerDto) { const q = await this.db.query.questions.findFirst({ where: eq(questions.id, id) }); if (!q) throw new NotFoundException(err('not_found', 'پرسش پیدا نشد')); await this.db.insert(answers).values({ questionId: q.id, userId: u.id, body: d.body.trim() }); if (q.userId !== u.id) await this.notify.send(q.userId, { kind: 'QUESTION', title: 'پاسخ تازه به پرسش تو', body: q.title, link: `/questions/${q.id}` }); return { ok: true }; }
   async toggleVote(u: AuthUser, kind: string, id: string) { const ex = await this.db.query.votes.findFirst({ where: and(eq(votes.kind, kind), eq(votes.targetId, id), eq(votes.userId, u.id)) }); if (ex) await this.db.delete(votes).where(and(eq(votes.kind, kind), eq(votes.targetId, id), eq(votes.userId, u.id))); else await this.db.insert(votes).values({ kind, targetId: id, userId: u.id }); return { ok: true }; }
   async best(u: AuthUser, id: string) {
     const a = await this.db.query.answers.findFirst({ where: eq(answers.id, id) }); const q = a ? await this.db.query.questions.findFirst({ where: eq(questions.id, a.questionId) }) : null;
     if (!a || !q) throw new NotFoundException(err('not_found', 'پاسخ پیدا نشد')); if (q.userId !== u.id) throw new ForbiddenException(err('forbidden', 'فقط پرسشگر پاسخ برگزیده را انتخاب می‌کند'));
     await this.db.update(answers).set({ best: false }).where(eq(answers.questionId, q.id)); await this.db.update(answers).set({ best: true }).where(eq(answers.id, a.id));
-    if (a.userId !== u.id) await this.notify.send(a.userId, { kind: 'QUESTION', title: 'پاسخ شما برگزیده شد', body: q.title, link: `/questions/${q.id}` });
+    if (a.userId !== u.id) await this.notify.send(a.userId, { kind: 'QUESTION', title: 'پاسخ تو برگزیده شد', body: q.title, link: `/questions/${q.id}` });
     return { ok: true };
   }
 
@@ -138,13 +138,13 @@ export class PeersService {
       replies: await Promise.all((await this.db.select().from(peerReplies).where(eq(peerReplies.requestId, r.id))).map(async (x) => ({ id: x.id, body: x.body, createdAt: x.createdAt, author: await this.person(x.userId) }))) })));
   }
   async peerRequest(u: AuthUser, d: PeerReqDto) {
-    if (!(await this.isMember(d.gaadeId, u.id))) throw new ForbiddenException(err('forbidden', 'عضو این گعده نیستید'));
+    if (!(await this.isMember(d.gaadeId, u.id))) throw new ForbiddenException(err('forbidden', 'عضو این گعده نیستی'));
     const [r] = await this.db.insert(peerRequests).values({ userId: u.id, gaadeId: d.gaadeId, title: d.title.trim(), body: d.body.trim() }).returning();
     const ms = (await this.members(d.gaadeId)).filter((m) => m.userId !== u.id).map((m) => m.userId);
-    if (ms.length) await this.notify.send(ms, { kind: 'PEER', title: 'همتایتان نظر شما را خواسته', body: r.title, link: '/peers?tab=peer' });
+    if (ms.length) await this.notify.send(ms, { kind: 'PEER', title: 'همتایت نظر تو را خواسته', body: r.title, link: '/peers?tab=peer' });
     return { id: r.id };
   }
-  async peerReply(u: AuthUser, id: string, d: AnswerDto) { const r = await this.db.query.peerRequests.findFirst({ where: eq(peerRequests.id, id) }); if (!r || !(await this.isMember(r.gaadeId, u.id))) throw new NotFoundException(err('not_found', 'درخواست پیدا نشد')); await this.db.insert(peerReplies).values({ requestId: r.id, userId: u.id, body: d.body.trim() }); if (r.userId !== u.id) await this.notify.send(r.userId, { kind: 'PEER', title: 'همتایتان نظر داد', body: r.title, link: '/peers?tab=peer' }); return { ok: true }; }
+  async peerReply(u: AuthUser, id: string, d: AnswerDto) { const r = await this.db.query.peerRequests.findFirst({ where: eq(peerRequests.id, id) }); if (!r || !(await this.isMember(r.gaadeId, u.id))) throw new NotFoundException(err('not_found', 'درخواست پیدا نشد')); await this.db.insert(peerReplies).values({ requestId: r.id, userId: u.id, body: d.body.trim() }); if (r.userId !== u.id) await this.notify.send(r.userId, { kind: 'PEER', title: 'همتایت نظر داد', body: r.title, link: '/peers?tab=peer' }); return { ok: true }; }
 
   // ── فرایند تعیّن امامت
   private async im(uid: string) { let x = await this.db.query.imamat.findFirst({ where: eq(imamat.userId, uid) }); if (!x) { [x] = await this.db.insert(imamat).values({ userId: uid }).returning(); } return x; }
@@ -153,9 +153,9 @@ export class PeersService {
     const as = await this.db.select().from(imamatAssessments).where(eq(imamatAssessments.userId, uid)).orderBy(desc(imamatAssessments.createdAt));
     return { isImam: r.includes('IMAM'), level: x.level, spiral: x.spiral, petals: Object.fromEntries(PETAL_IDS.map((p) => [p, x.petals[p] ?? 0])), assessments: await Promise.all(as.map(async (a) => ({ id: a.id, level: a.level, spiral: a.spiral, note: a.note, createdAt: a.createdAt, by: await this.person(a.byId) }))) };
   }
-  async rahyarView(u: AuthUser, learnerId: string) { if (!(u.roles.includes('HQ_ADMIN') || u.roles.includes('HQ_OPERATOR') || await this.rahyar.canSeeLearner(u.id, learnerId, u.roles))) throw new ForbiddenException(err('forbidden', 'این کنشگر در دامنهٔ شما نیست')); return this.view(learnerId); }
+  async rahyarView(u: AuthUser, learnerId: string) { if (!(u.roles.includes('HQ_ADMIN') || u.roles.includes('HQ_OPERATOR') || await this.rahyar.canSeeLearner(u.id, learnerId, u.roles))) throw new ForbiddenException(err('forbidden', 'این کنشگر در دامنهٔ تو نیست')); return this.view(learnerId); }
   async assess(u: AuthUser, learnerId: string, d: AssessDto) {
-    if (!(u.roles.includes('HQ_ADMIN') || await this.rahyar.canSeeLearner(u.id, learnerId, u.roles))) throw new ForbiddenException(err('forbidden', 'این کنشگر در دامنهٔ شما نیست'));
+    if (!(u.roles.includes('HQ_ADMIN') || await this.rahyar.canSeeLearner(u.id, learnerId, u.roles))) throw new ForbiddenException(err('forbidden', 'این کنشگر در دامنهٔ تو نیست'));
     if (!(await this.rolesOf(learnerId)).includes('IMAM')) throw new BadRequestException(err('not_imam', 'ارزیابی سطح فقط برای امامان است'));
     const x = await this.im(learnerId);
     const petals = { ...x.petals }; if (d.petals) for (const p of PETAL_IDS) { const v = d.petals[p]; if (v != null) petals[p] = Math.min(4, Math.max(0, Number(v) || 0)); }

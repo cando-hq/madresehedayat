@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { ManageTabs } from '../components/ManageTabs';
 import { Ban, Camera, CameraOff, CheckCircle2, CircleAlert, Download, Megaphone, Pencil, Plus, QrCode, ScanLine, Send, Star, Trash2, WifiOff, XCircle } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router';
@@ -21,8 +22,9 @@ export function ManageEventList() {
   const q = useQuery({ queryKey: ['manage-events'], queryFn: () => api<MRow[]>('/manage/events') });
   return (
     <div className="rise grid gap-6">
+      <ManageTabs />
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <div><h1 className="text-[clamp(22px,3vw,30px)] font-extrabold">برگزاری برنامه</h1><p className="mt-1 text-muted">برنامه بسازید، ثبت‌نامی‌ها را ببینید و دم در حضور بزنید.</p></div>
+        <div><h1 className="text-[clamp(22px,3vw,30px)] font-extrabold">برنامه‌ها</h1><p className="mt-1 text-muted">برنامه بساز، ثبت‌نامی‌ها را ببین و دم در حضور بزن.</p></div>
         <Link to={`${base}/new`} className="btn btn-primary"><Plus className="size-4" />برنامهٔ تازه</Link>
       </div>
       {q.isLoading ? <Spinner /> : q.error ? <ErrorBox error={q.error} /> : q.data?.length ? (
@@ -39,7 +41,7 @@ export function ManageEventList() {
             </div>
           </Link></li>
         ))}</ul>
-      ) : <Empty icon={Megaphone} title="اولین برنامه‌تان را بچینید" />}
+      ) : <Empty icon={Megaphone} title="اولین برنامه‌ات را بچین" />}
     </div>
   );
 }
@@ -115,7 +117,7 @@ export function EventEditor() {
           <div className="field"><label htmlFor="h">میزبان یا سخنران <span className="font-normal text-muted">(اختیاری)</span></label><input id="h" className="input" value={f.hostName ?? ''} onChange={set('hostName')} /></div>
           <div className="field"><label htmlFor="d">دربارهٔ برنامه</label><textarea id="d" className="input min-h-28" value={f.description ?? ''} onChange={set('description')} /></div>
           <div className="field"><label htmlFor="ag">برنامهٔ جلسه <span className="font-normal text-muted">(اختیاری)</span></label><textarea id="ag" className="input" value={f.agenda ?? ''} onChange={set('agenda')} /></div>
-          <div className="field"><label htmlFor="b">همراه بیاورید <span className="font-normal text-muted">(اختیاری)</span></label><input id="b" className="input" value={f.bring ?? ''} onChange={set('bring')} /></div>
+          <div className="field"><label htmlFor="b">همراه بیاور <span className="font-normal text-muted">(اختیاری)</span></label><input id="b" className="input" value={f.bring ?? ''} onChange={set('bring')} /></div>
           <div className="field"><label htmlFor="fee">هزینهٔ شرکت <span className="font-normal text-muted">(اختیاری)</span></label><input id="fee" className="input" maxLength={500} value={f.feeNote ?? ''} onChange={set('feeNote')} placeholder="مثلاً پذیرایی ۵۰ هزار تومان، پرداخت در محل" /><span className="hint">فقط اعلام می‌شود؛ مدرسه پولی دریافت نمی‌کند و دریافت با خود شماست.</span></div>
         </section>
         <section className="card grid gap-4 p-5">
@@ -135,7 +137,7 @@ export function EventEditor() {
                 {!scopedOnly && <option value="">همه (بر اساس استان و جنسیت پایین)</option>}
                 {scopes.map((o) => <option key={o.kind + o.id} value={`${o.kind}:${o.id}`}>{o.label}</option>)}
               </select>
-              <span className="hint">{scopedOnly ? 'شما برای اعضای سازمان، مسجد یا هستهٔ خودتان برنامه می‌گذارید؛ دیگران آن را نمی‌بینند.' : 'اگر یکی را انتخاب کنید، فقط همان اعضا برنامه را می‌بینند.'}</span></div>
+              <span className="hint">{scopedOnly ? 'تو برای اعضای سازمان، مسجد یا هستهٔ خودت برنامه می‌گذاری؛ دیگران آن را نمی‌بینند.' : 'اگر یکی را انتخاب کنی، فقط همان اعضا برنامه را می‌بینند.'}</span></div>
           )}
           <div className="seg w-fit">{[['', 'همه'], ['FEMALE', 'خواهران'], ['MALE', 'برادران']].map(([k, t]) => <button type="button" key={k} aria-pressed={(f.audienceGender ?? '') === k} onClick={() => setF({ ...f, audienceGender: k || null })}>{t}</button>)}</div>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -145,7 +147,7 @@ export function EventEditor() {
           <p className="hint">برنامه فقط به همین مخاطبان نشان داده می‌شود.</p>
         </section>
         <div className="flex gap-2"><button className="btn btn-primary btn-lg" disabled={save.isPending}>{id ? 'ذخیرهٔ تغییرات' : 'ساختن پیش‌نویس'}</button></div>
-        {id && ex.data?.event.status === 'PUBLISHED' && <p className="hint">اگر زمان یا نشانی را عوض کنید، به همهٔ ثبت‌نامی‌ها خبر داده می‌شود.</p>}
+        {id && ex.data?.event.status === 'PUBLISHED' && <p className="hint">اگر زمان یا نشانی را عوض کنی، به همهٔ ثبت‌نامی‌ها خبر داده می‌شود.</p>}
       </form>
     </div>
   );
@@ -222,7 +224,7 @@ export function ManageEvent() {
             </table>
           </div>
         ) : <p className="py-8 text-center text-sm text-muted">کسی در این فهرست نیست.</p>}
-        <p className="hint mt-3">شمارهٔ همراه شرکت‌کنندگان نشان داده نمی‌شود؛ برای خبر دادن از «پیام به ثبت‌نامی‌ها» استفاده کنید.</p>
+        <p className="hint mt-3">شمارهٔ همراه شرکت‌کنندگان نشان داده نمی‌شود؛ برای خبر دادن از «پیام به ثبت‌نامی‌ها» استفاده کن.</p>
       </section>
       {comments.length > 0 && <section className="card grid gap-3 p-5">
         <h2 className="font-extrabold">نظر شرکت‌کنندگان <span className="text-sm font-normal text-muted">(بی‌نام)</span></h2>
@@ -291,7 +293,7 @@ export function CheckIn() {
       <Link to={`${base}/${id}`} className="text-sm font-bold text-leaf-ink">→ {e.title}</Link>
       <div className="flex items-center justify-between"><h1 className="text-2xl font-extrabold">حضور دم در</h1><span className="chip chip-leaf tnum">{fa(counts.attended)} از {fa(counts.registered)} حاضر</span></div>
       {supported ? (cam ? <Scanner onCode={submit} onClose={() => setCam(false)} /> : <button className="btn btn-primary btn-lg" onClick={() => setCam(true)}><Camera className="size-5" />خواندن کارت با دوربین</button>)
-        : <p className="flex gap-2 rounded-xl bg-sunken p-3 text-sm text-body"><QrCode className="size-4 shrink-0" />این مرورگر خواندن QR را پشتیبانی نمی‌کند؛ کد ۶ حرفی زیر کارت را تایپ کنید.</p>}
+        : <p className="flex gap-2 rounded-xl bg-sunken p-3 text-sm text-body"><QrCode className="size-4 shrink-0" />این مرورگر خواندن QR را پشتیبانی نمی‌کند؛ کد ۶ حرفی زیر کارت را تایپ کن.</p>}
       <form className="flex gap-2" onSubmit={(x) => { x.preventDefault(); submit(code); }}>
         <input className="input ltr tnum flex-1 text-center text-xl tracking-[.3em] uppercase" dir="ltr" maxLength={6} placeholder="K7M2QX" value={code} onChange={(x) => setCode(x.target.value.toUpperCase())} aria-label="کد ورود" autoComplete="off" />
         <button className="btn btn-secondary h-[46px]" disabled={code.length < 4}>ثبت</button>
@@ -306,7 +308,7 @@ export function CheckIn() {
         <div className="card flex flex-wrap items-center gap-3 p-4"><WifiOff className="size-5 text-flame-ink" /><span className="flex-1 text-sm">{fa(queue.length)} ورود بی‌اینترنت ثبت شده</span>
           <button className="btn btn-secondary btn-sm" disabled={sync.isPending} onClick={() => sync.mutate()}>همگام‌سازی</button></div>
       )}
-      <p className="hint">اگر کسی کارت نداشت، از فهرست ثبت‌نامی‌ها دکمهٔ «حاضر» را بزنید.</p>
+      <p className="hint">اگر کسی کارت نداشت، از فهرست ثبت‌نامی‌ها دکمهٔ «حاضر» را بزن.</p>
     </div>
   );
 }
@@ -328,7 +330,7 @@ function Scanner({ onCode, onClose }: { onCode: (c: string) => void; onClose: ()
           timer = window.setTimeout(tick, 250);
         };
         tick();
-      } catch { setErr('دسترسی به دوربین داده نشد. از تنظیمات مرورگر اجازه دهید یا کد را تایپ کنید.'); }
+      } catch { setErr('دسترسی به دوربین داده نشد. از تنظیمات مرورگر اجازه بده یا کد را تایپ کن.'); }
     })();
     return () => { stop = true; clearTimeout(timer); stream?.getTracks().forEach((t) => t.stop()); };
   }, [onCode]);

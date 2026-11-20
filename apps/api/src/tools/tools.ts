@@ -46,7 +46,7 @@ export class ToolsService {
     if (b.ownerId === u.id) return { b, role: 'OWNER' as const };
     const m = await this.db.query.boardMembers.findFirst({ where: and(eq(boardMembers.boardId, id), eq(boardMembers.userId, u.id)) });
     if (m) return { b, role: m.role as 'EDITOR' | 'VIEWER' };
-    throw new ForbiddenException({ code: 'forbidden', message: 'این کار با شما به اشتراک گذاشته نشده' });
+    throw new ForbiddenException({ code: 'forbidden', message: 'این کار با تو به اشتراک گذاشته نشده' });
   }
 
   initialData(tool: any) {
@@ -66,10 +66,10 @@ export class ToolsService {
 
   async save(u: AuthUser, id: string, d: SaveDto) {
     const { b, role } = await this.access(u, id);
-    if (role === 'VIEWER') throw new ForbiddenException({ code: 'viewer', message: 'فقط می‌توانید ببینید و نظر بدهید' });
+    if (role === 'VIEWER') throw new ForbiddenException({ code: 'viewer', message: 'فقط می‌توانی ببینی و نظر بدهی' });
     // کار گروهی ناهم‌زمان: اگر کس دیگری در این فاصله ذخیره کرده، به‌جای پاک کردن کار او خبر می‌دهیم
     if (d.base && b.updatedAt.toISOString() !== d.base && b.updatedById && b.updatedById !== u.id) {
-      throw new BadRequestException({ code: 'conflict', message: 'هم‌کارتان همین حالا این کار را تغییر داده؛ صفحه تازه می‌شود تا آخرین نسخه را ببینید' });
+      throw new BadRequestException({ code: 'conflict', message: 'هم‌کارت همین حالا این کار را تغییر داده؛ صفحه تازه می‌شود تا آخرین نسخه را ببین' });
     }
     const set: Partial<typeof boards.$inferInsert> = { updatedById: u.id };
     if (d.title) set.title = d.title.trim();
@@ -134,7 +134,7 @@ export class ToolsService {
     const { responsible } = await this.rahyar.responsibleFor(u.id);
     if (responsible?.holderId) {
       const r = await this.db.query.users.findFirst({ where: eq(users.id, responsible.holderId), columns: { firstName: true, lastName: true } });
-      out.push({ userId: responsible.holderId, name: `${r?.firstName} ${r?.lastName}`, why: 'راهیار شما' });
+      out.push({ userId: responsible.holderId, name: `${r?.firstName} ${r?.lastName}`, why: 'راهیار تو' });
     }
     const myCores = await this.db.select({ coreId: coreMemberships.coreId }).from(coreMemberships).where(eq(coreMemberships.userId, u.id));
     if (myCores.length) {
@@ -155,10 +155,10 @@ export class ToolsService {
       if (!x) throw new BadRequestException({ code: 'no_user', message: 'کسی با این شماره در مدرسه حساب ندارد' });
       userId = x.id;
     }
-    if (!userId || userId === u.id) throw new BadRequestException({ code: 'bad_member', message: 'نفر را انتخاب کنید' });
+    if (!userId || userId === u.id) throw new BadRequestException({ code: 'bad_member', message: 'نفر را انتخاب کن' });
     await this.db.insert(boardMembers).values({ boardId: id, userId, role: d.role }).onConflictDoUpdate({ target: [boardMembers.boardId, boardMembers.userId], set: { role: d.role } });
     const me = await this.db.query.users.findFirst({ where: eq(users.id, u.id), columns: { firstName: true, lastName: true } });
-    await this.notify.send(userId, { kind: 'board_share', title: d.role === 'EDITOR' ? `${me?.firstName} ${me?.lastName} شما را هم‌کار «${b.title}» کرد` : `${me?.firstName} ${me?.lastName} کار «${b.title}» را با شما به اشتراک گذاشت`, link: `/tools/boards/${id}` });
+    await this.notify.send(userId, { kind: 'board_share', title: d.role === 'EDITOR' ? `${me?.firstName} ${me?.lastName} تو را هم‌کار «${b.title}» کرد` : `${me?.firstName} ${me?.lastName} کار «${b.title}» را با تو به اشتراک گذاشت`, link: `/tools/boards/${id}` });
     return { ok: true };
   }
 

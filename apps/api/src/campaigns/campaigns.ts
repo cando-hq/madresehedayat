@@ -65,7 +65,7 @@ export class Campaigns {
     if (this.isHq(u)) return;
     if (c.scope === 'PROVINCE' && c.provinceId && (await this.myProvinces(u.id)).includes(c.provinceId)) return;
     if (c.scope === 'ORG' && c.networkId) { await this.business.orgGate(u, c.networkId, 'campaigns'); return; }
-    throw new ForbiddenException(err('forbidden', 'مدیریت این پویش با شما نیست؛ پویش استانی را فقط راهیار همان استان یا ستاد ویرایش می‌کند'));
+    throw new ForbiddenException(err('forbidden', 'مدیریت این پویش با تو نیست؛ پویش استانی را فقط راهیار همان استان یا ستاد ویرایش می‌کند'));
   }
 
   /** آیا کاربر این پویش را می‌بیند؟ (کشوری: همه؛ استانی: ساکنان استان؛ سازمانی: اعضای سازمان) */
@@ -136,7 +136,7 @@ export class Campaigns {
     const c = await this.get(id);
     const prov = await this.provinceOf(u.id);
     const manage = await this.assertCanManage(u, c).then(() => true, () => false);
-    if (!this.visible(c, prov, await this.business.orgsOfUser(u.id)) && !manage) throw new NotFoundException(err('no_campaign', 'این پویش پیدا نشد یا برای استان شما نیست'));
+    if (!this.visible(c, prov, await this.business.orgsOfUser(u.id)) && !manage) throw new NotFoundException(err('no_campaign', 'این پویش پیدا نشد یا برای استان تو نیست'));
     const tasks = await this.db.select().from(campaignTasks).where(eq(campaignTasks.campaignId, id)).orderBy(asc(campaignTasks.order));
     const me = await this.db.query.campaignMembers.findFirst({ where: and(eq(campaignMembers.campaignId, id), eq(campaignMembers.userId, u.id)) });
     const mine = await this.db.select().from(campaignDone).where(and(eq(campaignDone.campaignId, id), eq(campaignDone.userId, u.id)));
@@ -162,7 +162,7 @@ export class Campaigns {
     if (p === 'ENDED') throw new BadRequestException(err('campaign_ended', 'زمان این پویش تمام شده است و دیگر نمی‌شود کاری ثبت کرد'));
     if (p === 'CANCELLED') throw new BadRequestException(err('campaign_cancelled', 'این پویش لغو شده است'));
     if (p === 'DRAFT') throw new BadRequestException(err('campaign_draft', 'این پویش هنوز منتشر نشده است'));
-    if (p === 'UPCOMING' && !joining) throw new BadRequestException(err('campaign_not_started', 'پویش هنوز شروع نشده؛ می‌توانید از حالا بپیوندید و از روز شروع کارها را ثبت کنید'));
+    if (p === 'UPCOMING' && !joining) throw new BadRequestException(err('campaign_not_started', 'پویش هنوز شروع نشده؛ می‌توانی از حالا بپیوندی و از روز شروع کارها را ثبت کنی'));
   }
 
   private async addMembers(c: typeof campaigns.$inferSelect, userIds: string[], coreId: string | null) {
@@ -204,7 +204,7 @@ export class Campaigns {
     const inScope = (await this.db.select({ n: count() }).from(campaignMembers).where(and(eq(campaignMembers.campaignId, id), inArray(campaignMembers.userId, all))))[0].n;
     if (inScope) await this.db.insert(campaignCores).values({ campaignId: id, coreId, joinedById: u.id }).onConflictDoNothing();
     const others = added.filter((x) => x !== u.id);
-    if (others.length) await this.notify.send(others, { kind: 'campaign_core', title: `هستهٔ «${core.name}» به پویش «${c.title}» پیوست`, body: 'کارهای کوتاه پویش را ببینید و هر کدام را انجام دادید علامت بزنید.', link: `/campaigns/${id}` });
+    if (others.length) await this.notify.send(others, { kind: 'campaign_core', title: `هستهٔ «${core.name}» به پویش «${c.title}» پیوست`, body: 'کارهای کوتاه پویش را ببین و هر کدام را انجام دادی علامت بزن.', link: `/campaigns/${id}` });
     const skipped = all.length - inScope;
     return { ok: true, added: added.length, skipped };
   }
@@ -215,7 +215,7 @@ export class Campaigns {
     const t = await this.db.query.campaignTasks.findFirst({ where: and(eq(campaignTasks.id, taskId), eq(campaignTasks.campaignId, id)) });
     if (!t) throw new NotFoundException(err('no_task', 'این کار در پویش پیدا نشد'));
     const me = await this.db.query.campaignMembers.findFirst({ where: and(eq(campaignMembers.campaignId, id), eq(campaignMembers.userId, u.id)) });
-    if (!me) throw new BadRequestException(err('not_joined', 'اول به پویش بپیوندید، بعد کارها را علامت بزنید'));
+    if (!me) throw new BadRequestException(err('not_joined', 'اول به پویش بپیوند، بعد کارها را علامت بزن'));
     const n = note?.trim() ? enc(note.trim()) : null;
     await this.db.insert(campaignDone).values({ taskId, userId: u.id, campaignId: id, provinceId: me.provinceId, note: n })
       .onConflictDoUpdate({ target: [campaignDone.taskId, campaignDone.userId], set: { note: n } });
@@ -267,19 +267,19 @@ export class Campaigns {
   private async validate(u: AuthUser, d: CampaignDto) {
     const s = new Date(d.startsAt), e = new Date(d.endsAt);
     if (e <= s) throw new BadRequestException(err('bad_dates', 'تاریخ پایان باید بعد از تاریخ شروع باشد'));
-    if (e.getTime() - s.getTime() > 120 * 864e5) throw new BadRequestException(err('too_long', 'پویش حداکثر ۱۲۰ روز است؛ برای حرکت بلندتر چند پویش پشت‌سرهم بسازید'));
+    if (e.getTime() - s.getTime() > 120 * 864e5) throw new BadRequestException(err('too_long', 'پویش حداکثر ۱۲۰ روز است؛ برای حرکت بلندتر چند پویش پشت‌سرهم بساز'));
     if (d.scope === 'NATIONAL' && !this.isHq(u)) {
       const o = await this.manageOptions(u);
-      throw new ForbiddenException(err('forbidden', o.provinces.length || o.orgs.length ? 'پویش کشوری را فقط ستاد می‌سازد؛ شما پویش استانی یا ویژهٔ اعضای سازمانتان را می‌سازید' : 'ساختن پویش برای ستاد، راهیاران استانی و مدیران سازمان‌های مشترک است'));
+      throw new ForbiddenException(err('forbidden', o.provinces.length || o.orgs.length ? 'پویش کشوری را فقط ستاد می‌سازد؛ تو پویش استانی یا ویژهٔ اعضای سازمانت را می‌سازی' : 'ساختن پویش برای ستاد، راهیاران استانی و مدیران سازمان‌های مشترک است'));
     }
     if (d.scope === 'ORG') {
-      if (!d.networkId) throw new BadRequestException(err('no_org', 'سازمان پویش را انتخاب کنید'));
+      if (!d.networkId) throw new BadRequestException(err('no_org', 'سازمان پویش را انتخاب کن'));
       const g = await this.business.orgGate(u, d.networkId, 'campaigns');
       return g.plan;
     }
     if (d.scope === 'PROVINCE') {
-      if (!d.provinceId) throw new BadRequestException(err('no_province', 'استان پویش را انتخاب کنید'));
-      if (!this.isHq(u) && !(await this.myProvinces(u.id)).includes(d.provinceId)) throw new ForbiddenException(err('forbidden', 'فقط برای استانی که راهیار آن هستید می‌توانید پویش بسازید'));
+      if (!d.provinceId) throw new BadRequestException(err('no_province', 'استان پویش را انتخاب کن'));
+      if (!this.isHq(u) && !(await this.myProvinces(u.id)).includes(d.provinceId)) throw new ForbiddenException(err('forbidden', 'فقط برای استانی که راهیار آن هستی می‌توانی پویش بسازی'));
     }
   }
 
@@ -307,7 +307,7 @@ export class Campaigns {
       const drop = old.filter((o) => !keep.has(o.id));
       if (drop.length && c.status === 'PUBLISHED') {
         const [used] = await tx.select({ n: count() }).from(campaignDone).where(inArray(campaignDone.taskId, drop.map((x) => x.id)));
-        if (used.n) throw new BadRequestException(err('task_in_use', 'کاری که کسی انجامش داده را نمی‌شود حذف کرد؛ متنش را ویرایش کنید'));
+        if (used.n) throw new BadRequestException(err('task_in_use', 'کاری که کسی انجامش داده را نمی‌شود حذف کرد؛ متنش را ویرایش کن'));
       }
       if (drop.length) await tx.delete(campaignTasks).where(inArray(campaignTasks.id, drop.map((x) => x.id)));
       for (const [i, t] of d.tasks.entries()) {
@@ -333,7 +333,7 @@ export class Campaigns {
     const c = await this.get(id);
     await this.assertCanManage(u, c);
     if (c.status !== 'DRAFT') throw new BadRequestException(err('not_draft', 'این پویش پیش‌تر منتشر یا لغو شده است'));
-    if (c.endsAt.getTime() < Date.now()) throw new BadRequestException(err('campaign_ended', 'تاریخ پایان گذشته است؛ اول تاریخ‌ها را درست کنید'));
+    if (c.endsAt.getTime() < Date.now()) throw new BadRequestException(err('campaign_ended', 'تاریخ پایان گذشته است؛ اول تاریخ‌ها را درست کن'));
     await this.db.update(campaigns).set({ status: 'PUBLISHED' }).where(eq(campaigns.id, id));
     const ids = c.scope === 'ORG' ? await this.business.memberIds(c.networkId!)
       : (await this.db.select({ id: users.id }).from(users).where(c.scope === 'NATIONAL' ? eq(users.isActive, true)

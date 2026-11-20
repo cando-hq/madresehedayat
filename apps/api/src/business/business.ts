@@ -186,11 +186,11 @@ export class Business {
     const hq = u.roles.includes('HQ_ADMIN') || u.roles.includes('HQ_OPERATOR');
     if (!hq) {
       const g = await this.db.query.roleGrants.findFirst({ where: and(eq(roleGrants.userId, u.id), eq(roleGrants.role, 'ORG_ADMIN'), eq(roleGrants.networkId, networkId)) });
-      if (!g) throw new ForbiddenException(err('not_org_admin', 'شما مدیر این سازمان نیستید'));
+      if (!g) throw new ForbiddenException(err('not_org_admin', 'تو مدیر این سازمان نیستی'));
     }
     const sub = await this.activeSub(networkId);
-    if (!sub) throw new ForbiddenException(err('no_subscription', `اشتراک «${net.name}» فعال نیست؛ برای تمدید با ستاد مدرسه هماهنگ کنید`));
-    if (!has(sub.plan as Plan, feature)) throw new ForbiddenException(err('plan_feature', `«${FEATURE_FA[feature]}» در بستهٔ ${PLANS[sub.plan as Plan].label} نیست؛ برای بستهٔ سازمانی ویژه با ستاد هماهنگ کنید`, { feature }));
+    if (!sub) throw new ForbiddenException(err('no_subscription', `اشتراک «${net.name}» فعال نیست؛ برای تمدید با ستاد مدرسه هماهنگ کن`));
+    if (!has(sub.plan as Plan, feature)) throw new ForbiddenException(err('plan_feature', `«${FEATURE_FA[feature]}» در بستهٔ ${PLANS[sub.plan as Plan].label} نیست؛ برای بستهٔ سازمانی ویژه با ستاد هماهنگ کن`, { feature }));
     return { net, sub, plan: sub.plan as Plan, features: PLANS[sub.plan as Plan] };
   }
 
@@ -202,7 +202,7 @@ export class Business {
     const fresh = adding.filter((x) => !cur.includes(x));
     if (cur.length + fresh.length > sub.seats) {
       const free = Math.max(0, sub.seats - cur.length);
-      throw new BadRequestException(err('seats_full', `سقف اشتراک پر است: ${fmt(cur.length)} نفر از ${fmt(sub.seats)} نفر. ${free ? `فقط ${fmt(free)} نفر دیگر جا دارد. ` : ''}برای افزایش سقف با ستاد هماهنگ کنید`, { used: cur.length, seats: sub.seats }));
+      throw new BadRequestException(err('seats_full', `سقف اشتراک پر است: ${fmt(cur.length)} نفر از ${fmt(sub.seats)} نفر. ${free ? `فقط ${fmt(free)} نفر دیگر جا دارد. ` : ''}برای افزایش سقف با ستاد هماهنگ کن`, { used: cur.length, seats: sub.seats }));
     }
   }
 
@@ -237,10 +237,10 @@ export class Business {
     if (e <= s) throw new BadRequestException(err('bad_dates', 'تاریخ پایان باید بعد از تاریخ شروع باشد'));
     if (e.getTime() - s.getTime() > 3 * 366 * DAY) throw new BadRequestException(err('too_long', 'اشتراک حداکثر سه ساله است'));
     const net = await this.db.query.networks.findFirst({ where: eq(networks.id, d.networkId) });
-    if (!net || net.kind !== 'ORGANIZATION') throw new BadRequestException(err('no_org', 'اشتراک فقط برای سازمان‌ها است؛ سازمان را از فهرست انتخاب کنید'));
+    if (!net || net.kind !== 'ORGANIZATION') throw new BadRequestException(err('no_org', 'اشتراک فقط برای سازمان‌ها است؛ سازمان را از فهرست انتخاب کن'));
     // هم‌پوشانی با اشتراک دیگر همین سازمان
     const overlap = await this.db.query.subscriptions.findFirst({ where: and(eq(subscriptions.networkId, d.networkId), isNull(subscriptions.cancelledAt), lt(subscriptions.startsAt, e), gt(subscriptions.endsAt, s), exceptId ? ne(subscriptions.id, exceptId) : undefined) });
-    if (overlap) throw new BadRequestException(err('overlap', `«${net.name}» در این بازه اشتراک دیگری دارد؛ برای تمدید، اشتراک تازه را از روز پایان قبلی شروع کنید`));
+    if (overlap) throw new BadRequestException(err('overlap', `«${net.name}» در این بازه اشتراک دیگری دارد؛ برای تمدید، اشتراک تازه را از روز پایان قبلی شروع کن`));
     if (d.courseIds?.length) {
       const cs = await this.db.select({ id: courses.id }).from(courses).where(inArray(courses.id, d.courseIds));
       if (cs.length !== d.courseIds.length) throw new BadRequestException(err('bad_course', 'یکی از دوره‌ها پیدا نشد'));
@@ -272,8 +272,8 @@ export class Business {
   async updateSub(u: AuthUser, id: string, d: SubDto) {
     const old = await this.db.query.subscriptions.findFirst({ where: eq(subscriptions.id, id) });
     if (!old) throw new NotFoundException(err('no_subscription', 'این اشتراک پیدا نشد'));
-    if (old.cancelledAt) throw new BadRequestException(err('cancelled', 'اشتراک لغوشده ویرایش نمی‌شود؛ اشتراک تازه بسازید'));
-    if (d.networkId !== old.networkId) throw new BadRequestException(err('org_locked', 'سازمان اشتراک عوض نمی‌شود؛ اشتراک تازه بسازید'));
+    if (old.cancelledAt) throw new BadRequestException(err('cancelled', 'اشتراک لغوشده ویرایش نمی‌شود؛ اشتراک تازه بساز'));
+    if (d.networkId !== old.networkId) throw new BadRequestException(err('org_locked', 'سازمان اشتراک عوض نمی‌شود؛ اشتراک تازه بساز'));
     const { warn } = await this.checkSub(d, id);
     const q = await this.quote(d.plan, d.seats, d.pricePerSeat, d.discountPct, d.fixedFee);
     await this.db.transaction(async (tx) => {
@@ -321,7 +321,7 @@ export class Business {
       r[key] = new Date().toISOString();
       if (key === 'd7') r.d30 = r.d30 ?? r.d7;
       await this.db.update(subscriptions).set({ remindedAt: r }).where(eq(subscriptions.id, s.id));
-      const body = key === 'ended' ? 'دوره‌های ویژه و پنل سازمان بسته شد. پرونده، پیشرفت و گواهی اعضا پاک نمی‌شود و با تمدید برمی‌گردد.' : 'برای تمدید با ستاد مدرسه هماهنگ کنید؛ پس از پایان، دوره‌های ویژه و پنل سازمان بسته می‌شود.';
+      const body = key === 'ended' ? 'دوره‌های ویژه و پنل سازمان بسته شد. پرونده، پیشرفت و گواهی اعضا پاک نمی‌شود و با تمدید برمی‌گردد.' : 'برای تمدید با ستاد مدرسه هماهنگ کن؛ پس از پایان، دوره‌های ویژه و پنل سازمان بسته می‌شود.';
       await this.notifyAdmins(s.networkId, { kind: 'subscription', title, body, link: '/org' });
       await this.notify.send(hq, { kind: 'subscription', title, body: `${fmt(s.seats)} نفر، ${PLANS[s.plan as Plan].label}`, link: '/admin/business/subscriptions' });
     }
@@ -351,7 +351,7 @@ export class Business {
         return inv;
       } catch (e) { if (!isUnique(e)) throw e; }
     }
-    throw new BadRequestException(err('retry', 'شمارهٔ فاکتور تکراری شد؛ دوباره بزنید'));
+    throw new BadRequestException(err('retry', 'شمارهٔ فاکتور تکراری شد؛ دوباره بزن'));
   }
   async payInvoice(u: AuthUser, id: string, d: PayDto) {
     const inv = await this.db.query.invoices.findFirst({ where: eq(invoices.id, id) });
@@ -359,16 +359,16 @@ export class Business {
     if (inv.status !== 'ISSUED') throw new BadRequestException(err('not_open', inv.status === 'PAID' ? 'این فاکتور پیش‌تر پرداخت شده' : 'این فاکتور باطل شده است'));
     // شرط وضعیت در خود UPDATE: پرداخت و ابطال هم‌زمان هم‌دیگر را پاک نمی‌کنند
     const done = await this.db.update(invoices).set({ status: 'PAID', paymentRef: d.paymentRef.trim(), paidAt: d.paidAt ? new Date(d.paidAt) : new Date(), method: 'TRANSFER' }).where(and(eq(invoices.id, id), eq(invoices.status, 'ISSUED'))).returning({ id: invoices.id });
-    if (!done.length) throw new BadRequestException(err('not_open', 'وضع این فاکتور همین حالا عوض شد؛ صفحه را تازه کنید'));
+    if (!done.length) throw new BadRequestException(err('not_open', 'وضع این فاکتور همین حالا عوض شد؛ صفحه را تازه کن'));
     await this.db.insert(auditLogs).values({ actorId: u.id, action: 'invoice.pay', target: id, meta: { ref: d.paymentRef } });
     return { ok: true };
   }
   async voidInvoice(u: AuthUser, id: string) {
     const inv = await this.db.query.invoices.findFirst({ where: eq(invoices.id, id) });
     if (!inv) throw new NotFoundException(err('no_invoice', 'فاکتور پیدا نشد'));
-    if (inv.status === 'PAID') throw new BadRequestException(err('paid', 'فاکتور پرداخت‌شده باطل نمی‌شود؛ برای برگشت پول، فاکتور برگشتی بیرون از سامانه ثبت کنید'));
+    if (inv.status === 'PAID') throw new BadRequestException(err('paid', 'فاکتور پرداخت‌شده باطل نمی‌شود؛ برای برگشت پول، فاکتور برگشتی بیرون از سامانه ثبت کن'));
     const done = await this.db.update(invoices).set({ status: 'VOID' }).where(and(eq(invoices.id, id), eq(invoices.status, 'ISSUED'))).returning({ id: invoices.id });
-    if (!done.length) throw new BadRequestException(err('not_open', 'وضع این فاکتور همین حالا عوض شد؛ صفحه را تازه کنید'));
+    if (!done.length) throw new BadRequestException(err('not_open', 'وضع این فاکتور همین حالا عوض شد؛ صفحه را تازه کن'));
     await this.db.insert(auditLogs).values({ actorId: u.id, action: 'invoice.void', target: id });
     return { ok: true };
   }
@@ -413,9 +413,9 @@ export class Business {
       .orderBy(desc(serviceOrders.createdAt)).then((rows) => rows.map((r) => ({ ...r.s, org: r.org, sponsor: r.sponsor, course: r.course })));
   }
   async saveService(u: AuthUser, d: ServiceDto, id?: string) {
-    if (!d.networkId && !d.sponsorId) throw new BadRequestException(err('no_payer', 'سفارش‌دهنده را انتخاب کنید: یک سازمان یا یک حامی'));
+    if (!d.networkId && !d.sponsorId) throw new BadRequestException(err('no_payer', 'سفارش‌دهنده را انتخاب کن: یک سازمان یا یک حامی'));
     const cost = d.costs.reduce((a, c) => a + c.amount, 0);
-    if (!cost) throw new BadRequestException(err('no_cost', 'برگهٔ بودجه خالی است؛ دست‌کم یک ردیف هزینه بنویسید'));
+    if (!cost) throw new BadRequestException(err('no_cost', 'برگهٔ بودجه خالی است؛ دست‌کم یک ردیف هزینه بنویس'));
     const c = await this.costs();
     const price = d.price ?? Math.round((cost * c.serviceMarkup) / 1000) * 1000;
     const v = { networkId: d.networkId || null, sponsorId: d.sponsorId || null, kind: d.kind, title: d.title.trim(), costs: d.costs, cost, price, status: d.status ?? 'PROPOSED', courseId: d.courseId || null, note: d.note?.trim() || null };
@@ -547,8 +547,8 @@ export class BusinessController {
   @Get('admin/business/kpi') @Roles('HQ_ADMIN', 'HQ_OPERATOR') kpi() { return this.b.kpi(); }
   @Get('admin/business/quote') @Roles('HQ_ADMIN', 'HQ_OPERATOR')
   quote(@Query('plan') plan: Plan, @Query('seats') seats: string, @Query('price') price?: string, @Query('discount') disc?: string, @Query('fee') fee?: string) {
-    if (!PLAN_IDS.includes(plan)) throw new BadRequestException(err('bad_plan', 'بسته را انتخاب کنید'));
-    const n = Number(seats); if (!(n >= 1)) throw new BadRequestException(err('bad_seats', 'شمار نفرات را بنویسید'));
+    if (!PLAN_IDS.includes(plan)) throw new BadRequestException(err('bad_plan', 'بسته را انتخاب کن'));
+    const n = Number(seats); if (!(n >= 1)) throw new BadRequestException(err('bad_seats', 'شمار نفرات را بنویس'));
     return this.b.quote(plan, n, price ? Number(price) : undefined, disc ? Number(disc) : undefined, fee ? Number(fee) : undefined);
   }
 

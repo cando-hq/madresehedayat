@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { Flag, MessageSquarePlus, Wrench, Award, Bell, LifeBuoy, Megaphone, BookOpen, CalendarDays, ClipboardCheck, Compass, House, Landmark, LayoutDashboard, LogOut, MessageCircle, Settings, Building2, UsersRound, CalendarCog } from 'lucide-react';
+import { MessageSquarePlus, Award, Bell, LifeBuoy, BookOpen, ClipboardCheck, Compass, House, Landmark, LayoutDashboard, LogOut, MessageCircle, Settings, Building2, UsersRound, CalendarCog } from 'lucide-react';
 import { useEffect, useRef, useState, Suspense } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import { api } from '../lib/api';
@@ -30,25 +30,38 @@ export function useUnread() {
   return useQuery({ queryKey: ['unread'], queryFn: () => api<{ count: number }>('/notifications/unread'), refetchInterval: 60_000, staleTime: 20_000 });
 }
 
-/** پیوندهای نقش‌ها: راهیار، امام، مسئول هسته، سازمان، برگزارکننده */
-export function useRoleLinks() {
+type MenuLink = { to: string; label: string; icon: typeof House; sub?: string };
+
+/** کسی که برای جمعی (مسجد، هسته، سازمان، دامنهٔ راهیاری) برنامه و پیام می‌سازد */
+export function useManage() {
   const { me, has, isStaff } = useAuth();
-  const links: { to: string; label: string; icon: typeof House }[] = [];
-  if (has('RAHYAR')) links.push({ to: '/rahyar', label: 'پنل راهیاری', icon: Compass });
-  if (me?.imamOf?.length) links.push({ to: '/imam', label: 'مسجد من', icon: Landmark });
-  if (me?.cores?.length || me?.gender === 'FEMALE') links.push({ to: '/cores', label: 'هسته‌های من', icon: UsersRound });
-  if (has('INSTRUCTOR')) links.push({ to: '/studio', label: 'استودیوی استاد', icon: BookOpen });
-  if (me?.publisher) links.push({ to: '/pub', label: `پنل برگزارکننده (${me.publisher.name})`, icon: Building2 });
-  else if (me?.orgs?.length) links.push({ to: '/org', label: 'پنل سازمان', icon: Building2 });
-  // مدیر سازمان، امام و مسئول هسته برای اعضای خودشان برنامه و پیام گروهی دارند (مدل کسب‌وکار)
   const leads = !!(me?.imamOf?.length || me?.cores?.some((c) => c.isLeader) || me?.orgs?.length);
-  if (isStaff || has('RAHYAR', 'INSTRUCTOR') || leads) links.push({ to: '/manage/events', label: 'برگزاری برنامه', icon: CalendarCog });
-  if (isStaff || has('RAHYAR') || leads) links.push({ to: '/broadcast', label: 'پیام گروهی', icon: Megaphone });
-  links.push({ to: '/events', label: 'برنامه‌ها', icon: CalendarDays }, { to: '/campaigns', label: 'پویش‌ها', icon: Flag }, { to: '/tools', label: 'جعبه‌ابزار', icon: Wrench });
-  if (isStaff || has('RAHYAR') || me?.orgs?.length) links.push({ to: '/manage/campaigns', label: 'ساخت پویش', icon: Flag });
-  links.push({ to: '/messages', label: 'پیام با راهیار', icon: MessageCircle });
-  links.push({ to: '/help', label: 'کمک و پشتیبانی', icon: LifeBuoy });
-  return links;
+  return {
+    events: isStaff || has('RAHYAR', 'INSTRUCTOR') || leads,
+    broadcast: isStaff || has('RAHYAR') || leads,
+    campaigns: isStaff || has('RAHYAR') || !!me?.orgs?.length,
+  };
+}
+
+/** منوی حساب: اول پنل‌های نقش‌های تو، بعد برگزاری، بعد پیام و کمک. برنامه‌ها، پویش‌ها و جعبه‌ابزار در «میدان»‌اند. */
+export function useRoleLinks(): MenuLink[][] {
+  const { me, has } = useAuth();
+  const m = useManage();
+  const panels: MenuLink[] = [];
+  if (has('RAHYAR')) panels.push({ to: '/rahyar', label: 'پنل راهیاری', icon: Compass });
+  if (me?.publisher) panels.push({ to: '/pub', label: 'پنل برگزارکننده', sub: me.publisher.name, icon: Building2 });
+  else if (me?.orgs?.length) panels.push({ to: '/org', label: 'پنل سازمان', sub: me.orgs[0].name, icon: Building2 });
+  if (has('INSTRUCTOR')) panels.push({ to: '/studio', label: 'دوره‌های من', sub: 'استاد', icon: BookOpen });
+  if (me?.imamOf?.length) panels.push({ to: '/imam', label: 'مسجد من', sub: me.imamOf[0].name, icon: Landmark });
+  if (me?.cores?.length || me?.gender === 'FEMALE') panels.push({ to: '/cores', label: 'هسته‌های من', icon: UsersRound });
+  const manage: MenuLink[] = [];
+  const first = m.events ? '/manage/events' : m.broadcast ? '/broadcast' : m.campaigns ? '/manage/campaigns' : null;
+  if (first) manage.push({ to: first, label: 'برگزاری', sub: [m.events && 'برنامه', m.campaigns && 'پویش', m.broadcast && 'پیام گروهی'].filter(Boolean).join('، '), icon: CalendarCog });
+  const general: MenuLink[] = [
+    { to: '/messages', label: 'پیام‌ها', icon: MessageCircle },
+    { to: '/help', label: 'کمک و پشتیبانی', icon: LifeBuoy },
+  ];
+  return [panels, manage, general].filter((g) => g.length);
 }
 
 /** پوستهٔ کنشگر: سرصفحه در رایانه، نوار پایین در گوشی */
@@ -96,12 +109,14 @@ export function Shell() {
               <span className="hidden text-start leading-tight lg:block"><b className="block text-sm text-ink">{me?.firstName} {me?.lastName}</b><span className="text-xs text-muted">{me?.mosque?.name ?? me?.county?.name}</span></span>
             </button>
             {menu && (
-              <div className="pop absolute end-0 top-14 z-40 w-60 rounded-2xl border border-line bg-card p-2 shadow-lift">
-                {links.map((l) => <Link key={l.to} to={l.to} className={item}><l.icon className="size-4 text-leaf-ink" />{l.label}</Link>)}
-                <hr className="my-1.5 border-line" />
+              <div className="pop absolute end-0 top-14 z-40 w-72 max-w-[calc(100vw-24px)] rounded-2xl border border-line bg-card p-2 shadow-lift">
+                <div className="border-b border-line px-3 pb-2.5 pt-1.5 lg:hidden"><b className="block text-sm text-ink">{me?.firstName} {me?.lastName}</b><span className="text-xs text-muted">{me?.mosque?.name ?? me?.county?.name}</span></div>
+                {links.map((g, gi) => <div key={gi} className="grid border-b border-line py-1.5">{g.map((l) => <Link key={l.to} to={l.to} className={item}><l.icon className="size-4 shrink-0 text-leaf-ink" /><span className="min-w-0 flex-1 truncate">{l.label}</span>{l.sub && <span className="max-w-[45%] truncate text-xs text-muted">{l.sub}</span>}</Link>)}</div>)}
+                <div className="grid pt-1.5">
                 <FeedbackMenuItem className={item} onOpen={() => setMenu(false)} />
                 <Link to="/settings" className={item}><Settings className="size-4" />تنظیمات حساب</Link>
                 <button onClick={async () => { await logout(); nav('/login'); }} className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm text-rose hover:bg-sunken"><LogOut className="size-4" />خروج</button>
+                </div>
               </div>
             )}
           </div>

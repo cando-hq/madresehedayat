@@ -17,7 +17,7 @@ export function LevelTrack({ level, dark }: { level: number; dark?: boolean }) {
         return (
           <li key={l.n} aria-current={now ? 'step' : undefined} style={{ minHeight: 110 + i * 26 }}
             className={`flex min-w-[140px] flex-1 flex-col justify-end rounded-2xl border-2 p-4 ${now ? 'border-flame bg-card text-ink' : dark ? (done ? 'border-white/25 bg-white/15 text-white' : 'border-white/15 bg-white/5 text-white') : done ? 'border-line bg-sunken' : 'border-dashed border-line bg-card'}`}>
-            <span className="text-xs font-bold">{now ? 'اکنون اینجایید' : done ? 'گذرانده' : 'قدم بعد'}</span>
+            <span className="text-xs font-bold">{now ? 'اکنون این‌جایی' : done ? 'گذرانده' : 'قدم بعد'}</span>
             <b className="text-lg font-extrabold">سطح {fa(l.n)}: {l.name}</b>
             <span className={`text-xs ${dark && !now ? 'text-white/80' : 'text-muted'}`}>{l.focus}</span>
           </li>
@@ -48,7 +48,7 @@ export function ImamatCard() {
   return (
     <section className="card grid gap-4 p-6" aria-labelledby="imt-h">
       <div className="flex items-end justify-between gap-3">
-        <div><h2 id="imt-h" className="text-lg font-extrabold">فرایند تعیّن امامت شما</h2><p className="text-sm text-muted">سطح {fa(im.level)}: {LEVELS[im.level - 1].name}؛ هر گلبرگ یک شایستگی و هر حلقه یک سطح</p></div>
+        <div><h2 id="imt-h" className="text-lg font-extrabold">فرایند تعیّن امامت تو</h2><p className="text-sm text-muted">سطح {fa(im.level)}: {LEVELS[im.level - 1].name}؛ هر گلبرگ یک شایستگی و هر حلقه یک سطح</p></div>
         <Link to="/imamat" className="text-sm font-bold text-deep">دیدن کامل</Link>
       </div>
       <div className="flex flex-wrap items-center gap-6">
@@ -79,14 +79,14 @@ export default function ImamatPage() {
       </header>
       {im.isImam && (
         <section className="hero-blue grid gap-5 rounded-[28px] p-7 text-white">
-          <div className="flex flex-wrap items-end justify-between gap-3"><div><span className="text-sm font-bold text-flame">سطح شما</span><h2 className="text-2xl font-extrabold text-white">{LEVELS[im.level - 1].name}</h2></div>
+          <div className="flex flex-wrap items-end justify-between gap-3"><div><span className="text-sm font-bold text-flame">سطح تو</span><h2 className="text-2xl font-extrabold text-white">{LEVELS[im.level - 1].name}</h2></div>
             <span className="text-sm text-white/80">مرحله در مارپیچ رشد: <b className="text-white">{SPIRAL[im.spiral - 1]}</b></span></div>
           <LevelTrack level={im.level} dark />
           <div className="flex flex-wrap items-center gap-5 rounded-2xl bg-white/10 p-4"><img src={`${import.meta.env.BASE_URL}brand/spiral.jpg`} alt="مارپیچ رشد امام" className="h-28 w-auto rounded-xl" /><p className="min-w-[220px] flex-1 text-sm leading-7 text-white/90">امام در پنج مرحله رشد می‌کند و در هر دور، همان کنش‌ها عمیق‌تر می‌شوند. مرکز ثابت مارپیچ در همهٔ مراحل: تربیت نفس، الگو بودن و رفتار مهربانانه.</p></div>
         </section>
       )}
       <section className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
-        <div className="card grid place-items-center p-6"><Wheel levels={im.isImam ? im.petals : {}} selected={sel} onPick={setSel} size={600} /><span className="mt-2 text-sm text-muted">روی هر گلبرگ بزنید.</span></div>
+        <div className="card grid place-items-center p-6"><Wheel levels={im.isImam ? im.petals : {}} selected={sel} onPick={setSel} size={600} /><span className="mt-2 text-sm text-muted">روی هر گلبرگ بزن.</span></div>
         <aside className="card grid gap-4 p-6">
           <span className="chip w-fit" style={{ background: s.soft, color: s.ink }}>{s.name}</span>
           <h2 className="text-xl font-extrabold">{p.name}</h2><p className="leading-8 text-body">{p.desc}</p>
@@ -122,7 +122,7 @@ export function AssessPanel({ learnerId }: { learnerId: string }) {
   const set = (x: Partial<typeof v>) => setF({ ...v, ...x });
   return (
     <section className="card grid gap-4 p-6" aria-labelledby="as-h">
-      <div><h2 id="as-h" className="text-lg font-extrabold">ارزیابی میدانی</h2><p className="text-sm text-muted">سطح امامت را پس از دیدار در مسجد ثبت کنید؛ سطح از میدان می‌آید، نه از نمرهٔ دوره‌ها. یادداشت را امام هم می‌بیند.</p></div>
+      <div><h2 id="as-h" className="text-lg font-extrabold">ارزیابی میدانی</h2><p className="text-sm text-muted">سطح امامت را پس از دیدار در مسجد ثبت کن؛ سطح از میدان می‌آید، نه از نمرهٔ دوره‌ها. یادداشت را امام هم می‌بیند.</p></div>
       <fieldset className="grid gap-2"><legend className="mb-1 text-sm font-bold text-ink">سطح امام</legend>
         {LEVELS.map((l) => <label key={l.n} className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3 ${v.level === l.n ? 'border-deep bg-deep-soft' : 'border-line'}`}><input type="radio" name="lvl" checked={v.level === l.n} onChange={() => set({ level: l.n })} /><b className="text-ink">سطح {fa(l.n)}: {l.name}</b><span className="text-xs text-muted">{l.focus}</span></label>)}
       </fieldset>

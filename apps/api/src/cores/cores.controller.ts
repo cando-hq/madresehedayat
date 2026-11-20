@@ -106,7 +106,7 @@ export class CoresController {
   @Get('cores/:id')
   async get(@CurrentUser() u: AuthUser, @Param('id') id: string) {
     const a = await this.coreAccess(u, id);
-    if (!a.member && !a.canManage) throw new ForbiddenException({ code: 'forbidden', message: 'عضو این هسته نیستید' });
+    if (!a.member && !a.canManage) throw new ForbiddenException({ code: 'forbidden', message: 'عضو این هسته نیستی' });
     if (a.canManage && !a.isLeader) this.access.write(u.id, 'core.view', a.c.leaderId);
     const ms = await this.db.select({ userId: coreMemberships.userId }).from(coreMemberships).where(eq(coreMemberships.coreId, id));
     const members = await this.memberRows(ms.map((m) => m.userId));
@@ -183,7 +183,7 @@ export class CoresController {
   @Get('imam')
   async imam(@CurrentUser() u: AuthUser) {
     const ms = await this.db.select().from(mosques).where(eq(mosques.imamId, u.id));
-    if (!ms.length) throw new ForbiddenException({ code: 'not_imam', message: 'به‌عنوان امام محله برای مسجدی ثبت نشده‌اید' });
+    if (!ms.length) throw new ForbiddenException({ code: 'not_imam', message: 'به‌عنوان امام محله برای مسجدی ثبت نشده‌ای' });
     const out = [];
     for (const m of ms) {
       let inviteCode = m.inviteCode;
@@ -211,7 +211,7 @@ export class CoresController {
   @Post('imam/mosques/:id/invite') @HttpCode(200)
   async mosqueInvite(@CurrentUser() u: AuthUser, @Param('id') id: string) {
     const m = await this.db.query.mosques.findFirst({ where: eq(mosques.id, id) });
-    if (!m || m.imamId !== u.id) throw new ForbiddenException({ code: 'not_imam', message: 'امام این مسجد نیستید' });
+    if (!m || m.imamId !== u.id) throw new ForbiddenException({ code: 'not_imam', message: 'امام این مسجد نیستی' });
     const inviteCode = code('m');
     await this.db.update(mosques).set({ inviteCode }).where(eq(mosques.id, id));
     return { inviteCode };
@@ -228,7 +228,7 @@ export class CoresController {
     await this.db.update(mosques).set({ imamId: user.id }).where(eq(mosques.id, id));
     const brothers = await this.db.query.networks.findFirst({ where: eq(networks.kind, 'BROTHERS') });
     await this.db.insert(roleGrants).values({ userId: user.id, role: 'IMAM', networkId: brothers?.id ?? null }).onConflictDoNothing();
-    await this.notify.send(user.id, { kind: 'imam', title: 'به‌عنوان امام محله ثبت شدید', body: 'از «مسجد من» هسته‌ها و اعضا را ببینید و پیوند دعوت بفرستید.', link: '/imam' });
+    await this.notify.send(user.id, { kind: 'imam', title: 'به‌عنوان امام محله ثبت شدی', body: 'از «مسجد من» هسته‌ها و اعضا را ببین و پیوند دعوت بفرست.', link: '/imam' });
     return { ok: true };
   }
 
@@ -282,7 +282,7 @@ export class CoresController {
     const found = norm.length ? await this.db.select({ id: users.id }).from(users).where(inArray(users.mobile, norm.map(mobileKey))) : [];
     const fresh = found.length ? await this.db.insert(networkMembers).values(found.map((f) => ({ networkId: id, userId: f.id, invitedById: u.id }))).onConflictDoNothing().returning({ id: networkMembers.userId }) : [];
     const net = await this.db.query.networks.findFirst({ where: eq(networks.id, id) });
-    await this.notify.send(fresh.map((f) => f.id), { kind: 'org_invite', title: `«${net?.name}» شما را به اشتراکش دعوت کرده است`, body: 'اگر عضو این سازمان هستید، دعوت را بپذیرید تا دوره‌های اشتراک برایتان باز شود.', link: '/settings#orgs' });
+    await this.notify.send(fresh.map((f) => f.id), { kind: 'org_invite', title: `«${net?.name}» تو را به اشتراکش دعوت کرده است`, body: 'اگر عضو این سازمان هستی، دعوت را بپذیر تا دوره‌های اشتراک برایت باز شود.', link: '/settings#orgs' });
     return { sent: norm.length, invalid };
   }
 
@@ -296,7 +296,7 @@ export class CoresController {
   @Post('me/orgs/:id/accept') @HttpCode(200)
   async acceptOrg(@CurrentUser() u: AuthUser, @Param('id') id: string) {
     const row = await this.db.query.networkMembers.findFirst({ where: and(eq(networkMembers.networkId, id), eq(networkMembers.userId, u.id)) });
-    if (!row) throw new NotFoundException({ code: 'no_invite', message: 'دعوتی از این سازمان ندارید' });
+    if (!row) throw new NotFoundException({ code: 'no_invite', message: 'دعوتی از این سازمان نداری' });
     if (row.acceptedAt) return { ok: true };
     await this.business.assertSeats(id, [u.id]);
     await this.db.update(networkMembers).set({ acceptedAt: new Date() }).where(and(eq(networkMembers.networkId, id), eq(networkMembers.userId, u.id)));

@@ -9,10 +9,10 @@ import { Dialog, useToast } from './ui';
 /* ═════════════ بازخورد: از هر صفحه، امتیاز درس، امتیاز دوره ═════════════ */
 
 export const FB_KIND: Record<string, { t: string; i: typeof Bug; hint: string }> = {
-  BUG: { t: 'مشکل', i: Bug, hint: 'چه کردید و چه دیدید؟ اگر می‌شود، عکس صفحه را هم بگذارید.' },
-  IDEA: { t: 'پیشنهاد', i: Lightbulb, hint: 'چه چیزی کارتان را راحت‌تر می‌کند؟' },
+  BUG: { t: 'مشکل', i: Bug, hint: 'چه کردی و چه دیدی؟ اگر می‌شود، عکس صفحه را هم بگذار.' },
+  IDEA: { t: 'پیشنهاد', i: Lightbulb, hint: 'چه چیزی کارت را راحت‌تر می‌کند؟' },
   CONTENT: { t: 'محتوا', i: BookOpen, hint: 'دربارهٔ درس، متن، صوت یا ویدیو: کجا نامفهوم یا نادرست بود؟' },
-  PRAISE: { t: 'تشکر', i: MessageSquareHeart, hint: 'چه چیزی به کارتان آمد؟ تیم مدرسه می‌خواند.' },
+  PRAISE: { t: 'تشکر', i: MessageSquareHeart, hint: 'چه چیزی به کارت آمد؟ تیم مدرسه می‌خواند.' },
   OTHER: { t: 'دیگر', i: CircleEllipsis, hint: '' },
 };
 export const FB_STATUS: Record<string, [string, string]> = { NEW: ['chip-dome', 'رسید'], REVIEWING: ['chip-flame', 'در حال بررسی'], PLANNED: ['chip-leaf', 'در برنامه'], DONE: ['chip-leaf', 'انجام شد'], DECLINED: ['', 'فعلاً نه'] };
@@ -62,7 +62,7 @@ function FeedbackDialog({ initialKind, context, onClose }: { initialKind: string
       kind: f.kind, body: f.body.trim(), anonymous: f.anonymous, path: loc.pathname, ...(f.mood ? { mood: f.mood } : {}), ...(context ? { context } : {}), ...(img ? { imageKey: img.key } : {}),
       ...(f.kind === 'BUG' ? { device: `${navigator.userAgent.match(/(Firefox|Edg|OPR|Chrome|Safari)\/[\d.]+/)?.[0] ?? 'مرورگر'} · ${innerWidth}×${innerHeight}${/Mobi/.test(navigator.userAgent) ? ' · گوشی' : ''}` } : {}),
     } }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['my-feedback'] }); toast('ممنون! بازخوردتان رسید؛ نتیجه را با اعلان خبر می‌دهیم'); onClose(); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['my-feedback'] }); toast('ممنون! بازخوردت رسید؛ نتیجه را با اعلان خبر می‌دهیم'); onClose(); },
     onError: (e) => toast((e as Error).message, 'err'),
   });
   const K = FB_KIND[f.kind];
@@ -72,11 +72,11 @@ function FeedbackDialog({ initialKind, context, onClose }: { initialKind: string
         <div className="grid grid-cols-3 gap-2 sm:grid-cols-5" role="group" aria-label="نوع بازخورد">{Object.entries(FB_KIND).map(([k, v]) => (
           <button type="button" key={k} aria-pressed={f.kind === k} onClick={() => setF({ ...f, kind: k })}
             className={`flex h-10 items-center justify-center gap-1.5 rounded-xl border text-sm font-semibold ${f.kind === k ? 'border-leaf bg-leaf-soft text-leaf-ink' : 'border-line text-body'}`}><v.i className="size-4" />{v.t}</button>))}</div>
-        <div className="field"><span className="text-sm font-bold text-ink">حس کلی‌تان از مدرسه <span className="font-normal text-muted">(اختیاری)</span></span>
+        <div className="field"><span className="text-sm font-bold text-ink">حس کلی‌ات از مدرسه <span className="font-normal text-muted">(اختیاری)</span></span>
           <div className="flex gap-1" role="radiogroup" aria-label="حس کلی">{MOODS.map((m, i) => (
             <button type="button" key={i} role="radio" aria-checked={f.mood === i + 1} aria-label={`${fa(i + 1)} از ۵`} onClick={() => setF({ ...f, mood: f.mood === i + 1 ? 0 : i + 1 })}
               className={`grid size-11 place-items-center rounded-xl text-2xl transition ${f.mood === i + 1 ? 'bg-leaf-soft ring-2 ring-leaf' : 'bg-sunken grayscale-[60%] hover:grayscale-0'}`}>{m}</button>))}</div></div>
-        <div className="field"><label htmlFor="fb-body">بنویسید</label>
+        <div className="field"><label htmlFor="fb-body">بنویس</label>
           <textarea id="fb-body" className="input min-h-32" required minLength={3} maxLength={3000} value={f.body} onChange={(e) => setF({ ...f, body: e.target.value })} placeholder={K.hint} />
           <span className="hint">این صفحه همراه بازخورد فرستاده می‌شود. شماره یا نشانی کسی را ننویسید.</span></div>
         {(f.kind === 'BUG' || f.kind === 'CONTENT') && (img ? (
@@ -86,7 +86,7 @@ function FeedbackDialog({ initialKind, context, onClose }: { initialKind: string
             <input type="file" accept="image/png,image/jpeg,image/webp" className="sr-only" disabled={up} onChange={(e) => e.target.files?.[0] && upload(e.target.files[0])} /></label>
         ))}
         <label className="flex items-start gap-3 text-sm"><input type="checkbox" className="mt-1 size-5 accent-[var(--leaf)]" checked={f.anonymous} onChange={(e) => setF({ ...f, anonymous: e.target.checked })} />
-          <span>بی‌نام بفرست<span className="hint block">نامتان به کارکنان نشان داده نمی‌شود؛ پاسخ و وضعیت را خودتان در «کمک و پشتیبانی» می‌بینید.</span></span></label>
+          <span>بی‌نام بفرست<span className="hint block">نامت به کارکنان نشان داده نمی‌شود؛ پاسخ و وضعیت را خودت در «کمک و پشتیبانی» می‌بینی.</span></span></label>
         <button className="btn btn-primary" disabled={send.isPending || up || f.body.trim().length < 3}>{send.isPending ? 'در حال فرستادن…' : 'فرستادن'}</button>
       </form>
     </Dialog>
@@ -98,12 +98,12 @@ export function FeedbackLink() {
   const { open } = useFeedback();
   return (
     <div className="wrap pb-8 text-center">
-      <button className="inline-flex items-center gap-2 text-sm text-muted hover:text-leaf-ink" onClick={() => open('IDEA')}><MessageSquarePlus className="size-4" />نظر یا مشکلی دربارهٔ این صفحه دارید؟</button>
+      <button className="inline-flex items-center gap-2 text-sm text-muted hover:text-leaf-ink" onClick={() => open('IDEA')}><MessageSquarePlus className="size-4" />نظر یا مشکلی دربارهٔ این صفحه داری؟</button>
     </div>
   );
 }
 
-/** «این درس به کارتان آمد؟» */
+/** «این درس به کارت آمد؟» */
 export function LessonRating({ lessonId }: { lessonId: string }) {
   const qc = useQueryClient(); const toast = useToast();
   const q = useQuery({ queryKey: ['lesson-rating', lessonId], queryFn: () => api<{ rating: { up: boolean; reasons: string[]; comment: string | null } | null; reasons: { up: string[]; down: string[] } }>(`/lessons/${lessonId}/rating`) });
@@ -116,7 +116,7 @@ export function LessonRating({ lessonId }: { lessonId: string }) {
   const opts = r ? (r.up ? q.data.reasons.up : q.data.reasons.down) : [];
   return (
     <section className="rounded-2xl border border-line p-4" aria-label="امتیاز این درس">
-      <div className="flex flex-wrap items-center gap-3"><b className="text-ink">این درس به کارتان آمد؟</b>
+      <div className="flex flex-wrap items-center gap-3"><b className="text-ink">این درس به کارت آمد؟</b>
         <div className="flex gap-2">
           <button className={`btn btn-sm ${r?.up === true ? 'btn-primary' : 'btn-secondary'}`} aria-pressed={r?.up === true} onClick={() => pick(true)}><ThumbsUp className="size-4" />بله</button>
           <button className={`btn btn-sm ${r?.up === false ? 'btn-primary' : 'btn-secondary'}`} aria-pressed={r?.up === false} onClick={() => pick(false)}><ThumbsDown className="size-4" />نه چندان</button>
@@ -125,11 +125,11 @@ export function LessonRating({ lessonId }: { lessonId: string }) {
         <div className="mt-3 grid gap-2">
           <div className="flex flex-wrap gap-2">{opts.map((o) => <button key={o} type="button" aria-pressed={r.reasons.includes(o)} className={`chip cursor-pointer border ${r.reasons.includes(o) ? 'chip-leaf border-leaf' : 'border-line'}`}
             onClick={() => setDraft({ ...r, reasons: r.reasons.includes(o) ? r.reasons.filter((x) => x !== o) : [...r.reasons, o] })}>{o}</button>)}</div>
-          <textarea className="input min-h-16" maxLength={1000} placeholder="اگر خواستید، کوتاه بنویسید (اختیاری)" value={r.comment} onChange={(e) => setDraft({ ...r, comment: e.target.value })} aria-label="توضیح" />
+          <textarea className="input min-h-16" maxLength={1000} placeholder="اگر خواستی، کوتاه بنویس (اختیاری)" value={r.comment} onChange={(e) => setDraft({ ...r, comment: e.target.value })} aria-label="توضیح" />
           <div className="flex gap-2"><button className="btn btn-primary btn-sm" disabled={save.isPending} onClick={() => { save.mutate(r, { onSuccess: () => { setDraft(null); toast('ممنون؛ ثبت شد'); } }); }}>ثبت</button><button className="btn btn-ghost btn-sm" onClick={() => setDraft(null)}>بستن</button></div>
         </div>
       )}
-      {r && !draft && <p className="hint mt-2">ثبت شد؛ ممنون. برای تغییر دوباره بزنید.</p>}
+      {r && !draft && <p className="hint mt-2">ثبت شد؛ ممنون. برای تغییر دوباره بزن.</p>}
     </section>
   );
 }
@@ -151,15 +151,15 @@ export function CourseRating({ slug, mine, canRate }: { slug: string; mine: { st
   const [f, setF] = useState({ stars: mine?.stars ?? 0, comment: mine?.comment ?? '' });
   const [edit, setEdit] = useState(!mine);
   const m = useMutation({ mutationFn: () => api(`/courses/${slug}/rating`, { body: { stars: f.stars, comment: f.comment || undefined } }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['course', slug] }); setEdit(false); toast('ممنون؛ امتیازتان ثبت شد'); }, onError: (e) => toast((e as Error).message, 'err') });
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['course', slug] }); setEdit(false); toast('ممنون؛ امتیازت ثبت شد'); }, onError: (e) => toast((e as Error).message, 'err') });
   if (!canRate) return null;
   return (
-    <section className="card grid gap-3 p-5" aria-label="امتیاز شما به دوره">
-      <h2 className="font-extrabold">نظر شما دربارهٔ این دوره</h2>
+    <section className="card grid gap-3 p-5" aria-label="امتیاز تو به دوره">
+      <h2 className="font-extrabold">نظر تو دربارهٔ این دوره</h2>
       {edit ? <>
         <Stars value={f.stars} onChange={(n) => setF({ ...f, stars: n })} size="size-8" />
         <textarea className="input min-h-20" maxLength={2000} placeholder="چه چیزی خوب بود؟ چه چیزی را بهتر کنیم؟ (اختیاری)" value={f.comment} onChange={(e) => setF({ ...f, comment: e.target.value })} aria-label="نظر" />
-        <p className="hint">نظرتان بی‌نام به تیم محتوا می‌رسد.</p>
+        <p className="hint">نظرت بی‌نام به تیم محتوا می‌رسد.</p>
         <button className="btn btn-primary w-fit" disabled={!f.stars || m.isPending} onClick={() => m.mutate()}>ثبت</button>
       </> : <div className="flex flex-wrap items-center gap-3"><Stars value={f.stars} /><button className="btn btn-ghost btn-sm" onClick={() => setEdit(true)}>تغییر</button></div>}
     </section>

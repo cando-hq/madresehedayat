@@ -111,7 +111,7 @@ function Stops({ p, states }: { p: PathCard; states: StationState[] }) {
 }
 
 /* ───────── نقشهٔ مسیر (صفحهٔ مسیر) ───────── */
-const STATE_LABEL: Record<StationState, string> = { done: 'تمام شد', current: 'این‌جا هستید', next: 'ایستگاه بعد', later: 'در راه' };
+const STATE_LABEL: Record<StationState, string> = { done: 'تمام شد', current: 'این‌جا هستی', next: 'ایستگاه بعد', later: 'در راه' };
 
 export function Journey({ p }: { p: PathCard }) {
   const s = pathState(p);

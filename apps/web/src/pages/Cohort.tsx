@@ -15,7 +15,7 @@ export default function CohortPage() {
   if (q.error) return <ErrorBox error={q.error} onRetry={() => q.refetch()} />;
   const c = q.data!;
   if (c.cancelled) return (
-    <Empty icon={Users} title="این دورهٔ گروهی لغو شده است">پیشرفت شما در دوره‌ها سر جایش است. <Link to={`/paths/${c.path.slug}`} className="font-bold text-leaf-ink">ادامهٔ مسیر «{c.path.title}»</Link></Empty>
+    <Empty icon={Users} title="این دورهٔ گروهی لغو شده است">پیشرفت تو در دوره‌ها سر جایش است. <Link to={`/paths/${c.path.slug}`} className="font-bold text-leaf-ink">ادامهٔ مسیر «{c.path.title}»</Link></Empty>
   );
   return (
     <div className="rise mx-auto grid max-w-3xl gap-6">

@@ -13,9 +13,9 @@ r = lr.put(f'{B}/boards/{b["id"]}', json={'data': d, 'base': v['updatedAt']}).js
 ok(psql(f"select data ? '__enc' from boards where id='{b['id']}'") == 't', 'محتوای کار رمزشده')
 ok(lr.get(f'{B}/boards/{b["id"]}').json()['data']['f']['head'] == 'نوجوان‌ها نمی‌آیند', 'خواندن پس از ذخیره')
 ok(other.get(f'{B}/boards/{b["id"]}').status_code == 403, 'دیگران دسترسی ندارند')
-opts = lr.get(f'{B}/boards/share-options').json(); ok(any(o['why'] == 'راهیار شما' for o in opts), 'راهیار در پیشنهاد اشتراک', opts)
+opts = lr.get(f'{B}/boards/share-options').json(); ok(any(o['why'] == 'راهیار تو' for o in opts), 'راهیار در پیشنهاد اشتراک', opts)
 r = lr.post(f'{B}/boards/{b["id"]}/members', json={'mobile': '09121000007', 'role': 'EDITOR'}); ok(r.ok, 'هم‌کار با شماره', r.text)
-rid = [o for o in opts if o['why'] == 'راهیار شما'][0]['userId']
+rid = [o for o in opts if o['why'] == 'راهیار تو'][0]['userId']
 r = lr.post(f'{B}/boards/{b["id"]}/members', json={'userId': rid, 'role': 'VIEWER'}); ok(r.ok, 'بیننده: راهیار')
 nv = narges.get(f'{B}/boards/{b["id"]}').json(); ok(nv['role'] == 'EDITOR', 'هم‌کار باز کرد')
 d2 = {'n': {'p': [{'t': 'مربی ثابت ندارند'}], 't': [{'t': 'هم‌زمان با کلاس تقویتی'}]}, 'f': {'head': 'نوجوان‌ها نمی‌آیند'}}

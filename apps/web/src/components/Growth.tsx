@@ -29,7 +29,7 @@ const STAGE_ICON = [SeedIcon, Sprout, Leaf, TreeDeciduous];
 export function StageTrack({ g, compact }: { g: Growth; compact?: boolean }) {
   const I = STAGE_ICON[g.index] ?? SeedIcon;
   if (compact) return (
-    <Link to="/me" className="stage-chip no-underline" title="مرحلهٔ رشد شما"><span><I className="size-4" /></span>{g.stageTitle}</Link>
+    <Link to="/me" className="stage-chip no-underline" title="مرحلهٔ رشد تو"><span><I className="size-4" /></span>{g.stageTitle}</Link>
   );
   const left = g.next ? [g.next.coursesLeft ? `${fa(g.next.coursesLeft)} دوره` : '', g.next.missionsLeft ? `${fa(g.next.missionsLeft)} مأموریت` : ''].filter(Boolean).join(' + ') : '';
   return (
@@ -115,7 +115,7 @@ function GoalDialog({ open, onClose, current }: { open: boolean; onClose: () => 
   const [v, setV] = useState<number | null>(current ?? 3);
   const save = useMutation({
     mutationFn: (n: number | null) => api<Rhythm>('/me/rhythm', { method: 'PUT', body: { lessonsPerWeek: n } }),
-    onSuccess: (r, n) => { qc.setQueryData(['rhythm'], r); onClose(); toast(n == null ? 'هدف هفتگی برداشته شد' : `هدف شما: هفته‌ای ${fa(n)} درس`); },
+    onSuccess: (r, n) => { qc.setQueryData(['rhythm'], r); onClose(); toast(n == null ? 'هدف هفتگی برداشته شد' : `هدف تو: هفته‌ای ${fa(n)} درس`); },
   });
   const opts: [number, string][] = [[1, 'آرام'], [2, 'پیوسته'], [3, 'منظم'], [5, 'پرتلاش'], [7, 'هر روز']];
   return (
@@ -255,7 +255,7 @@ export function useCohortAction(id: string) {
     mutationFn: (a: 'join' | 'leave' | 'cancel') => api(`/cohorts/${id}/${a}`, { method: 'POST' }),
     onSuccess: (_r, a) => {
       qc.invalidateQueries({ queryKey: ['cohorts'] });
-      toast(a === 'join' ? 'همراه شدید؛ هر ایستگاه که باز شود خبرتان می‌کنیم' : a === 'leave' ? 'از همراهی گروه بیرون آمدید؛ پیشرفت خودتان سر جایش است' : 'دورهٔ گروهی لغو شد و به همراهان خبر داده شد');
+      toast(a === 'join' ? 'همراه شدی؛ هر ایستگاه که باز شود خبرت می‌کنیم' : a === 'leave' ? 'از همراهی گروه بیرون آمدید؛ پیشرفت خودت سر جایش است' : 'دورهٔ گروهی لغو شد و به همراهان خبر داده شد');
     },
   });
 }
@@ -296,13 +296,13 @@ export function CohortCard({ c, showPath = true, linkSelf = true }: { c: Cohort;
           {c.canJoin && <button className="btn btn-primary btn-sm" disabled={act.isPending} onClick={() => act.mutate('join')}>همراه می‌شوم</button>}
           {!linkSelf && c.joined && <button className="btn btn-ghost btn-sm" disabled={act.isPending} onClick={() => setConfirm('leave')}>بیرون آمدن</button>}
           {!linkSelf && c.canManage && <button className="btn btn-ghost btn-sm text-rose-ink" disabled={act.isPending} onClick={() => setConfirm('cancel')}>لغو</button>}
-          {c.joined && !c.canJoin && <span className="chip chip-leaf"><CircleCheck className="size-3.5" />همراهید</span>}
+          {c.joined && !c.canJoin && <span className="chip chip-leaf"><CircleCheck className="size-3.5" />همراهی</span>}
         </span>
       </div>
       {!linkSelf && c.note && <p className="rounded-xl border border-line px-4 py-3 text-sm text-body">{c.note}</p>}
       <Dialog open={!!confirm} onClose={() => setConfirm(null)} title={confirm === 'cancel' ? 'لغو مسیر گروهی؟' : 'بیرون آمدن از همراهی؟'}>
         <div className="grid gap-4">
-          <p>{confirm === 'cancel' ? 'به همراهان خبر می‌دهیم. پیشرفت هر کس سر جایش می‌ماند.' : 'پیشرفت شما سر جایش می‌ماند. هر وقت خواستید برگردید.'}</p>
+          <p>{confirm === 'cancel' ? 'به همراهان خبر می‌دهیم. پیشرفت هر کس سر جایش می‌ماند.' : 'پیشرفت تو سر جایش می‌ماند. هر وقت خواستی برگرد.'}</p>
           <div className="flex gap-2">
             <button className={`btn ${confirm === 'cancel' ? 'btn-danger btn-solid' : 'btn-primary'}`} disabled={act.isPending} onClick={() => act.mutate(confirm!, { onSuccess: () => setConfirm(null) })}>{confirm === 'cancel' ? 'بله، لغو کن' : 'بله، بیرون می‌آیم'}</button>
             <button className="btn btn-ghost" onClick={() => setConfirm(null)}>منصرف شدم</button>
@@ -333,18 +333,18 @@ export function NewCohortDialog({ coreId, coreName, open, onClose, presetPath = 
   const create = useMutation({
     mutationFn: () => api<Cohort>('/cohorts', { body: { coreId, ...f, note: f.note.trim() || undefined } }),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['cohorts'] }); toast('دورهٔ گروهی ساخته شد و به اعضای هسته خبر دادیم'); onClose(); setF({ pathSlug: '', startsAt: todayIso(), weeksPerStation: 1, note: '' }); },
-    onError: (e) => setErr(e instanceof ApiError ? e.message : 'ساخته نشد؛ دوباره امتحان کنید'),
+    onError: (e) => setErr(e instanceof ApiError ? e.message : 'ساخته نشد؛ دوباره امتحان کن'),
   });
   const p = paths.data?.find((x) => x.slug === f.pathSlug);
   const weeks = p ? p.courseCount * f.weeksPerStation : 0;
   return (
     <Dialog open={open} onClose={onClose} title={`مسیر گروهی برای «${coreName}»`}>
-      <form className="grid gap-5" onSubmit={(e) => { e.preventDefault(); setErr(''); if (!f.pathSlug) { setErr('یک مسیر انتخاب کنید'); return; } create.mutate(); }}>
+      <form className="grid gap-5" onSubmit={(e) => { e.preventDefault(); setErr(''); if (!f.pathSlug) { setErr('یک مسیر انتخاب کن'); return; } create.mutate(); }}>
         <p className="text-body">هر ایستگاه در هفتهٔ خودش؛ جلوتر رفتن آزاد است.</p>
         <div className="field">
           <label htmlFor="ch-path">مسیر</label>
           <select id="ch-path" className="input" value={f.pathSlug} onChange={(e) => setF({ ...f, pathSlug: e.target.value })}>
-            <option value="">انتخاب کنید…</option>
+            <option value="">انتخاب کن…</option>
             {paths.data?.map((x) => <option key={x.slug} value={x.slug}>{x.title} ({fa(x.courseCount)} دوره)</option>)}
           </select>
         </div>
@@ -398,7 +398,7 @@ export function LessonChecks({ lessonId, checks }: { lessonId: string; checks: C
   if (!checks?.length) return null;
   return (
     <section className="grid gap-3" aria-labelledby="chk-h">
-      <h2 id="chk-h" className="flex items-center gap-2 text-[15px] font-extrabold"><Sparkles className="size-[18px] text-flame-ink" />یک لحظه فکر کنید</h2>
+      <h2 id="chk-h" className="flex items-center gap-2 text-[15px] font-extrabold"><Sparkles className="size-[18px] text-flame-ink" />یک لحظه فکر کن</h2>
       {checks.map((q, i) => <CheckItem key={q.id} lessonId={lessonId} q={q} n={checks.length > 1 ? i + 1 : 0} />)}
     </section>
   );
@@ -432,7 +432,7 @@ function CheckItem({ lessonId, q, n }: { lessonId: string; q: Check; n: number }
       <div aria-live="polite">
         {send.isError && <p className="err">{(send.error as Error).message}</p>}
         {res && <p className={`rounded-xl px-4 py-3 text-sm ${res.ok ? 'bg-leaf-soft text-leaf-ink' : 'bg-sunken text-body'}`}>
-          {res.ok ? <><b>درست است. </b>{res.explain}</> : <><b>نه دقیقاً. </b>یک بار دیگر به متن نگاه کنید و گزینهٔ دیگری را امتحان کنید.</>}
+          {res.ok ? <><b>درست است. </b>{res.explain}</> : <><b>نه دقیقاً. </b>یک بار دیگر به متن نگاه کن و گزینهٔ دیگری را امتحان کن.</>}
         </p>}
       </div>
     </div>

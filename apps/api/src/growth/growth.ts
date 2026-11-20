@@ -153,7 +153,7 @@ export class GrowthService {
 
   async submitReview(userId: string, id: string, answers: Record<string, string[]>) {
     const { r, qs } = await this.ownReview(userId, id);
-    if (r.doneAt) throw new BadRequestException({ code: 'review_done', message: 'این مرور را قبلاً انجام داده‌اید' });
+    if (r.doneAt) throw new BadRequestException({ code: 'review_done', message: 'این مرور را قبلاً انجام داده‌ای' });
     if (r.dueAt > new Date()) throw new ForbiddenException({ code: 'review_early', message: 'وقت این مرور هنوز نرسیده است' });
     if (!qs.length) {
       // پرسش‌ها از دوره برداشته شده‌اند؛ مرور بی‌پرسش بسته می‌شود

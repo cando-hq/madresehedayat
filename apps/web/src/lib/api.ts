@@ -52,7 +52,7 @@ export async function api<T = any>(path: string, opts: { method?: string; body?:
       if (path === '/auth/me') throw new ApiError(401, 'unauthenticated', 'اول وارد شو');
       // نشست تمام شده: برنامه به صفحهٔ ورود می‌رود و پیام می‌دهد
       window.dispatchEvent(new CustomEvent('mh:session-expired'));
-      throw new ApiError(401, 'session_expired', 'نشست شما تمام شده است؛ دوباره وارد شو');
+      throw new ApiError(401, 'session_expired', 'نشست تو تمام شده است؛ دوباره وارد شو');
     }
   }
   // نقش تازه (مثلاً «مدیر برگزارکننده» که ستاد همین الان داده) در توکنِ قبلی نیست؛ یک بار توکن را تازه کن و دوباره بخواه

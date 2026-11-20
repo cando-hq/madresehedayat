@@ -26,7 +26,7 @@ const LABELS: Record<string, string> = {
   sponsorId: 'حامی', startsAt: 'زمان شروع', status: 'وضعیت', subscriptionId: 'اشتراک', subtitle: 'زیرعنوان', summary: 'خلاصه',
   tags: 'برچسب‌ها', termsAccepted: 'پذیرش شرایط', title: 'عنوان', up: 'رأی', tasks: 'کارهای پویش', subject: 'موضوع',
   message: 'پیام', text: 'متن', url: 'نشانی', location: 'نشانی محل', capacity: 'ظرفیت', speaker: 'میزبان', agenda: 'برنامهٔ جلسه',
-  bring: 'همراه بیاورید', feeNote: 'هزینهٔ شرکت', answers: 'پاسخ‌ها', rating: 'امتیاز', stars: 'ستاره', reason: 'دلیل', type: 'نوع',
+  bring: 'همراه بیاور', feeNote: 'هزینهٔ شرکت', answers: 'پاسخ‌ها', rating: 'امتیاز', stars: 'ستاره', reason: 'دلیل', type: 'نوع',
   slug: 'نشانی کوتاه', order: 'ترتیب', role: 'نقش', roles: 'نقش‌ها', userId: 'کاربر', eventId: 'برنامه', lessonId: 'درس',
   moduleId: 'فصل', coreId: 'هسته', priority: 'اولویت', target: 'هدف', audience: 'مخاطب', fileId: 'فایل', image: 'تصویر',
 };
@@ -177,7 +177,7 @@ export class AllErrorsFilter implements ExceptionFilter {
     this.log.error(`[${ref}] ${req.method} ${req.path} → ${logText(e)}`);
     return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
       code: 'server_error', ref,
-      message: `خطایی در سرور پیش آمد و ثبت شد. اگر دوباره تکرار شد، این کد را به پشتیبانی بدهید: ${ref}`,
+      message: `خطایی در سرور پیش آمد و ثبت شد. اگر دوباره تکرار شد، این کد را به پشتیبانی بده: ${ref}`,
     });
   }
 }

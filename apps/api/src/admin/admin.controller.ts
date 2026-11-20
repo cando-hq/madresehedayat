@@ -77,7 +77,7 @@ class MosqueDto { @IsString() @Length(2, 120) name: string; @IsString() countyId
 export class AdminController {
   constructor(private readonly admin: AdminService, private readonly access: AccessLog, private readonly p2: Paths2Service, @InjectDb() private readonly db: Db) {}
   /** سازندهٔ دوره (مدیر برگزارکننده یا استاد) فقط دورهٔ خودش را در ویرایشگر می‌بیند */
-  private async own(u: AuthUser, courseId: string) { if (!(await this.p2.canEditCourse(u, courseId))) throw new ForbiddenException({ code: 'forbidden', message: 'این دوره مال شما نیست' }); }
+  private async own(u: AuthUser, courseId: string) { if (!(await this.p2.canEditCourse(u, courseId))) throw new ForbiddenException({ code: 'forbidden', message: 'این دوره مال تو نیست' }); }
   private async ownModule(u: AuthUser, moduleId: string) { const m = await this.db.query.modules.findFirst({ where: eq(modules.id, moduleId), columns: { courseId: true } }); await this.own(u, m?.courseId ?? ''); }
   private async ownLesson(u: AuthUser, lessonId: string) { const l = await this.db.query.lessons.findFirst({ where: eq(lessons.id, lessonId), columns: { moduleId: true } }); await this.ownModule(u, l?.moduleId ?? ''); }
 

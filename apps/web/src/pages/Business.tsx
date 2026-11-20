@@ -64,7 +64,7 @@ export function BusinessKpi() {
   const pct = (x: number) => (k.costYear ? Math.min(100, (x / k.costYear) * 100) : 0);
   return (
     <section className="card grid gap-4 p-5">
-      <div className="flex flex-wrap items-baseline justify-between gap-2"><h2 className="text-base font-extrabold">کنشگر فعال میدانی و هزینه</h2><Link to="/admin/business" className="text-sm font-bold text-leaf-ink">مدل کسب‌وکار ←</Link></div>
+      <div className="flex flex-wrap items-baseline justify-between gap-2"><h2 className="text-base font-extrabold">کنشگر فعال میدانی و هزینه</h2></div>
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {[
           ['کنشگر فعال میدانی', fa(k.fieldActive), 'مأموریت یا کار پویش در ۱۲ ماه'],
@@ -101,7 +101,8 @@ export function AdminBusiness() {
   const { tab = 'subscriptions' } = useParams();
   return (
     <div className="rise">
-      <PageHead title="مدل کسب‌وکار" desc="کنشگر هرگز پول نمی‌دهد. سازمان‌ها اشتراک سالانه به ازای هر نفر دارند؛ حامیان هزینهٔ دوره‌ها را می‌دهند و خدمات سفارشی جدا قیمت می‌خورد. قرارداد و پرداخت فعلاً بیرون از سامانه است و این‌جا ثبت می‌شود." />
+      <PageHead title="اشتراک سازمان‌ها" desc="کنشگر هرگز پول نمی‌دهد. سازمان‌ها اشتراک سالانه به ازای هر نفر دارند؛ حامیان هزینهٔ دوره‌ها را می‌دهند و خدمات سفارشی جدا قیمت می‌خورد. قرارداد و پرداخت فعلاً بیرون از سامانه است و این‌جا ثبت می‌شود." />
+      <div className="mb-8"><BusinessKpi /></div>
       <nav className="seg mb-5" aria-label="بخش‌های مدل کسب‌وکار">
         {TABS.map((x) => <Link key={x.k} to={`/admin/business/${x.k}`} aria-current={tab === x.k ? 'page' : undefined}
           className={`flex h-[34px] shrink-0 items-center gap-1.5 rounded-[9px] px-3.5 text-sm font-semibold no-underline ${tab === x.k ? 'bg-card text-ink shadow-sm' : 'text-body'}`}><x.i className="size-4" />{x.t}</Link>)}

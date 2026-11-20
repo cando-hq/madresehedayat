@@ -29,7 +29,7 @@ export class SupportController {
     const t = await this.db.query.tickets.findFirst({ where: eq(tickets.id, id) });
     if (!t) throw new NotFoundException({ code: 'no_ticket', message: 'درخواست پیدا نشد' });
     const role = t.userId === u.id ? 'owner' : this.isStaff(u) ? 'staff' : t.assigneeId === u.id ? 'assignee' : null;
-    if (!role) throw new ForbiddenException({ code: 'forbidden', message: 'این درخواست برای شما نیست' });
+    if (!role) throw new ForbiddenException({ code: 'forbidden', message: 'این درخواست برای تو نیست' });
     return { t, role };
   }
 
@@ -43,7 +43,7 @@ export class SupportController {
   @Post('support') @HttpCode(200)
   async create(@CurrentUser() u: AuthUser, @Body() d: NewDto) {
     const open = await this.db.select({ n: sql<number>`count(*)::int` }).from(tickets).where(and(eq(tickets.userId, u.id), eq(tickets.status, 'OPEN')));
-    if (open[0].n >= 5) throw new BadRequestException({ code: 'too_many', message: 'پنج درخواست باز دارید؛ لطفاً منتظر پاسخ بمانید' });
+    if (open[0].n >= 5) throw new BadRequestException({ code: 'too_many', message: 'پنج درخواست باز داری؛ لطفاً منتظر پاسخ بمان' });
     // پشتیبانی تعهدی بستهٔ سازمانی ویژه: جلوی صف
     const priority = await this.business.hasPrioritySupport(u.id);
     const [t] = await this.db.insert(tickets).values({ userId: u.id, category: d.category, subject: d.subject.trim(), priority }).returning();
@@ -68,18 +68,18 @@ export class SupportController {
   @Post('support/:id/reply') @HttpCode(200)
   async reply(@CurrentUser() u: AuthUser, @Param('id') id: string, @Body() d: ReplyDto) {
     const { t, role } = await this.get(u, id);
-    if (t.status === 'CLOSED' && role === 'owner') throw new BadRequestException({ code: 'closed', message: 'این درخواست بسته شده؛ درخواست تازه بفرستید' });
+    if (t.status === 'CLOSED' && role === 'owner') throw new BadRequestException({ code: 'closed', message: 'این درخواست بسته شده؛ درخواست تازه بفرست' });
     await this.db.insert(ticketMessages).values({ ticketId: id, authorId: u.id, body: enc(d.body.trim())! });
     await this.db.update(tickets).set({ status: role === 'owner' ? 'OPEN' : 'ANSWERED' }).where(eq(tickets.id, id));
     if (role === 'owner') await this.notify.send(t.assigneeId ? [t.assigneeId] : await this.staffIds(), { kind: 'ticket', title: `پاسخ تازه در «${t.subject}»`, link: t.assigneeId ? `/support/${id}` : `/admin/support/${id}` });
-    else await this.notify.send(t.userId, { kind: 'ticket_answer', title: 'به درخواست پشتیبانی شما پاسخ داده شد', body: t.subject, link: `/support/${id}` });
+    else await this.notify.send(t.userId, { kind: 'ticket_answer', title: 'به درخواست پشتیبانی تو پاسخ داده شد', body: t.subject, link: `/support/${id}` });
     return { ok: true };
   }
 
   @Post('support/:id/status') @HttpCode(200)
   async status(@CurrentUser() u: AuthUser, @Param('id') id: string, @Body() d: StatusDto) {
     const { role } = await this.get(u, id);
-    if (role === 'owner' && d.status !== 'CLOSED') throw new ForbiddenException({ code: 'forbidden', message: 'فقط می‌توانید درخواست را ببندید' });
+    if (role === 'owner' && d.status !== 'CLOSED') throw new ForbiddenException({ code: 'forbidden', message: 'فقط می‌توانی درخواست را ببندی' });
     await this.db.update(tickets).set({ status: d.status }).where(eq(tickets.id, id));
     return { ok: true };
   }
@@ -95,7 +95,7 @@ export class SupportController {
       if (!ok) throw new BadRequestException({ code: 'bad_assignee', message: 'فقط به راهیار، مدرس یا کارکنان ستاد ارجاع می‌شود' });
     }
     const [t] = await this.db.update(tickets).set({ assigneeId: d.userId || null }).where(eq(tickets.id, id)).returning();
-    if (d.userId) await this.notify.send(d.userId, { kind: 'ticket_assigned', title: 'یک درخواست پشتیبانی به شما ارجاع شد', body: t.subject, link: `/support/${id}` });
+    if (d.userId) await this.notify.send(d.userId, { kind: 'ticket_assigned', title: 'یک درخواست پشتیبانی به تو ارجاع شد', body: t.subject, link: `/support/${id}` });
     return { ok: true };
   }
 

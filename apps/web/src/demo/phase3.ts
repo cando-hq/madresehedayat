@@ -69,7 +69,7 @@ export function seedPhase3(db: Any) {
   db.services.push({ id: 'svc1', kind: 'WORKSHOP', title: 'کارگاه حضوری مدیران برکت', networkId: 'org-barakat', sponsorId: null, courseId: null, costs: [{ item: 'مدرس', amount: 12_000_000 }, { item: 'جا و پذیرایی', amount: 8_000_000 }], cost: 20_000_000, price: 30_000_000, status: 'ACTIVE', note: null, createdAt: iso(-5) });
   // پشتیبانی، پیام گروهی، بازخورد
   db.tickets.push({ id: 'tk1', userId: 'sample3', category: 'COURSE', subject: 'آزمون درس دوم باز نمی‌شود', status: 'ANSWERED', priority: true, assigneeId: null, createdAt: iso(-2), updatedAt: iso(-1) });
-  db.tmsgs.push({ id: 'tm1', ticketId: 'tk1', authorId: 'sample3', body: 'سلام، وقتی دکمهٔ آزمون را می‌زنم چیزی نمی‌شود.', createdAt: iso(-2) }, { id: 'tm2', ticketId: 'tk1', authorId: 'p-admin', body: 'سلام؛ اول متن درس را تا آخر بخوانید و «خواندم» را بزنید؛ آزمون بعد از آن باز می‌شود.', createdAt: iso(-1) });
+  db.tmsgs.push({ id: 'tm1', ticketId: 'tk1', authorId: 'sample3', body: 'سلام، وقتی دکمهٔ آزمون را می‌زنم چیزی نمی‌شود.', createdAt: iso(-2) }, { id: 'tm2', ticketId: 'tk1', authorId: 'p-admin', body: 'سلام؛ اول متن درس را تا آخر بخوان و «خواندم» را بزن؛ آزمون بعد از آن باز می‌شود.', createdAt: iso(-1) });
   db.broadcasts.push({ id: 'bc1', senderId: 'p-admin', audience: { kind: 'ALL', ids: [], label: 'همهٔ کاربران' }, title: 'دورهٔ «همراهی نوجوانان» به‌روز شد', body: 'دو درس تازه اضافه شد.', link: '/learn', recipientCount: 12, status: 'SENT', createdAt: iso(-3), sentAt: iso(-3) });
   db.feedback.push({ id: 'fb1', userId: 'sample3', anonymous: false, kind: 'IDEA', mood: 4, body: 'کاش صوت درس‌ها را می‌شد دانلود کرد و در راه گوش داد.', path: '/learn', context: null, device: null, imageKey: null, status: 'PLANNED', tags: ['صوت'], reply: 'پیشنهاد خوبی است؛ در برنامهٔ نسخهٔ بعد قرار گرفت.', repliedAt: iso(-1), createdAt: iso(-4) });
   db.feedback.push({ id: 'fb2', userId: 'sample1', anonymous: true, kind: 'BUG', mood: 2, body: 'در گوشی، دکمهٔ «خواندم» زیر نوار پایین می‌رود.', path: '/lessons/x', context: nj1 ? { courseId: nj1.id } : null, device: 'Chrome · 390×800 · گوشی', imageKey: null, status: 'NEW', tags: [], reply: null, repliedAt: null, createdAt: iso(-0.2) });
@@ -111,10 +111,10 @@ export function registerPhase3(X: Any) {
   const orgGate = (nid: string, feature = 'orgPanel') => {
     const u = me(); const net = DB().networks.find((n: Any) => n.id === nid);
     if (!net || net.kind !== 'ORGANIZATION') throw E(404, 'no_org', 'این سازمان پیدا نشد');
-    if (!hq(u.id) && !DB().roles.some((r: Any) => r.userId === u.id && r.role === 'ORG_ADMIN' && r.networkId === nid)) throw E(403, 'not_org_admin', 'شما مدیر این سازمان نیستید');
+    if (!hq(u.id) && !DB().roles.some((r: Any) => r.userId === u.id && r.role === 'ORG_ADMIN' && r.networkId === nid)) throw E(403, 'not_org_admin', 'تو مدیر این سازمان نیستی');
     const sub = activeSub(nid);
-    if (!sub) throw E(403, 'no_subscription', `اشتراک «${net.name}» فعال نیست؛ برای تمدید با ستاد مدرسه هماهنگ کنید`);
-    if (!has(sub.plan, feature)) throw E(403, 'plan_feature', `«${FEATURE_FA[feature]}» در بستهٔ ${PLANS[sub.plan].label} نیست؛ برای بستهٔ سازمانی ویژه با ستاد هماهنگ کنید`);
+    if (!sub) throw E(403, 'no_subscription', `اشتراک «${net.name}» فعال نیست؛ برای تمدید با ستاد مدرسه هماهنگ کن`);
+    if (!has(sub.plan, feature)) throw E(403, 'plan_feature', `«${FEATURE_FA[feature]}» در بستهٔ ${PLANS[sub.plan].label} نیست؛ برای بستهٔ سازمانی ویژه با ستاد هماهنگ کن`);
     return { net, sub };
   };
   const adminOrgs = (uid: string) => DB().roles.filter((r: Any) => r.userId === uid && r.role === 'ORG_ADMIN').map((r: Any) => r.networkId);
@@ -126,7 +126,7 @@ export function registerPhase3(X: Any) {
 
   // ── سازمان (جای مسیرهای مرحلهٔ ۲)
   onFirst('GET', '/org', () => { const u = me(); return DB().networks.filter((n: Any) => adminOrgs(u.id).includes(n.id)).map((n: Any) => ({ ...n, subscription: summary(n.id) })); });
-  onFirst('GET', '/org/([^/]+)/subscription', (m: Any) => { const u = me(); if (!hq(u.id) && !adminOrgs(u.id).includes(m[1])) throw E(403, 'not_org_admin', 'شما مدیر این سازمان نیستید'); return summary(m[1]); });
+  onFirst('GET', '/org/([^/]+)/subscription', (m: Any) => { const u = me(); if (!hq(u.id) && !adminOrgs(u.id).includes(m[1])) throw E(403, 'not_org_admin', 'تو مدیر این سازمان نیستی'); return summary(m[1]); });
   onFirst('GET', '/org/([^/]+)/report', (m: Any) => {
     orgGate(m[1], 'quarterlyReport'); const ids = memberIds(m[1]);
     const done = DB().progress.filter((p: Any) => ids.includes(p.userId) && p.completedAt);
@@ -148,14 +148,14 @@ export function registerPhase3(X: Any) {
     const norm = [...new Set(b.mobiles.map((x: string) => normMobile(x)).filter(Boolean))] as string[];
     const fresh: string[] = [];
     for (const n of norm) { const u = DB().users.find((x: Any) => x.mobile === n); if (u && !DB().netMembers.some((x: Any) => x.networkId === m[1] && x.userId === u.id)) { DB().netMembers.push({ networkId: m[1], userId: u.id, acceptedAt: null, invitedAt: now() }); fresh.push(u.id); } }
-    notify(fresh, { kind: 'org_invite', title: `«${net?.name}» شما را به اشتراکش دعوت کرده است`, body: 'اگر عضو این سازمان هستید، دعوت را بپذیرید تا دوره‌های اشتراک برایتان باز شود.', link: '/settings#orgs' });
+    notify(fresh, { kind: 'org_invite', title: `«${net?.name}» تو را به اشتراکش دعوت کرده است`, body: 'اگر عضو این سازمان هستی، دعوت را بپذیر تا دوره‌های اشتراک برایت باز شود.', link: '/settings#orgs' });
     return { sent: norm.length, invalid: b.mobiles.length - b.mobiles.filter((x: string) => normMobile(x)).length };
   });
   on('GET', '/me/orgs', () => { const u = me(); const rows = DB().netMembers.filter((x: Any) => x.userId === u.id);
     const name = (id: string) => DB().networks.find((n: Any) => n.id === id)?.name;
     return { invites: rows.filter((x: Any) => x.acceptedAt === null).map((x: Any) => ({ id: x.networkId, name: name(x.networkId), invitedAt: x.invitedAt ?? now() })), member: rows.filter((x: Any) => x.acceptedAt !== null).map((x: Any) => ({ id: x.networkId, name: name(x.networkId) })) }; });
-  on('POST', '/me/orgs/([^/]+)/accept', (m: Any) => { const u = me(); const r = DB().netMembers.find((x: Any) => x.networkId === m[1] && x.userId === u.id); if (!r) throw E(404, 'no_invite', 'دعوتی از این سازمان ندارید');
-    if (r.acceptedAt === null) { const sub = activeSub(m[1]); if (sub && memberIds(m[1]).length >= sub.seats) throw E(400, 'seats_full', 'ظرفیت اشتراک این سازمان پر است؛ به مدیر سازمان خبر بدهید'); r.acceptedAt = now(); } return { ok: true }; });
+  on('POST', '/me/orgs/([^/]+)/accept', (m: Any) => { const u = me(); const r = DB().netMembers.find((x: Any) => x.networkId === m[1] && x.userId === u.id); if (!r) throw E(404, 'no_invite', 'دعوتی از این سازمان نداری');
+    if (r.acceptedAt === null) { const sub = activeSub(m[1]); if (sub && memberIds(m[1]).length >= sub.seats) throw E(400, 'seats_full', 'ظرفیت اشتراک این سازمان پر است؛ به مدیر سازمان خبر بده'); r.acceptedAt = now(); } return { ok: true }; });
   on('POST', '/me/orgs/([^/]+)/leave', (m: Any) => { const u = me(); DB().netMembers = DB().netMembers.filter((x: Any) => !(x.networkId === m[1] && x.userId === u.id)); return { ok: true }; });
 
   // ── برنامه‌ها: برگزارکنندهٔ محدود
@@ -168,7 +168,7 @@ export function registerPhase3(X: Any) {
   onFirst('GET', '/manage/events/options', () => { const u = me(); return { open: canOpen(u.id), scoped: scopedOptions(u.id) }; });
   onFirst('POST', '/manage/events', (_m: Any, b: Any) => {
     const u = me(); const scoped = [b.audienceNetworkId, b.audienceMosqueId, b.audienceCoreId].filter(Boolean);
-    if (!scoped.length && !canOpen(u.id)) throw E(403, 'forbidden', scopedOptions(u.id).length ? 'مخاطب برنامه را انتخاب کنید: اعضای سازمان، مسجد یا هستهٔ خودتان' : 'اجازهٔ ساخت برنامه ندارید');
+    if (!scoped.length && !canOpen(u.id)) throw E(403, 'forbidden', scopedOptions(u.id).length ? 'مخاطب برنامه را انتخاب کن: اعضای سازمان، مسجد یا هستهٔ خودت' : 'اجازهٔ ساخت برنامه نداری');
     if (b.audienceNetworkId) orgGate(b.audienceNetworkId, 'events');
     if (!b.title || !b.kind || !b.startsAt || !b.endsAt) throw E(400, 'missing', 'عنوان، نوع، زمان شروع و پایان لازم است');
     const e = { id: rid(), status: 'DRAFT', cancelReason: null, createdById: u.id, ...b };
@@ -208,7 +208,7 @@ export function registerPhase3(X: Any) {
   wrap('GET', '/courses/([^/]+)', (orig: Any) => (m: Any, b: Any, q: Any) => {
     const u = maybeMe(); let r;
     try { r = orig(m, b, q); } catch (e: Any) {
-      if (e.code === 'restricted' && u && enr(u.id, C(m[1]).id)) throw E(403, 'subscription_ended', 'دسترسی سازمان شما به این دوره تمام شده است. پیشرفت و گواهی‌تان محفوظ است و با تمدید اشتراک برمی‌گردد');
+      if (e.code === 'restricted' && u && enr(u.id, C(m[1]).id)) throw E(403, 'subscription_ended', 'دسترسی سازمان تو به این دوره تمام شده است. پیشرفت و گواهی‌ات محفوظ است و با تمدید اشتراک برمی‌گردد');
       if (e.code === 'restricted') throw E(403, 'restricted', 'این دوره ویژهٔ اعضای سازمان‌های مشترک است');
       throw e;
     }
@@ -229,7 +229,7 @@ export function registerPhase3(X: Any) {
   };
   const bResolve = (uid: string, a: Any) => {
     const ok = bOptions(uid).some((o) => o.kind === a.kind && (!o.ids || o.ids[0] === a.ids?.[0])) || (hq(uid) && ['PROVINCE', 'COUNTY', 'ROLE', 'COURSE', 'NETWORK'].includes(a.kind));
-    if (!ok) throw E(403, 'forbidden', 'به این گروه نمی‌توانید پیام بدهید');
+    if (!ok) throw E(403, 'forbidden', 'به این گروه نمی‌توانی پیام بدهی');
     const all = DB().users.filter((x: Any) => x.isActive !== false && x.id !== uid);
     switch (a.kind) {
       case 'MOSQUE': return { ids: all.filter((x: Any) => x.mosqueId === a.ids[0]).map((x: Any) => x.id), label: `اعضای ${DB().mosques.find((x: Any) => x.id === a.ids[0])?.name}` };
@@ -258,24 +258,24 @@ export function registerPhase3(X: Any) {
   // ── پشتیبانی
   const tRow = (t: Any) => ({ id: t.id, category: t.category, subject: t.subject, status: t.status, priority: t.priority, createdAt: t.createdAt, updatedAt: t.updatedAt, userName: nm(t.userId), assignee: t.assigneeId ? nm(t.assigneeId) : null });
   const tGet = (id: string) => { const u = me(); const t = DB().tickets.find((x: Any) => x.id === id); if (!t) throw E(404, 'no_ticket', 'درخواست پیدا نشد');
-    const role = t.userId === u.id ? 'owner' : hq(u.id) ? 'staff' : t.assigneeId === u.id ? 'assignee' : null; if (!role) throw E(403, 'forbidden', 'این درخواست برای شما نیست'); return { t, role, u }; };
+    const role = t.userId === u.id ? 'owner' : hq(u.id) ? 'staff' : t.assigneeId === u.id ? 'assignee' : null; if (!role) throw E(403, 'forbidden', 'این درخواست برای تو نیست'); return { t, role, u }; };
   const sortT = (a: Any, b: Any) => (b.status === 'OPEN' && b.priority ? 1 : 0) - (a.status === 'OPEN' && a.priority ? 1 : 0) || b.updatedAt.localeCompare(a.updatedAt);
   on('GET', '/support', () => { const u = me(); return DB().tickets.filter((t: Any) => t.userId === u.id).sort(sortT).map(tRow); });
   on('GET', '/support/assigned', () => { const u = me(); return DB().tickets.filter((t: Any) => t.assigneeId === u.id).map(tRow); });
   on('POST', '/support', (_m: Any, b: Any) => {
-    const u = me(); if (!b.subject || b.subject.trim().length < 3) throw E(400, 'invalid', 'عنوان را بنویسید (دست‌کم ۳ حرف)'); if (!b.body || b.body.trim().length < 5) throw E(400, 'invalid', 'توضیح را کامل‌تر بنویسید (دست‌کم ۵ حرف)');
+    const u = me(); if (!b.subject || b.subject.trim().length < 3) throw E(400, 'invalid', 'عنوان را بنویس (دست‌کم ۳ حرف)'); if (!b.body || b.body.trim().length < 5) throw E(400, 'invalid', 'توضیح را کامل‌تر بنویس (دست‌کم ۵ حرف)');
     const priority = activeSubsOf(u.id).some((s: Any) => PLANS[s.plan].prioritySupport);
     const t = { id: rid(), userId: u.id, category: b.category, subject: b.subject.trim(), status: 'OPEN', priority, assigneeId: null, createdAt: now(), updatedAt: now() };
     DB().tickets.unshift(t); DB().tmsgs.push({ id: rid(), ticketId: t.id, authorId: u.id, body: b.body.trim(), createdAt: now() }); return { id: t.id, priority };
   });
   on('GET', '/support/([^/]+)', (m: Any) => { const { t, role } = tGet(m[1]);
     return { ...tRow(t), userId: t.userId, assigneeId: t.assigneeId, role, messages: DB().tmsgs.filter((x: Any) => x.ticketId === t.id).map((x: Any) => ({ ...x, firstName: U(x.authorId)?.firstName, lastName: U(x.authorId)?.lastName, fromUser: x.authorId === t.userId })) }; });
-  on('POST', '/support/([^/]+)/reply', (m: Any, b: Any) => { const { t, role, u } = tGet(m[1]); if (t.status === 'CLOSED' && role === 'owner') throw E(400, 'closed', 'این درخواست بسته شده؛ درخواست تازه بفرستید');
+  on('POST', '/support/([^/]+)/reply', (m: Any, b: Any) => { const { t, role, u } = tGet(m[1]); if (t.status === 'CLOSED' && role === 'owner') throw E(400, 'closed', 'این درخواست بسته شده؛ درخواست تازه بفرست');
     DB().tmsgs.push({ id: rid(), ticketId: t.id, authorId: u.id, body: b.body.trim(), createdAt: now() }); t.status = role === 'owner' ? 'OPEN' : 'ANSWERED'; t.updatedAt = now();
-    if (role !== 'owner') notify(t.userId, { kind: 'ticket_answer', title: 'به درخواست پشتیبانی شما پاسخ داده شد', body: t.subject, link: `/support/${t.id}` }); return { ok: true }; });
-  on('POST', '/support/([^/]+)/status', (m: Any, b: Any) => { const { t, role } = tGet(m[1]); if (role === 'owner' && b.status !== 'CLOSED') throw E(403, 'forbidden', 'فقط می‌توانید درخواست را ببندید'); t.status = b.status; return { ok: true }; });
+    if (role !== 'owner') notify(t.userId, { kind: 'ticket_answer', title: 'به درخواست پشتیبانی تو پاسخ داده شد', body: t.subject, link: `/support/${t.id}` }); return { ok: true }; });
+  on('POST', '/support/([^/]+)/status', (m: Any, b: Any) => { const { t, role } = tGet(m[1]); if (role === 'owner' && b.status !== 'CLOSED') throw E(403, 'forbidden', 'فقط می‌توانی درخواست را ببندید'); t.status = b.status; return { ok: true }; });
   on('GET', '/admin/support', (_m: Any, _b: Any, q: Any) => { staff(); const st = q.get('status'); return DB().tickets.filter((t: Any) => (st ? t.status === st : t.status !== 'CLOSED')).sort(sortT).map(tRow); });
-  on('POST', '/admin/support/([^/]+)/assign', (m: Any, b: Any) => { staff(); const t = DB().tickets.find((x: Any) => x.id === m[1]); t.assigneeId = b.userId || null; if (b.userId) notify(b.userId, { kind: 'ticket_assigned', title: 'یک درخواست پشتیبانی به شما ارجاع شد', body: t.subject, link: `/support/${t.id}` }); return { ok: true }; });
+  on('POST', '/admin/support/([^/]+)/assign', (m: Any, b: Any) => { staff(); const t = DB().tickets.find((x: Any) => x.id === m[1]); t.assigneeId = b.userId || null; if (b.userId) notify(b.userId, { kind: 'ticket_assigned', title: 'یک درخواست پشتیبانی به تو ارجاع شد', body: t.subject, link: `/support/${t.id}` }); return { ok: true }; });
   on('GET', '/admin/support-assignees', (_m: Any, _b: Any, q: Any) => { staff(); const s = q.get('q') ?? '';
     return [...new Set(DB().roles.filter((r: Any) => ['RAHYAR', 'INSTRUCTOR', 'HQ_OPERATOR', 'HQ_ADMIN'].includes(r.role)).map((r: Any) => r.userId))].map((id) => ({ id, name: nm(id as string), roles: rolesOf(id) })).filter((x: Any) => !s || x.name.includes(s)); });
 
@@ -286,7 +286,7 @@ export function registerPhase3(X: Any) {
   wrap('POST', '/rahyar/reports/([^/]+)/([^/]+)', (orig: Any) => (m: Any, b: Any, q: Any) => {
     const r = orig(m, b, q);
     if (b.kind === 'APPROVE' && b.proposeSample && !sample(m[1], m[2])) { DB().samples.push({ learnerId: m[1], lessonId: m[2], proposedById: me().id, status: 'PROPOSED', named: null, text: null, authorLabel: null, createdAt: now(), publishedAt: null });
-      notify(m[1], { kind: 'sample_proposed', title: 'راهیارتان پیشنهاد داده گزارشتان «نمونه» شود', link: `/lessons/${m[2]}` }); }
+      notify(m[1], { kind: 'sample_proposed', title: 'راهیارت پیشنهاد داده گزارشت «نمونه» شود', link: `/lessons/${m[2]}` }); }
     return r;
   });
   on('POST', '/missions/([^/]+)/sample', (m: Any, b: Any) => { const u = me(); const s = sample(u.id, m[1]); if (!s || s.status === 'PUBLISHED') throw E(400, 'no_sample', 'پیشنهادی برای نمونه نیست');
@@ -305,7 +305,7 @@ export function registerPhase3(X: Any) {
   const pathBy = (slug: string) => { const p = DB().paths.find((x: Any) => x.slug === slug); if (!p) throw E(404, 'no_path', 'مسیر پیدا نشد'); if (!p.quiz?.questions?.length) throw E(404, 'no_exam', 'این مسیر آزمون جامع ندارد'); return p; };
   on('GET', '/paths/([^/]+)/exam', (m: Any) => { const u = me(); const p = pathBy(m[1]); const open = pathOpen(p, u.id); const at = DB().pathAttempts.filter((a: Any) => a.userId === u.id && a.pathId === p.id); const cert = DB().certificates.find((c: Any) => c.userId === u.id && c.pathId === p.id);
     return { path: { slug: p.slug, title: p.title }, passScore: p.passScore, locked: open.length > 0, waitingFor: open.map((c: Any) => c.title), intro: p.quiz.intro, questions: open.length ? [] : p.quiz.questions.map(({ correct: _c, explain: _e, ...x }: Any) => x), attempts: at, nextAllowedAt: null, certificate: cert ? { code: cert.code, score: cert.score } : null }; });
-  on('POST', '/paths/([^/]+)/exam', (m: Any, b: Any) => { const u = me(); const p = pathBy(m[1]); if (pathOpen(p, u.id).length) throw E(403, 'path_open', 'اول همهٔ دوره‌های مسیر را تمام کنید');
+  on('POST', '/paths/([^/]+)/exam', (m: Any, b: Any) => { const u = me(); const p = pathBy(m[1]); if (pathOpen(p, u.id).length) throw E(403, 'path_open', 'اول همهٔ دوره‌های مسیر را تمام کن');
     const results = p.quiz.questions.map((x: Any) => { const a = [...(b.answers?.[x.id] ?? [])].sort().join(); const ok = a === [...x.correct].sort().join(); return { id: x.id, correct: ok, correctIds: x.correct, explain: x.explain ?? null }; });
     const score = Math.round((results.filter((r: Any) => r.correct).length / results.length) * 100); const passed = score >= p.passScore;
     DB().pathAttempts.unshift({ userId: u.id, pathId: p.id, score, passed, at: now() });
@@ -332,13 +332,13 @@ export function registerPhase3(X: Any) {
   // ── جعبه‌ابزار
   const toolById = (id: string) => TOOLS.find((t) => t.id === id);
   const initialData = (t: Any) => { const d: Any = { n: {}, f: {} }; if (t.dm) d.dm = { opts: [...t.dm.opts], crit: t.dm.crit.map((c: Any) => ({ ...c })), s: {} }; if (t.raci) d.raci = { tasks: [...t.raci.tasks], roles: [...t.raci.roles], m: {} }; if (t.bud) d.bud = { rows: t.bud.rows.map((r: Any) => ({ ...r })), ppl: t.bud.ppl }; return d; };
-  const bAccess = (id: string) => { const u = me(); const b = DB().boards.find((x: Any) => x.id === id); if (!b) throw E(404, 'no_board', 'این کار پیدا نشد'); if (b.ownerId === u.id) return { b, role: 'OWNER', u }; const mm = DB().bmembers.find((x: Any) => x.boardId === id && x.userId === u.id); if (mm) return { b, role: mm.role, u }; throw E(403, 'forbidden', 'این کار با شما به اشتراک گذاشته نشده'); };
+  const bAccess = (id: string) => { const u = me(); const b = DB().boards.find((x: Any) => x.id === id); if (!b) throw E(404, 'no_board', 'این کار پیدا نشد'); if (b.ownerId === u.id) return { b, role: 'OWNER', u }; const mm = DB().bmembers.find((x: Any) => x.boardId === id && x.userId === u.id); if (mm) return { b, role: mm.role, u }; throw E(403, 'forbidden', 'این کار با تو به اشتراک گذاشته نشده'); };
   const newBoard = (uid: string, toolId: string, title?: string, lessonId: string | null = null) => { const t = toolById(toolId); if (!t) throw E(400, 'no_tool', 'ابزار پیدا نشد'); const b = { id: rid(), ownerId: uid, toolId, title: title?.trim() || t.t, data: initialData(t), lessonId, publicToken: null, updatedById: uid, createdAt: now(), updatedAt: now() }; DB().boards.unshift(b); return b; };
   on('GET', '/tools', (_m: Any, _b: Any, q: Any) => ({ categories: (catalog as Any).categories, tools: TOOLS.filter((t) => q.get('all') === '1' || DB().toolStatus[t.id]).map((t) => ({ ...t, published: !!DB().toolStatus[t.id] })) }));
   on('GET', '/boards', () => { const u = me(); return { own: DB().boards.filter((b: Any) => b.ownerId === u.id).map((b: Any) => ({ id: b.id, toolId: b.toolId, title: b.title, updatedAt: b.updatedAt, lessonId: b.lessonId, isPublic: !!b.publicToken })),
     shared: DB().bmembers.filter((x: Any) => x.userId === u.id).map((x: Any) => { const b = DB().boards.find((y: Any) => y.id === x.boardId); return b && { id: b.id, toolId: b.toolId, title: b.title, updatedAt: b.updatedAt, role: x.role, owner: nm(b.ownerId) }; }).filter(Boolean) }; });
   on('POST', '/boards', (_m: Any, b: Any) => { const u = me(); if (!DB().toolStatus[b.toolId] && !hq(u.id)) throw E(400, 'not_published', 'این ابزار هنوز منتشر نشده'); return { id: newBoard(u.id, b.toolId, b.title).id }; });
-  on('GET', '/boards/share-options', () => { const u = me(); const out: Any[] = []; const r = X.resolve(u).responsible; if (r?.holderId) out.push({ userId: r.holderId, name: nm(r.holderId), why: 'راهیار شما' });
+  on('GET', '/boards/share-options', () => { const u = me(); const out: Any[] = []; const r = X.resolve(u).responsible; if (r?.holderId) out.push({ userId: r.holderId, name: nm(r.holderId), why: 'راهیار تو' });
     const mine = DB().coreMembers.filter((x: Any) => x.userId === u.id).map((x: Any) => x.coreId);
     DB().coreMembers.filter((x: Any) => mine.includes(x.coreId) && x.userId !== u.id).forEach((x: Any) => { if (!out.some((o) => o.userId === x.userId)) out.push({ userId: x.userId, name: nm(x.userId), why: 'هم‌هسته‌ای' }); }); return out; });
   on('GET', '/boards/lesson/([^/]+)', (m: Any) => { const u = me(); const l = DB().lessons.find((x: Any) => x.id === m[1]); if (!l || l.type !== 'TOOL') throw E(404, 'no_lesson', 'درس ابزار پیدا نشد'); const ex = DB().boards.find((b: Any) => b.ownerId === u.id && b.lessonId === l.id); return { id: (ex ?? newBoard(u.id, l.content.toolId, `${toolById(l.content.toolId)?.t ?? 'کار'} · ${l.title}`, l.id)).id }; });
@@ -346,7 +346,7 @@ export function registerPhase3(X: Any) {
     return { id: b.id, toolId: b.toolId, title: b.title, data: b.data ?? initialData(toolById(b.toolId)), lessonId: b.lessonId, updatedAt: b.updatedAt, createdAt: b.createdAt, role, owner: nm(b.ownerId), publicToken: role === 'OWNER' ? b.publicToken : null,
       members: DB().bmembers.filter((x: Any) => x.boardId === b.id).map((x: Any) => ({ userId: x.userId, role: x.role, name: nm(x.userId) })),
       comments: DB().bcomments.filter((c: Any) => c.boardId === b.id).map((c: Any) => ({ ...c, firstName: U(c.authorId)?.firstName, lastName: U(c.authorId)?.lastName })) }; });
-  on('PUT', '/boards/([^/]+)', (m: Any, d: Any) => { const { b, role, u } = bAccess(m[1]); if (role === 'VIEWER') throw E(403, 'viewer', 'فقط می‌توانید ببینید و نظر بدهید');
+  on('PUT', '/boards/([^/]+)', (m: Any, d: Any) => { const { b, role, u } = bAccess(m[1]); if (role === 'VIEWER') throw E(403, 'viewer', 'فقط می‌توانی ببینی و نظر بدهی');
     if (d.title) b.title = d.title.trim();
     if (d.data) { b.data = d.data; const last = DB().bversions.filter((v: Any) => v.boardId === b.id).sort((a: Any, c: Any) => c.createdAt.localeCompare(a.createdAt))[0];
       if (last && last.authorId === u.id && Date.now() - +new Date(last.createdAt) < 600_000) last.data = d.data; else DB().bversions.push({ id: rid(), boardId: b.id, authorId: u.id, data: d.data, createdAt: now() });
@@ -355,9 +355,9 @@ export function registerPhase3(X: Any) {
   on('DELETE', '/boards/([^/]+)', (m: Any) => { const { role } = bAccess(m[1]); if (role !== 'OWNER') throw E(403, 'forbidden', 'فقط صاحب کار'); DB().boards = DB().boards.filter((b: Any) => b.id !== m[1]); return { ok: true }; });
   on('POST', '/boards/([^/]+)/members', (m: Any, d: Any) => { const { b, role, u } = bAccess(m[1]); if (role !== 'OWNER') throw E(403, 'forbidden', 'فقط صاحب کار');
     let uid = d.userId; if (!uid && d.mobile) { const n = normMobile(d.mobile); uid = n && DB().users.find((x: Any) => x.mobile === n)?.id; if (!uid) throw E(400, 'no_user', 'کسی با این شماره در مدرسه حساب ندارد'); }
-    if (!uid || uid === u.id) throw E(400, 'bad_member', 'نفر را انتخاب کنید');
+    if (!uid || uid === u.id) throw E(400, 'bad_member', 'نفر را انتخاب کن');
     DB().bmembers = DB().bmembers.filter((x: Any) => !(x.boardId === b.id && x.userId === uid)); DB().bmembers.push({ boardId: b.id, userId: uid, role: d.role });
-    notify(uid, { kind: 'board_share', title: `${u.firstName} ${u.lastName} کار «${b.title}» را با شما به اشتراک گذاشت`, link: `/tools/boards/${b.id}` }); return { ok: true }; });
+    notify(uid, { kind: 'board_share', title: `${u.firstName} ${u.lastName} کار «${b.title}» را با تو به اشتراک گذاشت`, link: `/tools/boards/${b.id}` }); return { ok: true }; });
   on('DELETE', '/boards/([^/]+)/members/([^/]+)', (m: Any) => { const { role, u } = bAccess(m[1]); if (role !== 'OWNER' && m[2] !== u.id) throw E(403, 'forbidden', 'فقط صاحب کار'); DB().bmembers = DB().bmembers.filter((x: Any) => !(x.boardId === m[1] && x.userId === m[2])); return { ok: true }; });
   on('POST', '/boards/([^/]+)/comments', (m: Any, d: Any) => { const { u } = bAccess(m[1]); DB().bcomments.push({ id: rid(), boardId: m[1], authorId: u.id, body: d.body.trim(), createdAt: now() }); return { ok: true }; });
   on('GET', '/boards/([^/]+)/versions', (m: Any) => { bAccess(m[1]); return DB().bversions.filter((v: Any) => v.boardId === m[1]).sort((a: Any, b: Any) => b.createdAt.localeCompare(a.createdAt)).map((v: Any) => ({ id: v.id, createdAt: v.createdAt, author: nm(v.authorId) })); });
@@ -375,7 +375,7 @@ export function registerPhase3(X: Any) {
   on('GET', '/admin/business/pricing', () => { staff(); return pricing(); });
   on('PATCH', '/admin/business/costs', (_m: Any, b: Any) => { staff(); for (const [k, v] of Object.entries(b.costs ?? {})) { if (!(k in DEFAULT_COSTS)) continue; if (typeof v !== 'number' || !isFinite(v) || v < 0) throw E(400, 'bad_cost', 'هزینه‌ها باید عدد مثبت باشند'); DB().costs[k] = v; } if (DB().costs.expectedUsers < 1) throw E(400, 'bad_cost', 'شمار کاربران فعال دست‌کم ۱ است'); audit('biz.costs'); return pricing(); });
   const quote = (plan: string, seats: number, price?: number, disc?: number, fee?: number) => { const per = price ?? priceModel(DB().costs).perSeat; const d = disc ?? volumeDiscount(seats); const f = PLANS[plan].fixedFee ? (fee ?? DB().costs.premiumFixedFee) : 0; return { pricePerSeat: per, discountPct: d, fixedFee: f, amount: Math.round(seats * per * (1 - d / 100)) + f }; };
-  on('GET', '/admin/business/quote', (_m: Any, _b: Any, q: Any) => { staff(); const n = Number(q.get('seats')); if (!PLANS[q.get('plan')]) throw E(400, 'bad_plan', 'بسته را انتخاب کنید'); if (!(n >= 1)) throw E(400, 'bad_seats', 'شمار نفرات را بنویسید'); const num = (k: string) => (q.get(k) ? Number(q.get(k)) : undefined); return quote(q.get('plan'), n, num('price'), num('discount'), num('fee')); });
+  on('GET', '/admin/business/quote', (_m: Any, _b: Any, q: Any) => { staff(); const n = Number(q.get('seats')); if (!PLANS[q.get('plan')]) throw E(400, 'bad_plan', 'بسته را انتخاب کن'); if (!(n >= 1)) throw E(400, 'bad_seats', 'شمار نفرات را بنویس'); const num = (k: string) => (q.get(k) ? Number(q.get(k)) : undefined); return quote(q.get('plan'), n, num('price'), num('discount'), num('fee')); });
   on('GET', '/admin/business/kpi', () => { staff(); const m = priceModel(DB().costs); const field = new Set(DB().progress.filter((p: Any) => p.completedAt && DB().lessons.find((l: Any) => l.id === p.lessonId)?.type === 'MISSION').map((p: Any) => p.userId)).size; const active = new Set(DB().progress.filter((p: Any) => p.completedAt).map((p: Any) => p.userId)).size;
     const subs = DB().subscriptions.filter((s: Any) => status(s) === 'ACTIVE'); const paid = DB().invoices.filter((i: Any) => i.status === 'PAID');
     const income = { subscriptions: paid.filter((i: Any) => i.subscriptionId || (!i.serviceOrderId && !i.sponsorId)).reduce((a: number, i: Any) => a + i.amount, 0), services: paid.filter((i: Any) => !i.subscriptionId && i.serviceOrderId).reduce((a: number, i: Any) => a + i.amount, 0), sponsors: paid.filter((i: Any) => !i.subscriptionId && !i.serviceOrderId && i.sponsorId).reduce((a: number, i: Any) => a + i.amount, 0) };
@@ -385,15 +385,15 @@ export function registerPhase3(X: Any) {
   on('GET', '/admin/subscriptions', () => { staff(); return [...DB().subscriptions].sort((a: Any, b: Any) => b.endsAt.localeCompare(a.endsAt)).map(subRow); });
   const checkSub = (d: Any, except?: string) => {
     if (new Date(d.endsAt) <= new Date(d.startsAt)) throw E(400, 'bad_dates', 'تاریخ پایان باید بعد از تاریخ شروع باشد');
-    const net = DB().networks.find((n: Any) => n.id === d.networkId); if (!net || net.kind !== 'ORGANIZATION') throw E(400, 'no_org', 'اشتراک فقط برای سازمان‌ها است؛ سازمان را از فهرست انتخاب کنید');
-    if (DB().subscriptions.some((s: Any) => s.id !== except && s.networkId === d.networkId && !s.cancelledAt && s.startsAt < d.endsAt && s.endsAt > d.startsAt)) throw E(400, 'overlap', `«${net.name}» در این بازه اشتراک دیگری دارد؛ برای تمدید، اشتراک تازه را از روز پایان قبلی شروع کنید`);
+    const net = DB().networks.find((n: Any) => n.id === d.networkId); if (!net || net.kind !== 'ORGANIZATION') throw E(400, 'no_org', 'اشتراک فقط برای سازمان‌ها است؛ سازمان را از فهرست انتخاب کن');
+    if (DB().subscriptions.some((s: Any) => s.id !== except && s.networkId === d.networkId && !s.cancelledAt && s.startsAt < d.endsAt && s.endsAt > d.startsAt)) throw E(400, 'overlap', `«${net.name}» در این بازه اشتراک دیگری دارد؛ برای تمدید، اشتراک تازه را از روز پایان قبلی شروع کن`);
     const used = memberIds(d.networkId).length; return { net, warn: used > d.seats ? `این سازمان الان ${faNum(used)} عضو دارد ولی سقف ${faNum(d.seats)} است` : null };
   };
   on('POST', '/admin/subscriptions', (_m: Any, d: Any) => { staff(); const { net, warn } = checkSub(d); const q = quote(d.plan, d.seats, d.pricePerSeat, d.discountPct, d.fixedFee);
     const s = { id: rid(), networkId: d.networkId, plan: d.plan, seats: d.seats, startsAt: d.startsAt, endsAt: d.endsAt, contractNo: d.contractNo ?? null, note: d.note ?? null, cancelledAt: null, courseIds: d.courseIds ?? [], createdAt: now(), ...q };
     DB().subscriptions.push(s); audit('sub.create', s.id); DB().roles.filter((r: Any) => r.role === 'ORG_ADMIN' && r.networkId === d.networkId).forEach((r: Any) => notify(r.userId, { kind: 'subscription', title: `اشتراک ${PLANS[d.plan].label} «${net.name}» ثبت شد`, link: '/org' }));
     return { id: s.id, amount: q.amount, warn }; });
-  on('PATCH', '/admin/subscriptions/([^/]+)', (m: Any, d: Any) => { staff(); const s = DB().subscriptions.find((x: Any) => x.id === m[1]); if (!s) throw E(404, 'no_subscription', 'این اشتراک پیدا نشد'); if (s.cancelledAt) throw E(400, 'cancelled', 'اشتراک لغوشده ویرایش نمی‌شود؛ اشتراک تازه بسازید');
+  on('PATCH', '/admin/subscriptions/([^/]+)', (m: Any, d: Any) => { staff(); const s = DB().subscriptions.find((x: Any) => x.id === m[1]); if (!s) throw E(404, 'no_subscription', 'این اشتراک پیدا نشد'); if (s.cancelledAt) throw E(400, 'cancelled', 'اشتراک لغوشده ویرایش نمی‌شود؛ اشتراک تازه بساز');
     const { warn } = checkSub({ ...d, networkId: s.networkId }, s.id); const q = quote(d.plan, d.seats, d.pricePerSeat, d.discountPct, d.fixedFee);
     Object.assign(s, { plan: d.plan, seats: d.seats, startsAt: d.startsAt, endsAt: d.endsAt, contractNo: d.contractNo ?? null, note: d.note ?? null, courseIds: d.courseIds ?? [], ...q }); audit('sub.update', s.id); return { ok: true, amount: q.amount, warn }; });
   on('POST', '/admin/subscriptions/([^/]+)/cancel', (m: Any) => { staff(); const s = DB().subscriptions.find((x: Any) => x.id === m[1]); s.cancelledAt ??= now(); audit('sub.cancel', s.id); return { ok: true }; });
@@ -404,7 +404,7 @@ export function registerPhase3(X: Any) {
     const i = { id: rid(), number: `MH-1405-${String(DB().invoices.length + 1).padStart(4, '0')}`, networkId: nid ?? null, subscriptionId: d.subscriptionId ?? null, serviceOrderId: d.serviceOrderId ?? null, sponsorId: d.sponsorId ?? null, title: d.title, amount: d.amount, status: 'ISSUED', paidAt: null, paymentRef: null, createdAt: now() };
     DB().invoices.push(i); audit('invoice.create', i.id); return i; });
   on('POST', '/admin/invoices/([^/]+)/pay', (m: Any, d: Any) => { staff(); const i = DB().invoices.find((x: Any) => x.id === m[1]); if (i.status !== 'ISSUED') throw E(400, 'not_open', i.status === 'PAID' ? 'این فاکتور پیش‌تر پرداخت شده' : 'این فاکتور باطل شده است'); Object.assign(i, { status: 'PAID', paymentRef: d.paymentRef, paidAt: d.paidAt ?? now() }); return { ok: true }; });
-  on('POST', '/admin/invoices/([^/]+)/void', (m: Any) => { staff(); const i = DB().invoices.find((x: Any) => x.id === m[1]); if (i.status === 'PAID') throw E(400, 'paid', 'فاکتور پرداخت‌شده باطل نمی‌شود؛ برای برگشت پول، فاکتور برگشتی بیرون از سامانه ثبت کنید'); i.status = 'VOID'; return { ok: true }; });
+  on('POST', '/admin/invoices/([^/]+)/void', (m: Any) => { staff(); const i = DB().invoices.find((x: Any) => x.id === m[1]); if (i.status === 'PAID') throw E(400, 'paid', 'فاکتور پرداخت‌شده باطل نمی‌شود؛ برای برگشت پول، فاکتور برگشتی بیرون از سامانه ثبت کن'); i.status = 'VOID'; return { ok: true }; });
   on('GET', '/admin/sponsors', () => { staff(); return DB().sponsors.map((s: Any) => ({ ...s, courses: DB().courses.filter((c: Any) => c.sponsorId === s.id).map((c: Any) => ({ id: c.id, title: c.title })), paid: DB().invoices.filter((i: Any) => i.sponsorId === s.id && i.status === 'PAID').reduce((a: number, i: Any) => a + i.amount, 0) })); });
   const saveSponsor = (d: Any, id?: string) => { staff(); if (!d.termsAccepted) throw E(400, 'terms', 'حامی باید سه شرط را پذیرفته باشد: محتوا با تأیید ستاد، فقط یک خط نام بی لوگو و تبلیغ، مالکیت دوره با مدرسه');
     if (id) Object.assign(DB().sponsors.find((s: Any) => s.id === id), { name: d.name, kind: d.kind, note: d.note ?? null, termsAccepted: true }); else { id = rid(); DB().sponsors.push({ id, name: d.name, kind: d.kind, note: d.note ?? null, termsAccepted: true, createdAt: now() }); } return { id }; };
@@ -413,15 +413,15 @@ export function registerPhase3(X: Any) {
   on('DELETE', '/admin/sponsors/([^/]+)', (m: Any) => { staff(); if (DB().courses.some((c: Any) => c.sponsorId === m[1])) throw E(400, 'in_use', 'این حامی روی دوره ثبت است؛ اول از دوره‌ها برداریدش'); DB().sponsors = DB().sponsors.filter((s: Any) => s.id !== m[1]); return { ok: true }; });
   on('POST', '/admin/courses/([^/]+)/sponsor', (m: Any, d: Any) => { staff(); C(m[1]).sponsorId = d.sponsorId || null; return { ok: true }; });
   on('GET', '/admin/services', () => { staff(); return DB().services.map((s: Any) => ({ ...s, org: DB().networks.find((n: Any) => n.id === s.networkId)?.name ?? null, sponsor: DB().sponsors.find((x: Any) => x.id === s.sponsorId)?.name ?? null, course: DB().courses.find((c: Any) => c.id === s.courseId)?.title ?? null })); });
-  const saveService = (d: Any, id?: string) => { staff(); if (!d.networkId && !d.sponsorId) throw E(400, 'no_payer', 'سفارش‌دهنده را انتخاب کنید: یک سازمان یا یک حامی');
-    const cost = d.costs.reduce((a: number, c: Any) => a + c.amount, 0); if (!cost) throw E(400, 'no_cost', 'برگهٔ بودجه خالی است؛ دست‌کم یک ردیف هزینه بنویسید');
+  const saveService = (d: Any, id?: string) => { staff(); if (!d.networkId && !d.sponsorId) throw E(400, 'no_payer', 'سفارش‌دهنده را انتخاب کن: یک سازمان یا یک حامی');
+    const cost = d.costs.reduce((a: number, c: Any) => a + c.amount, 0); if (!cost) throw E(400, 'no_cost', 'برگهٔ بودجه خالی است؛ دست‌کم یک ردیف هزینه بنویس');
     const v = { ...d, cost, price: d.price ?? Math.round((cost * DB().costs.serviceMarkup) / 1000) * 1000, status: d.status ?? 'PROPOSED' };
     if (id) Object.assign(DB().services.find((s: Any) => s.id === id), v); else { id = rid(); DB().services.unshift({ id, createdAt: now(), ...v }); } return { id, cost, price: v.price }; };
   on('POST', '/admin/services', (_m: Any, d: Any) => saveService(d));
   on('PATCH', '/admin/services/([^/]+)', (m: Any, d: Any) => saveService(d, m[1]));
 
   // ── بازخورد
-  on('POST', '/feedback', (_m: Any, d: Any) => { const u = me(); if (!d.body || d.body.trim().length < 3) throw E(400, 'invalid', 'متن بازخورد را بنویسید');
+  on('POST', '/feedback', (_m: Any, d: Any) => { const u = me(); if (!d.body || d.body.trim().length < 3) throw E(400, 'invalid', 'متن بازخورد را بنویس');
     const f = { id: rid(), userId: u.id, anonymous: !!d.anonymous, kind: d.kind, mood: d.mood ?? null, body: d.body.trim(), path: d.path ?? null, context: d.context ?? null, device: d.kind === 'BUG' ? d.device ?? null : null, imageKey: d.imageKey ?? null, status: 'NEW', tags: [], reply: null, repliedAt: null, createdAt: now() };
     DB().feedback.unshift(f); return { id: f.id }; });
   on('GET', '/feedback/mine', () => { const u = me(); return DB().feedback.filter((f: Any) => f.userId === u.id); });
@@ -434,16 +434,16 @@ export function registerPhase3(X: Any) {
   on('PATCH', '/admin/feedback/([^/]+)', (m: Any, d: Any) => { staff(); const f = DB().feedback.find((x: Any) => x.id === m[1]); if (!f) throw E(404, 'no_feedback', 'این بازخورد پیدا نشد');
     const replying = d.reply?.trim() && d.reply.trim() !== f.reply; const old = f.status;
     if (d.status) f.status = d.status; if (d.tags) f.tags = [...new Set(d.tags as string[])]; if (replying) { f.reply = d.reply.trim(); f.repliedAt = now(); if (!d.status && f.status === 'NEW') f.status = 'REVIEWING'; }
-    if (replying || (f.status !== old && f.status !== 'NEW')) notify(f.userId, { kind: 'feedback', title: replying ? 'به بازخوردتان پاسخ داده شد' : `بازخوردتان ${ST_FA[f.status]}`, body: replying ? f.reply.slice(0, 140) : undefined, link: '/help#feedback' });
+    if (replying || (f.status !== old && f.status !== 'NEW')) notify(f.userId, { kind: 'feedback', title: replying ? 'به بازخوردت پاسخ داده شد' : `بازخوردت ${ST_FA[f.status]}`, body: replying ? f.reply.slice(0, 140) : undefined, link: '/help#feedback' });
     return { ok: true }; });
   const REASONS = { up: ['کاربردی بود', 'روشن بود', 'مثال خوب داشت', 'کوتاه و بس'], down: ['نامفهوم بود', 'طولانی بود', 'به کارم نمی‌آید', 'مشکل فنی داشت'] };
   const lessonCourse = (lid: string) => { const l = DB().lessons.find((x: Any) => x.id === lid); return DB().modules.find((x: Any) => x.id === l?.moduleId)?.courseId; };
   on('GET', '/lessons/([^/]+)/rating', (m: Any) => { const u = me(); const r = DB().lratings.find((x: Any) => x.userId === u.id && x.lessonId === m[1]); return { rating: r ? { up: r.up, reasons: r.reasons, comment: r.comment } : null, reasons: REASONS }; });
-  on('POST', '/lessons/([^/]+)/rating', (m: Any, d: Any) => { const u = me(); if (!enr(u.id, lessonCourse(m[1]))) throw E(403, 'not_enrolled', 'برای امتیاز دادن اول در دوره ثبت‌نام کنید');
+  on('POST', '/lessons/([^/]+)/rating', (m: Any, d: Any) => { const u = me(); if (!enr(u.id, lessonCourse(m[1]))) throw E(403, 'not_enrolled', 'برای امتیاز دادن اول در دوره ثبت‌نام کن');
     const v = { up: d.up, reasons: (d.reasons ?? []).filter((x: string) => (d.up ? REASONS.up : REASONS.down).includes(x)), comment: d.comment?.trim() || null, updatedAt: now() };
     const ex = DB().lratings.find((x: Any) => x.userId === u.id && x.lessonId === m[1]); if (ex) Object.assign(ex, v); else DB().lratings.push({ userId: u.id, lessonId: m[1], ...v }); return { ok: true }; });
-  on('POST', '/courses/([^/]+)/rating', (m: Any, d: Any) => { const u = me(); const c = C(m[1]); const e = enr(u.id, c.id); if (!e) throw E(403, 'not_enrolled', 'برای امتیاز دادن اول در دوره ثبت‌نام کنید');
-    if (!e.completedAt && allLessons(c.id).filter((l: Any) => prog(u.id, l.id)?.completedAt).length < 3) throw E(400, 'too_early', 'بعد از گذراندن دست‌کم سه درس می‌توانید به دوره امتیاز بدهید');
+  on('POST', '/courses/([^/]+)/rating', (m: Any, d: Any) => { const u = me(); const c = C(m[1]); const e = enr(u.id, c.id); if (!e) throw E(403, 'not_enrolled', 'برای امتیاز دادن اول در دوره ثبت‌نام کن');
+    if (!e.completedAt && allLessons(c.id).filter((l: Any) => prog(u.id, l.id)?.completedAt).length < 3) throw E(400, 'too_early', 'بعد از گذراندن دست‌کم سه درس می‌توانی به دوره امتیاز بدهی');
     const ex = DB().cratings.find((x: Any) => x.userId === u.id && x.courseId === c.id); const v = { stars: d.stars, comment: d.comment?.trim() || null, updatedAt: now() };
     if (ex) Object.assign(ex, v); else DB().cratings.push({ userId: u.id, courseId: c.id, ...v }); return { ok: true }; });
   on('GET', '/admin/content-quality', () => { staff();

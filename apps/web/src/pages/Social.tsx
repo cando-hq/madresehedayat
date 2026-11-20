@@ -22,7 +22,7 @@ export const inviteUrl = (code: string) => `${location.origin}${import.meta.env.
 
 export function CopyButton({ text, label = 'کپی' }: { text: string; label?: string }) {
   const toast = useToast();
-  return <button className="btn btn-secondary btn-sm" onClick={async () => { try { await navigator.clipboard.writeText(text); toast('کپی شد'); } catch { toast('کپی نشد؛ متن را دستی بردارید', 'err'); } }}><Copy className="size-4" />{label}</button>;
+  return <button className="btn btn-secondary btn-sm" onClick={async () => { try { await navigator.clipboard.writeText(text); toast('کپی شد'); } catch { toast('کپی نشد؛ متن را دستی بردار', 'err'); } }}><Copy className="size-4" />{label}</button>;
 }
 
 // ───────── اعلان‌ها ─────────
@@ -48,7 +48,7 @@ export function Notifications() {
             </li>
           ))}
         </ul>
-      ) : <Empty icon={Bell} title="اعلانی ندارید">پاسخ راهیار، یادآوری برنامه‌ها و خبرهای هسته اینجا می‌آید.</Empty>}
+      ) : <Empty icon={Bell} title="اعلانی نداری">پاسخ راهیار، یادآوری برنامه‌ها و خبرهای هسته اینجا می‌آید.</Empty>}
     </div>
   );
 }
@@ -99,20 +99,20 @@ export function Messages() {
   const rah = r.data?.rahyar;
   return (
     <div className="rise mx-auto grid max-w-2xl gap-5">
-      <Title t="پیام با راهیار" d="پرسش، گزارش کوتاه یا هماهنگی. شمارهٔ همراه شما به راهیار نشان داده نمی‌شود." />
+      <Title t="پیام با راهیار" d="پرسش، گزارش کوتاه یا هماهنگی. شمارهٔ همراه تو به راهیار نشان داده نمی‌شود." />
       {rah ? (
         <div className="card flex items-center gap-3 p-4">
           <span className="grid size-11 place-items-center rounded-full bg-dome-soft font-extrabold text-dome-ink">{rah.name[0]}</span>
           <div><b className="block text-ink">{rah.name}</b><span className="text-sm text-muted">{rah.title}</span></div>
         </div>
-      ) : <Empty icon={MessageCircle} title="هنوز راهیاری برایتان تعیین نشده">به‌محض تعیین راهیار شهرستان یا استان، اینجا می‌توانید با او گفت‌وگو کنید.</Empty>}
+      ) : <Empty icon={MessageCircle} title="هنوز راهیاری برایت تعیین نشده">به‌محض تعیین راهیار شهرستان یا استان، اینجا می‌توانی با او گفت‌وگو کنی.</Empty>}
       {rah && (
         <div className="card grid gap-4 p-4">
-          <Thread messages={q.data ?? []} meId={me!.id} empty="گفت‌وگو را شما شروع کنید." />
+          <Thread messages={q.data ?? []} meId={me!.id} empty="گفت‌وگو را تو شروع کن." />
           <Composer onSend={async (t) => { await api('/messages', { body: { body: t } }); qc.invalidateQueries({ queryKey: ['dm'] }); }} />
         </div>
       )}
-      <p className="hint">{me?.allowRahyarMessages ? 'راهیار هم می‌تواند به شما پیام بدهد.' : 'پیام‌دادن راهیار به شما خاموش است؛ فقط به پیام‌های خودتان پاسخ می‌دهد.'} <Link to="/settings" className="font-bold text-leaf-ink">تغییر در تنظیمات</Link></p>
+      <p className="hint">{me?.allowRahyarMessages ? 'راهیار هم می‌تواند به تو پیام بدهد.' : 'پیام‌دادن راهیار به تو خاموش است؛ فقط به پیام‌های خودت پاسخ می‌دهد.'} <Link to="/settings" className="font-bold text-leaf-ink">تغییر در تنظیمات</Link></p>
     </div>
   );
 }
@@ -138,13 +138,13 @@ export function MyCores() {
   });
   const join = useMutation({
     mutationFn: () => api<{ joined: string; id: string; name: string }>('/join', { body: { code } }),
-    onSuccess: (r) => { qc.invalidateQueries({ queryKey: ['my-cores'] }); qc.invalidateQueries({ queryKey: ['me'] }); toast(`به ${r.name} پیوستید`); setCode(''); },
+    onSuccess: (r) => { qc.invalidateQueries({ queryKey: ['my-cores'] }); qc.invalidateQueries({ queryKey: ['me'] }); toast(`به ${r.name} پیوستی`); setCode(''); },
     onError: (e) => toast((e as Error).message, 'err'),
   });
   const canCreate = me?.gender === 'FEMALE';
   return (
     <div className="rise grid gap-6">
-      <Title t="هسته‌های من" d={canCreate ? 'در شبکهٔ بانور هر عضو می‌تواند هسته بسازد و مسئولش باشد؛ هم‌زمان در چند هسته هم می‌شود بود.' : 'هسته‌ها را امام محله می‌سازد؛ با پیوند دعوت به هستهٔ خود بپیوندید.'}>
+      <Title t="هسته‌های من" d={canCreate ? 'در شبکهٔ بانور هر عضو می‌تواند هسته بسازد و مسئولش باشد؛ هم‌زمان در چند هسته هم می‌شود بود.' : 'هسته‌ها را امام محله می‌سازد؛ با پیوند دعوت به هستهٔ خود بپیوند.'}>
         {canCreate && <button className="btn btn-primary" onClick={() => setMake(true)}><Plus className="size-4" />هستهٔ تازه</button>}
       </Title>
       {q.isLoading ? <Spinner /> : q.data?.cores.length ? (
@@ -158,15 +158,15 @@ export function MyCores() {
             </Link>
           ))}
         </div>
-      ) : <Empty icon={UsersRound} title="عضو هسته‌ای نیستید">{canCreate ? 'یک هسته با دوستانتان بسازید یا کد دعوت را وارد کنید.' : 'کد دعوتی را که امام محله یا مسئول هسته فرستاده وارد کنید.'}</Empty>}
+      ) : <Empty icon={UsersRound} title="عضو هسته‌ای نیستی">{canCreate ? 'یک هسته با دوستانت بساز یا کد دعوت را وارد کن.' : 'کد دعوتی را که امام محله یا مسئول هسته فرستاده وارد کن.'}</Empty>}
       <div className="card flex flex-wrap items-end gap-3 p-5">
-        <div className="field min-w-0 flex-1"><label htmlFor="jc">کد دعوت دارید؟</label><input id="jc" className="input ltr" dir="ltr" placeholder="h7k2…" value={code} onChange={(e) => setCode(e.target.value)} /></div>
+        <div className="field min-w-0 flex-1"><label htmlFor="jc">کد دعوت داری؟</label><input id="jc" className="input ltr" dir="ltr" placeholder="h7k2…" value={code} onChange={(e) => setCode(e.target.value)} /></div>
         <button className="btn btn-secondary" disabled={code.trim().length < 4 || join.isPending} onClick={() => join.mutate()}>پیوستن</button>
       </div>
       <Dialog open={make} onClose={() => setMake(false)} title="هستهٔ تازه">
         <div className="grid gap-4">
           <div className="field"><label htmlFor="cn">نام هسته</label><input id="cn" className="input" placeholder="مثلاً هستهٔ ریحانه" value={name} onChange={(e) => setName(e.target.value)} /></div>
-          <p className="hint">شما مسئول هسته می‌شوید و بعد پیوند دعوت را برای اعضا می‌فرستید. مسئولیت را بعداً می‌توانید به عضو دیگری بسپارید.</p>
+          <p className="hint">تو مسئول هسته می‌شوی و بعد پیوند دعوت را برای اعضا می‌فرستی. مسئولیت را بعداً می‌توانی به عضو دیگری بسپار.</p>
           <button className="btn btn-primary" disabled={name.trim().length < 2 || create.isPending} onClick={() => create.mutate()}>ساختن</button>
         </div>
       </Dialog>
@@ -217,7 +217,7 @@ export function CorePage() {
       {c.canManage && c.inviteCode && (
         <section className="card grid gap-3 p-5">
           <b className="flex items-center gap-2 text-ink"><Link2 className="size-5 text-leaf" />پیوند دعوت</b>
-          <p className="text-sm text-muted">این پیوند را در پیام‌رسان برای اعضا بفرستید. با ثبت‌نام از این پیوند، مستقیم عضو هسته می‌شوند.</p>
+          <p className="text-sm text-muted">این پیوند را در پیام‌رسان برای اعضا بفرست. با ثبت‌نام از این پیوند، مستقیم عضو هسته می‌شوند.</p>
           <div className="flex flex-wrap items-center gap-2"><code dir="ltr" className="max-w-full truncate rounded-lg bg-sunken px-3 py-2 text-sm">{inviteUrl(c.inviteCode)}</code>
             <CopyButton text={inviteUrl(c.inviteCode)} label="کپی پیوند" />
             <button className="btn btn-ghost btn-sm" onClick={() => regen.mutate()}><RefreshCw className="size-4" />پیوند تازه</button></div>
@@ -228,7 +228,7 @@ export function CorePage() {
         <h2 className="mb-3 font-extrabold">اعضا <span className="tnum text-muted">{fa(c.members.length)}</span></h2>
         {c.canManage ? <>
           <MemberTable members={c.members} leaderId={c.leader?.id} onRemove={(m) => remove.mutate(m.id)} onMakeLeader={(m) => leader.mutate(m.id)} />
-          <p className="hint mt-3">شما پیشرفت دوره‌ها و حضور اعضا را می‌بینید؛ نمرهٔ آزمون، برگه‌های کار و گزارش مأموریت‌ها فقط برای خودشان و راهیارشان است.</p>
+          <p className="hint mt-3">تو پیشرفت دوره‌ها و حضور اعضا را می‌بینی؛ نمرهٔ آزمون، برگه‌های کار و گزارش مأموریت‌ها فقط برای خودشان و راهیارشان است.</p>
         </> : (
           <ul className="flex flex-wrap gap-2">{c.members.map((m) => <li key={m.id} className="chip">{m.name}</li>)}</ul>
         )}
@@ -249,7 +249,7 @@ export function JoinPage() {
       {m.isPending || m.isIdle ? <Spinner label="در حال پیوستن" /> : m.error ? <ErrorBox error={m.error} /> : (
         <div className="card grid justify-items-center gap-3 p-8 text-center">
           {m.data!.joined === 'core' ? <UsersRound className="size-12 text-leaf" /> : <Landmark className="size-12 text-leaf" />}
-          <h1 className="text-xl font-extrabold">به {m.data!.name} پیوستید</h1>
+          <h1 className="text-xl font-extrabold">به {m.data!.name} پیوستی</h1>
           <Link className="btn btn-primary" to={m.data!.joined === 'core' ? `/cores/${m.data!.id}` : '/'}>{m.data!.joined === 'core' ? 'دیدن هسته' : 'خانه'}</Link>
         </div>
       )}
@@ -279,7 +279,7 @@ export function ImamPage() {
     <div className="rise grid gap-8">
       {q.data!.map((m) => (
         <section key={m.id} className="grid gap-5">
-          <Title t={m.name} d="هسته‌ها و اعضای آزاد مسجد. مسئولیت هر هسته را خودتان دارید یا به یکی از اعضا می‌سپارید.">
+          <Title t={m.name} d="هسته‌ها و اعضای آزاد مسجد. مسئولیت هر هسته را خودت داری یا به یکی از اعضا می‌سپاری.">
             <button className="btn btn-primary" onClick={() => setMake(m.id)}><Plus className="size-4" />هستهٔ تازه</button>
           </Title>
           <div className="grid grid-cols-3 gap-3">
@@ -305,7 +305,7 @@ export function ImamPage() {
       <Dialog open={!!make} onClose={() => setMake(null)} title="هستهٔ تازه">
         <div className="grid gap-4">
           <div className="field"><label htmlFor="icn">نام هسته</label><input id="icn" className="input" placeholder="مثلاً هستهٔ نوجوانان" value={name} onChange={(e) => setName(e.target.value)} /></div>
-          <p className="hint">بعد از ساختن، پیوند دعوت هسته را برای اعضا بفرستید و اگر خواستید یکی را مسئول کنید.</p>
+          <p className="hint">بعد از ساختن، پیوند دعوت هسته را برای اعضا بفرست و اگر خواستی یکی را مسئول کن.</p>
           <button className="btn btn-primary" disabled={name.trim().length < 2 || create.isPending} onClick={() => create.mutate()}>ساختن</button>
         </div>
       </Dialog>
@@ -325,7 +325,7 @@ export function OrgList() {
     <div className="rise grid gap-6"><Title t="پنل سازمان" />
       {q.data?.length ? <div className="grid gap-3 sm:grid-cols-2">{q.data.map((o) => <Link key={o.id} to={`/org/${o.id}`} className="card flex items-center gap-3 p-5 no-underline"><Building2 className="size-6 text-leaf" /><b className="flex-1 text-ink">{o.name}</b>
           {o.subscription.active ? <span className="chip chip-leaf">{o.subscription.subscription?.planLabel}</span> : <span className="chip chip-flame">اشتراک فعال نیست</span>}</Link>)}</div>
-        : <Empty icon={Building2} title="مدیر سازمانی نیستید" />}
+        : <Empty icon={Building2} title="مدیر سازمانی نیستی" />}
     </div>
   );
 }
@@ -380,14 +380,14 @@ export function OrgPage() {
               ))}</tbody>
             </table>
           </div>
-        ) : <Empty icon={UsersRound} title="هنوز عضوی نپیوسته">شمارهٔ همراه اعضای سازمان را بفرستید؛ هر کدام دعوت را بپذیرد، این‌جا می‌آید.</Empty>}
+        ) : <Empty icon={UsersRound} title="هنوز عضوی نپیوسته">شمارهٔ همراه اعضای سازمان را بفرست؛ هر کدام دعوت را بپذیرد، این‌جا می‌آید.</Empty>}
       </section>}
-      <p className="hint">شما فقط پیشرفت دوره‌های همین اشتراک را می‌بینید؛ متن گزارش‌ها و یادداشت‌های اعضا خصوصی است. قرارداد و پرداخت با ستاد مدرسه است.</p>
+      <p className="hint">تو فقط پیشرفت دوره‌های همین اشتراک را می‌بینی؛ متن گزارش‌ها و یادداشت‌های اعضا خصوصی است. قرارداد و پرداخت با ستاد مدرسه است.</p>
       <Dialog open={add} onClose={() => setAdd(false)} title="دعوت اعضا با شمارهٔ همراه">
         {res ? (
           <div className="grid gap-3">
             <p className="text-ink">برای {fa(res.sent)} شماره دعوت فرستاده شد.</p>
-            <p className="text-sm text-body">هر کس در مدرسه حساب داشته باشد، دعوت را در اعلان‌ها می‌بیند و با پذیرفتنش عضو اشتراک می‌شود. کسی که هنوز حساب ندارد، اول با پیوند دعوت هسته یا از صفحهٔ ورود ثبت‌نام کند، بعد دوباره شماره‌اش را بفرستید.</p>
+            <p className="text-sm text-body">هر کس در مدرسه حساب داشته باشد، دعوت را در اعلان‌ها می‌بیند و با پذیرفتنش عضو اشتراک می‌شود. کسی که هنوز حساب ندارد، اول با پیوند دعوت هسته یا از صفحهٔ ورود ثبت‌نام کند، بعد دوباره شماره‌اش را بفرست.</p>
             {res.invalid > 0 && <p className="rounded-xl bg-flame-soft p-3 text-sm text-flame-ink">{fa(res.invalid)} شماره درست نبود (باید ۱۱ رقم و با ۰۹ باشد).</p>}
             <button className="btn btn-primary" onClick={() => setAdd(false)}>بستن</button>
           </div>

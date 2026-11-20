@@ -131,7 +131,7 @@ export class LearningService {
     if (!this.canSee(c, granted)) {
       if (c.status === 'PUBLISHED' && c.isRestricted) {
         const enr = userId ? await this.db.query.enrollments.findFirst({ where: and(eq(enrollments.userId, userId), eq(enrollments.courseId, c.id)) }) : undefined;
-        if (enr) throw new ForbiddenException({ code: 'subscription_ended', message: 'دسترسی سازمان شما به این دوره تمام شده است. پیشرفت و گواهی‌تان محفوظ است و با تمدید اشتراک برمی‌گردد' });
+        if (enr) throw new ForbiddenException({ code: 'subscription_ended', message: 'دسترسی سازمان تو به این دوره تمام شده است. پیشرفت و گواهی‌ات محفوظ است و با تمدید اشتراک برمی‌گردد' });
         throw new ForbiddenException({ code: 'restricted', message: 'این دوره ویژهٔ اعضای سازمان‌های مشترک است' });
       }
       throw new NotFoundException({ code: 'no_course', message: 'این دوره پیدا نشد' });
@@ -170,10 +170,10 @@ export class LearningService {
 
   async enroll(userId: string, key: string) {
     const c = await this.courseBySlugOrId(key);
-    if (!this.canSee(c, await this.grantedCourseIds(userId))) throw new ForbiddenException({ code: 'restricted', message: 'به این دوره دسترسی ندارید' });
+    if (!this.canSee(c, await this.grantedCourseIds(userId))) throw new ForbiddenException({ code: 'restricted', message: 'به این دوره دسترسی نداری' });
     const deps = await this.dependencyState(c.id, userId);
     const missing = deps.filter((d) => d.kind === 'PREREQUISITE' && !d.done);
-    if (missing.length) throw new ForbiddenException({ code: 'prerequisite', message: `اول دورهٔ «${missing[0].course.title}» را تمام کنید`, missing: missing.map((m) => m.course) });
+    if (missing.length) throw new ForbiddenException({ code: 'prerequisite', message: `اول دورهٔ «${missing[0].course.title}» را تمام کن`, missing: missing.map((m) => m.course) });
     await this.db.insert(enrollments).values({ userId, courseId: c.id, courseVersion: c.version })
       .onConflictDoUpdate({ target: [enrollments.userId, enrollments.courseId], set: { archivedAt: null } });
     // هم‌نیازها هم‌زمان ثبت‌نام می‌شوند
@@ -203,13 +203,13 @@ export class LearningService {
   private async requireEnrolled(userId: string, courseId: string, course?: { slug: string; title: string }) {
     const e = await this.db.query.enrollments.findFirst({ where: and(eq(enrollments.userId, userId), eq(enrollments.courseId, courseId)) });
     // نشانی دوره همراه خطا می‌آید تا صفحهٔ درس بتواند کاربر را به ثبت‌نام ببرد
-    if (!e) throw new ForbiddenException({ code: 'not_enrolled', message: 'اول در دوره ثبت‌نام کنید', course: course ? { slug: course.slug, title: course.title } : undefined });
+    if (!e) throw new ForbiddenException({ code: 'not_enrolled', message: 'اول در دوره ثبت‌نام کن', course: course ? { slug: course.slug, title: course.title } : undefined });
     return e;
   }
 
   async lesson(userId: string, lessonId: string) {
     const { l, c } = await this.lessonWithCourse(lessonId);
-    if (!this.canSee(c, await this.grantedCourseIds(userId))) throw new ForbiddenException({ code: 'restricted', message: 'به این دوره دسترسی ندارید' });
+    if (!this.canSee(c, await this.grantedCourseIds(userId))) throw new ForbiddenException({ code: 'restricted', message: 'به این دوره دسترسی نداری' });
     await this.requireEnrolled(userId, c.id, c);
     await this.db.update(enrollments).set({ lastLessonId: l.id }).where(and(eq(enrollments.userId, userId), eq(enrollments.courseId, c.id)));
     const p = await this.db.query.lessonProgress.findFirst({ where: and(eq(lessonProgress.userId, userId), eq(lessonProgress.lessonId, l.id)) });
@@ -255,7 +255,7 @@ export class LearningService {
     const prev = await this.db.select({ at: quizAttempts.createdAt }).from(quizAttempts)
       .where(and(eq(quizAttempts.userId, userId), eq(quizAttempts.lessonId, l.id))).orderBy(desc(quizAttempts.createdAt));
     const next = this.nextAttemptAt(prev.map((p) => p.at));
-    if (next) throw new HttpException({ code: 'retry_wait', message: 'برای تلاش بعدی کمی صبر کنید', nextAllowedAt: next }, HttpStatus.TOO_MANY_REQUESTS);
+    if (next) throw new HttpException({ code: 'retry_wait', message: 'برای تلاش بعدی کمی صبر کن', nextAllowedAt: next }, HttpStatus.TOO_MANY_REQUESTS);
     const content = l.content as QuizContent;
     const { score, results } = gradeQuiz(content, answers ?? {});
     const passed = score >= c.passScore;
@@ -279,7 +279,7 @@ export class LearningService {
     const { l, c } = await this.lessonWithCourse(lessonId);
     await this.requireEnrolled(userId, c.id, c);
     const r = gradeCheck(l.content, checkId, answer);
-    if (!r) throw new NotFoundException({ code: 'no_check', message: 'این پرسش در درس نیست؛ صفحه را تازه کنید' });
+    if (!r) throw new NotFoundException({ code: 'no_check', message: 'این پرسش در درس نیست؛ صفحه را تازه کن' });
     return r;
   }
 
@@ -364,10 +364,10 @@ export class LearningService {
     const { p, open } = await this.pathFor(slug, userId);
     const quiz = p.quiz as QuizContent | null;
     if (!quiz?.questions?.length) throw new NotFoundException({ code: 'no_exam', message: 'این مسیر آزمون جامع ندارد' });
-    if (open.length) throw new ForbiddenException({ code: 'path_open', message: 'اول همهٔ دوره‌های مسیر را تمام کنید' });
+    if (open.length) throw new ForbiddenException({ code: 'path_open', message: 'اول همهٔ دوره‌های مسیر را تمام کن' });
     const prev = await this.db.select({ at: pathAttempts.at }).from(pathAttempts).where(and(eq(pathAttempts.userId, userId), eq(pathAttempts.pathId, p.id))).orderBy(desc(pathAttempts.at));
     const next = this.nextAttemptAt(prev.map((x) => x.at));
-    if (next) throw new HttpException({ code: 'retry_wait', message: 'برای تلاش بعدی کمی صبر کنید', nextAllowedAt: next }, HttpStatus.TOO_MANY_REQUESTS);
+    if (next) throw new HttpException({ code: 'retry_wait', message: 'برای تلاش بعدی کمی صبر کن', nextAllowedAt: next }, HttpStatus.TOO_MANY_REQUESTS);
     const { score, results } = gradeQuiz(quiz, answers ?? {});
     const passed = score >= p.passScore;
     await this.db.insert(pathAttempts).values({ userId, pathId: p.id, score, passed });

@@ -420,7 +420,7 @@ export const events = pgTable('events', {
   location: text('location'), // نشانی برنامهٔ حضوری
   mapUrl: text('map_url'), // پیوند نشان یا بلد
   onlineUrl: text('online_url'), // پیوند کلاس آنلاین
-  bring: text('bring'), // چه چیزی همراه بیاورید
+  bring: text('bring'), // چه چیزی همراه بیاور
   hostName: text('host_name'),
   capacity: integer('capacity'), // خالی = بی‌سقف
   waitlist: boolean('waitlist').notNull().default(true),
@@ -780,7 +780,7 @@ export const feedback = pgTable('feedback', {
   updatedAt: updatedAt(),
 }, (t) => [index('feedback_status_idx').on(t.status, t.createdAt)]);
 
-/** «این درس به کارتان آمد؟» */
+/** «این درس به کارت آمد؟» */
 export const lessonRatings = pgTable('lesson_ratings', {
   userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
   lessonId: text('lesson_id').notNull().references(() => lessons.id, { onDelete: 'cascade' }),

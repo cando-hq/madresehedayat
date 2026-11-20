@@ -64,7 +64,7 @@ export class EventsService {
     const used = Number(r.rows[0].h), add = (new Date(v.endsAt as any).getTime() - start.getTime()) / 3600_000;
     if (used + add > cap + 1e-6) {
       const fa = (n: number) => (Math.round(n * 10) / 10).toString().replace('.', '٫').replace(/\d/g, (d) => '۰۱۲۳۴۵۶۷۸۹'[+d]);
-      throw new BadRequestException({ code: 'live_hours', message: `سقف کلاس زنده روی سرور مدرسه ${fa(cap)} ساعت در ماه است؛ این ماه ${fa(used)} ساعت برنامه دارید و این کلاس ${fa(add)} ساعت است. کلاس را کوتاه‌تر کنید یا پیوند بیرونی بگذارید` });
+      throw new BadRequestException({ code: 'live_hours', message: `سقف کلاس زنده روی سرور مدرسه ${fa(cap)} ساعت در ماه است؛ این ماه ${fa(used)} ساعت برنامه داری و این کلاس ${fa(add)} ساعت است. کلاس را کوتاه‌تر کن یا پیوند بیرونی بگذار` });
     }
   }
 
@@ -75,7 +75,7 @@ export class EventsService {
     // بی‌مخاطب ویژه = برنامهٔ عمومی؛ فقط کسی که اجازهٔ برنامهٔ عمومی دارد (هم در ساختن، هم در ویرایش)
     if (!scoped.length) {
       const opts = await this.scopedOptions(u);
-      throw new ForbiddenException({ code: 'forbidden', message: opts.length ? 'مخاطب برنامه را انتخاب کنید: اعضای سازمان، مسجد یا هستهٔ خودتان' : creating ? 'اجازهٔ ساخت برنامه ندارید' : 'اجازهٔ برنامهٔ عمومی ندارید؛ مخاطب برنامه باید ویژه بماند' });
+      throw new ForbiddenException({ code: 'forbidden', message: opts.length ? 'مخاطب برنامه را انتخاب کن: اعضای سازمان، مسجد یا هستهٔ خودت' : creating ? 'اجازهٔ ساخت برنامه نداری' : 'اجازهٔ برنامهٔ عمومی نداری؛ مخاطب برنامه باید ویژه بماند' });
     }
     if (v.audienceNetworkId) await this.business.orgGate(u, v.audienceNetworkId, 'events');
     await this.assertLiveHours(v);
@@ -225,7 +225,7 @@ export class EventsService {
       try {
         const r = await this.registerOne(e, p.id, u.id);
         out.push({ userId: p.id, name: `${p.firstName} ${p.lastName}`, status: r.status });
-        if (p.id !== u.id) await this.notify.send(p.id, { kind: 'event_group', title: `برای «${e.title}» ثبت‌نام شدید`, body: `مسئول هستهٔ «${core.name}» شما را ثبت‌نام کرد. اگر نمی‌توانید بیایید، انصراف بدهید.`, link: `/events/${e.id}` });
+        if (p.id !== u.id) await this.notify.send(p.id, { kind: 'event_group', title: `برای «${e.title}» ثبت‌نام شدید`, body: `مسئول هستهٔ «${core.name}» تو را ثبت‌نام کرد. اگر نمی‌توانی بیایی، انصراف بده.`, link: `/events/${e.id}` });
       } catch (err: any) {
         out.push({ userId: p.id, name: `${p.firstName} ${p.lastName}`, status: 'FAILED', reason: err?.response?.message ?? 'خطا' });
       }
@@ -237,7 +237,7 @@ export class EventsService {
   async cancel(u: AuthUser, id: string) {
     const e = await this.get(id);
     const r = await this.db.query.registrations.findFirst({ where: and(eq(registrations.eventId, id), eq(registrations.userId, u.id)) });
-    if (!r || !(ACTIVE as readonly string[]).includes(r.status)) throw new BadRequestException({ code: 'not_registered', message: 'ثبت‌نامی ندارید' });
+    if (!r || !(ACTIVE as readonly string[]).includes(r.status)) throw new BadRequestException({ code: 'not_registered', message: 'ثبت‌نامی نداری' });
     if (e.startsAt < new Date()) throw new BadRequestException({ code: 'started', message: 'برنامه شروع شده است' });
     const late = e.startsAt.getTime() - Date.now() < 24 * 3600_000;
     await this.db.update(registrations).set({ status: 'CANCELLED', lateCancel: late && r.status === 'REGISTERED', updatedAt: new Date() }).where(and(eq(registrations.eventId, id), eq(registrations.userId, u.id)));
@@ -284,7 +284,7 @@ export class EventsService {
     if (e.kind === 'ONLINE' && e.useBbb) return this.live.join(u, e);
     const r = await this.db.query.registrations.findFirst({ where: and(eq(registrations.eventId, id), eq(registrations.userId, u.id)) });
     if (e.kind !== 'ONLINE' || !e.onlineUrl) throw new BadRequestException({ code: 'not_online', message: 'این برنامه آنلاین نیست' });
-    if (r?.status !== 'REGISTERED') throw new ForbiddenException({ code: 'not_registered', message: 'اول ثبت‌نام کنید' });
+    if (r?.status !== 'REGISTERED') throw new ForbiddenException({ code: 'not_registered', message: 'اول ثبت‌نام کن' });
     if (Date.now() < e.startsAt.getTime() - 3600_000) throw new BadRequestException({ code: 'early', message: 'پیوند از یک ساعت پیش از شروع باز می‌شود' });
     if (!r.attendedAt) await this.db.update(registrations).set({ attendedAt: new Date(), attendanceMethod: 'ONLINE' }).where(and(eq(registrations.eventId, id), eq(registrations.userId, u.id)));
     return { url: e.onlineUrl };
@@ -344,17 +344,17 @@ export class EventsService {
     const e = await this.manageable(u, id);
     const problems: string[] = [];
     if (e.kind === 'IN_PERSON' && !e.location) problems.push('نشانی برنامهٔ حضوری');
-    if (e.kind === 'ONLINE' && !e.useBbb && !e.onlineUrl) problems.push('پیوند کلاس آنلاین (یا «کلاس روی سرور مدرسه» را روشن کنید)');
-    if (e.kind === 'ONLINE' && e.useBbb && !bbbEnabled()) problems.push('سرور کلاس زنده هنوز راه نیفتاده؛ فعلاً پیوند بیرونی بگذارید');
+    if (e.kind === 'ONLINE' && !e.useBbb && !e.onlineUrl) problems.push('پیوند کلاس آنلاین (یا «کلاس روی سرور مدرسه» را روشن کن)');
+    if (e.kind === 'ONLINE' && e.useBbb && !bbbEnabled()) problems.push('سرور کلاس زنده هنوز راه نیفتاده؛ فعلاً پیوند بیرونی بگذار');
     if (e.startsAt < new Date()) problems.push('زمان شروع گذشته است');
-    if (problems.length) throw new BadRequestException({ code: 'not_ready', message: 'پیش از انتشار کامل کنید: ' + problems.join('، ') });
+    if (problems.length) throw new BadRequestException({ code: 'not_ready', message: 'پیش از انتشار کامل کن: ' + problems.join('، ') });
     const [n] = await this.db.update(events).set({ status: 'PUBLISHED' }).where(eq(events.id, id)).returning();
     return n;
   }
 
   async cancelEvent(u: AuthUser, id: string, reason: string) {
     const e = await this.manageable(u, id);
-    if (!reason?.trim()) throw new BadRequestException({ code: 'reason', message: 'دلیل لغو را بنویسید؛ برای ثبت‌نام‌شده‌ها فرستاده می‌شود' });
+    if (!reason?.trim()) throw new BadRequestException({ code: 'reason', message: 'دلیل لغو را بنویس؛ برای ثبت‌نام‌شده‌ها فرستاده می‌شود' });
     await this.db.update(events).set({ status: 'CANCELLED', cancelReason: reason.trim() }).where(eq(events.id, id));
     if (e.status === 'PUBLISHED') await this.notify.send(await this.attendees(id), { kind: 'event_cancelled', title: `لغو شد: «${e.title}»`, body: reason.trim(), link: `/events/${id}` });
     return { ok: true };
@@ -362,7 +362,7 @@ export class EventsService {
 
   async remove(u: AuthUser, id: string) {
     const e = await this.manageable(u, id);
-    if (e.status !== 'DRAFT') throw new BadRequestException({ code: 'not_draft', message: 'برنامهٔ منتشرشده حذف نمی‌شود؛ لغوش کنید' });
+    if (e.status !== 'DRAFT') throw new BadRequestException({ code: 'not_draft', message: 'برنامهٔ منتشرشده حذف نمی‌شود؛ لغوش کن' });
     await this.db.delete(events).where(eq(events.id, id));
     return { ok: true };
   }
@@ -400,10 +400,10 @@ export class EventsService {
       const [{ n }] = (await this.db.execute<{ n: number }>(sql`select count(*)::int as n from registrations where event_id = ${id} and status = 'REGISTERED'`)).rows;
       const status = e.capacity != null && n >= e.capacity ? 'WAITLIST' : 'REGISTERED';
       await this.db.update(registrations).set({ status }).where(and(eq(registrations.eventId, id), eq(registrations.userId, userId)));
-      await this.notify.send(userId, { kind: 'event_approved', title: status === 'REGISTERED' ? `ثبت‌نامتان در «${e.title}» تأیید شد` : `در فهرست انتظار «${e.title}» هستید`, link: `/events/${id}` });
+      await this.notify.send(userId, { kind: 'event_approved', title: status === 'REGISTERED' ? `ثبت‌نامتان در «${e.title}» تأیید شد` : `در فهرست انتظار «${e.title}» هستی`, link: `/events/${id}` });
     } else if (action === 'reject') {
       await this.db.update(registrations).set({ status: 'REJECTED' }).where(and(eq(registrations.eventId, id), eq(registrations.userId, userId)));
-      await this.notify.send(userId, { kind: 'event_rejected', title: `درخواستتان برای «${e.title}» پذیرفته نشد`, link: `/events/${id}` });
+      await this.notify.send(userId, { kind: 'event_rejected', title: `درخواستت برای «${e.title}» پذیرفته نشد`, link: `/events/${id}` });
       if (r.status === 'REGISTERED') await this.promote(e);
     } else if (action === 'attend') {
       await this.db.update(registrations).set({ attendedAt: r.attendedAt ?? new Date(), attendanceMethod: r.attendanceMethod ?? 'MANUAL' }).where(and(eq(registrations.eventId, id), eq(registrations.userId, userId)));
@@ -471,8 +471,8 @@ export class EventsService {
         if (!ins) continue;
         const ids = (await this.db.select({ userId: registrations.userId }).from(registrations).where(and(eq(registrations.eventId, e.id), eq(registrations.status, 'REGISTERED')))).map((r) => r.userId);
         await this.notify.send(ids, k === 'DAY'
-          ? { kind: 'event_reminder', title: `فردا: «${e.title}»`, body: `${faDate(e.startsAt)}${e.location ? ' — ' + e.location : ''}${e.kind === 'IN_PERSON' ? ' — کارت ورود را همراه داشته باشید' : ''}`, link: `/events/${e.id}` }
-          : { kind: 'event_reminder', title: `«${e.title}» تا ربع ساعت دیگر شروع می‌شود`, body: 'از صفحهٔ برنامه وارد کلاس شوید', link: `/events/${e.id}` });
+          ? { kind: 'event_reminder', title: `فردا: «${e.title}»`, body: `${faDate(e.startsAt)}${e.location ? ' — ' + e.location : ''}${e.kind === 'IN_PERSON' ? ' — کارت ورود را همراه داشته باش' : ''}`, link: `/events/${e.id}` }
+          : { kind: 'event_reminder', title: `«${e.title}» تا ربع ساعت دیگر شروع می‌شود`, body: 'از صفحهٔ برنامه وارد کلاس شو', link: `/events/${e.id}` });
         sent += ids.length;
       }
     }

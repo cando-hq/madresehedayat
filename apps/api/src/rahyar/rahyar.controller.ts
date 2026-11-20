@@ -98,7 +98,7 @@ export class RahyarController {
   @Post('messages') @HttpCode(200)
   async sendMine(@CurrentUser() u: AuthUser, @Body() d: MsgDto) {
     const { responsible } = await this.rahyar.responsibleFor(u.id);
-    if (!responsible?.holderId) throw new BadRequestException({ code: 'no_rahyar', message: 'هنوز راهیاری برایتان تعیین نشده' });
+    if (!responsible?.holderId) throw new BadRequestException({ code: 'no_rahyar', message: 'هنوز راهیاری برایت تعیین نشده' });
     await this.db.insert(directMessages).values({ learnerId: u.id, authorId: u.id, body: enc(d.body.trim())!, readByLearnerAt: new Date() });
     await this.notify.send(responsible.holderId, { kind: 'dm', title: 'پیام تازه از یک کنشگر', link: `/rahyar/messages/${u.id}` });
     return { ok: true };
@@ -116,7 +116,7 @@ export class RahyarController {
     const s = await this.rahyar.snapshot();
     const held = this.rahyar.held(s, u.id);
     const paths = await this.rahyar.pathsOf(u.id);
-    if (!held.length && !paths.length && !u.roles.includes('HQ_ADMIN')) throw new ForbiddenException({ code: 'not_rahyar', message: 'جایگاه راهیاری ندارید' });
+    if (!held.length && !paths.length && !u.roles.includes('HQ_ADMIN')) throw new ForbiddenException({ code: 'not_rahyar', message: 'جایگاه راهیاری نداری' });
     return { s, held };
   }
 
@@ -156,7 +156,7 @@ export class RahyarController {
 
   @Get('rahyar/learners/:id')
   async learner(@CurrentUser() u: AuthUser, @Param('id') id: string) {
-    if (!(await this.rahyar.canSeeLearner(u.id, id, u.roles))) throw new ForbiddenException({ code: 'forbidden', message: 'این کنشگر در دامنهٔ شما نیست' });
+    if (!(await this.rahyar.canSeeLearner(u.id, id, u.roles))) throw new ForbiddenException({ code: 'forbidden', message: 'این کنشگر در دامنهٔ تو نیست' });
     this.access.write(u.id, 'rahyar.learner', id);
     const p = await this.db.query.users.findFirst({ where: eq(users.id, id), columns: { id: true, firstName: true, lastName: true, countyId: true, mosqueId: true, nearMosque: true, createdAt: true, allowRahyarMessages: true } });
     const courses = await this.learning.myCourses(id);
@@ -198,7 +198,7 @@ export class RahyarController {
 
   @Get('rahyar/messages/:learnerId')
   async conversation(@CurrentUser() u: AuthUser, @Param('learnerId') lid: string) {
-    if (!(await this.rahyar.canSeeLearner(u.id, lid, u.roles))) throw new ForbiddenException({ code: 'forbidden', message: 'این کنشگر در دامنهٔ شما نیست' });
+    if (!(await this.rahyar.canSeeLearner(u.id, lid, u.roles))) throw new ForbiddenException({ code: 'forbidden', message: 'این کنشگر در دامنهٔ تو نیست' });
     this.access.write(u.id, 'rahyar.messages', lid);
     await this.db.update(directMessages).set({ readByRahyarAt: new Date() }).where(and(eq(directMessages.learnerId, lid), isNull(directMessages.readByRahyarAt)));
     const l = await this.db.query.users.findFirst({ where: eq(users.id, lid), columns: { firstName: true, lastName: true, allowRahyarMessages: true } });
@@ -207,11 +207,11 @@ export class RahyarController {
 
   @Post('rahyar/messages/:learnerId') @HttpCode(200)
   async sendTo(@CurrentUser() u: AuthUser, @Param('learnerId') lid: string, @Body() d: MsgDto) {
-    if (!(await this.rahyar.canSeeLearner(u.id, lid, u.roles))) throw new ForbiddenException({ code: 'forbidden', message: 'این کنشگر در دامنهٔ شما نیست' });
+    if (!(await this.rahyar.canSeeLearner(u.id, lid, u.roles))) throw new ForbiddenException({ code: 'forbidden', message: 'این کنشگر در دامنهٔ تو نیست' });
     const l = await this.db.query.users.findFirst({ where: eq(users.id, lid), columns: { allowRahyarMessages: true } });
     if (!l?.allowRahyarMessages) throw new ForbiddenException({ code: 'dm_off', message: 'این کنشگر پیام مستقیم راهیار را خاموش کرده است' });
     await this.db.insert(directMessages).values({ learnerId: lid, authorId: u.id, body: enc(d.body.trim())!, readByRahyarAt: new Date() });
-    await this.notify.send(lid, { kind: 'dm', title: 'پیام تازه از راهیارتان', link: '/messages' });
+    await this.notify.send(lid, { kind: 'dm', title: 'پیام تازه از راهیارت', link: '/messages' });
     return { ok: true };
   }
 

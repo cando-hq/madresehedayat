@@ -13,6 +13,7 @@ async def login(b, mobile, ip=None, hq=False):
     psql('delete from otp_requests')
     r = await page.request.post(f'{BASE}/api/auth/otp', data={'mobile': mobile}); c = (await r.json())['devCode']
     await page.request.post(f'{BASE}/api/auth/verify', data={'mobile': mobile, 'code': c})
+    psql('update users set onboarded_at=now() where onboarded_at is null')  # کاربران آزمون از «نخستین ورود» گذشته‌اند
     if hq:
         psql("update users set totp_secret=null, totp_enabled_at=null")
         sec = (await (await page.request.post(f'{BASE}/api/auth/mfa/setup')).json())['secret']

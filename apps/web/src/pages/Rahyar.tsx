@@ -52,18 +52,18 @@ export function RahyarHome() {
           <Inbox className={`size-8 shrink-0 ${m.overdue ? 'text-rose' : 'text-dome-ink'}`} />
           <div className="min-w-0 flex-1">
             <h2 id="wait-h" className="text-lg font-extrabold">{fa(m.openReports)} گزارش منتظر بازخورد شماست</h2>
-            <p className="text-sm text-muted">{m.overdue ? `${fa(m.overdue)} گزارش بیش از یک هفته منتظر مانده؛ از قدیمی‌ترین شروع کنید.` : 'کنشگر با بازخورد شما قدم بعدی را برمی‌دارد. از قدیمی‌ترین شروع کنید.'}</p>
+            <p className="text-sm text-muted">{m.overdue ? `${fa(m.overdue)} گزارش بیش از یک هفته منتظر مانده؛ از قدیمی‌ترین شروع کن.` : 'کنشگر با بازخورد تو قدم بعدی را برمی‌دارد. از قدیمی‌ترین شروع کن.'}</p>
           </div>
           <Link className="btn btn-primary" to={`/rahyar/reports/${oldest.learnerId}/${oldest.lessonId}`}>خواندن گزارش {oldest.learner}</Link>
         </section>
       ) : !q.isLoading && (
-        <p className="mb-6 flex items-center gap-3 rounded-2xl bg-leaf-soft p-4 text-leaf-ink"><CheckCircle2 className="size-5 shrink-0" />گزارش بی‌پاسخی ندارید. گزارش تازهٔ کنشگران این‌جا و در اعلان‌ها می‌آید.</p>
+        <p className="mb-6 flex items-center gap-3 rounded-2xl bg-leaf-soft p-4 text-leaf-ink"><CheckCircle2 className="size-5 shrink-0" />گزارش بی‌پاسخی نداری. گزارش تازهٔ کنشگران این‌جا و در اعلان‌ها می‌آید.</p>
       )}
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
         <section>
           {(q.data?.length ?? 0) > 0 && <div className="mb-3 flex items-center justify-between"><h2 className="font-extrabold">صف گزارش‌ها</h2><Link to="/rahyar/reports" className="text-sm font-bold text-leaf-ink">همه</Link></div>}
           {q.isLoading ? <Spinner /> : q.data?.length ? <ReportList rows={q.data.slice(0, 6)} /> : null}
-          <h2 className="mb-3 mt-6 font-extrabold">دامنهٔ شما</h2>
+          <h2 className="mb-3 mt-6 font-extrabold">دامنهٔ تو</h2>
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
             {([[UsersRound, 'کنشگر در دامنه', m.learnerCount, ''], [Compass, 'مسئولیت مستقیم', m.directCount, ''], [Inbox, 'گزارش منتظر', m.openReports, m.openReports ? 'text-dome-ink' : ''], [AlarmClock, 'بیش از یک هفته', m.overdue, m.overdue ? 'text-rose' : '']] as const).map(([I, t, v, c]) => (
               <div key={t} className="card p-4"><I className={`size-5 ${c || 'text-leaf'}`} /><b className={`tnum mt-2 block text-2xl ${c || 'text-ink'}`}>{fa(v)}</b><span className="text-sm text-muted">{t}</span></div>
@@ -110,7 +110,7 @@ export function RahyarReports() {
       <h1 className="mb-4 text-[clamp(22px,3vw,30px)] font-extrabold">گزارش مأموریت‌ها</h1>
       <RNav extra={isProvincialUp(me.data)} />
       <div className="seg mb-4">{([['open', 'منتظر بازخورد'], ['all', 'همه']] as const).map(([k, t]) => <button key={k} aria-pressed={f === k} onClick={() => setF(k)}>{t}</button>)}</div>
-      {f === 'open' && <p className="hint mb-3">گزارش‌های کنشگرانی که مستقیم مسئولشان هستید، به‌علاوهٔ گزارش‌هایی از زیرمجموعه که بیش از یک هفته بی‌پاسخ مانده‌اند.</p>}
+      {f === 'open' && <p className="hint mb-3">گزارش‌های کنشگرانی که مستقیم مسئولشان هستی، به‌علاوهٔ گزارش‌هایی از زیرمجموعه که بیش از یک هفته بی‌پاسخ مانده‌اند.</p>}
       {q.isLoading ? <Spinner /> : q.data?.length ? <ReportList rows={q.data} /> : <Empty icon={ClipboardCheck} title="گزارشی نیست" />}
     </div>
   );
@@ -149,7 +149,7 @@ export function RahyarReport() {
       <MissionMessages messages={t.messages} learnerId={t.learner.id} />
       {open && (
         <div className="card grid gap-3 p-5">
-          <label htmlFor="fb" className="font-bold text-ink">پاسخ شما</label>
+          <label htmlFor="fb" className="font-bold text-ink">پاسخ تو</label>
           <textarea id="fb" className="input min-h-28" placeholder="چه چیزی خوب بود؟ قدم بعدی چیست؟" value={body} onChange={(e) => setBody(e.target.value)} />
           <div className="flex flex-wrap gap-2">
             <button className="btn btn-primary" disabled={m.isPending} onClick={() => m.mutate('APPROVE')}><CheckCircle2 className="size-4" />تأیید{body.trim() ? ' با این پیام' : ''}</button>
@@ -247,7 +247,7 @@ export function RahyarMessages() {
             <span className="grid justify-items-end gap-1 text-xs text-muted">{ago(c.at)}{c.unread > 0 && <span className="tnum grid h-5 min-w-5 place-items-center rounded-full bg-leaf px-1.5 font-bold text-white">{fa(c.unread)}</span>}</span>
           </Link></li>
         ))}</ul>
-      ) : <Empty icon={MessageCircle} title="پیامی نیست">کنشگران از صفحهٔ «پیام با راهیار» به شما پیام می‌دهند. شمارهٔ همراه هیچ‌کدام به دیگری نشان داده نمی‌شود.</Empty>}
+      ) : <Empty icon={MessageCircle} title="پیامی نیست">کنشگران از صفحهٔ «پیام با راهیار» به تو پیام می‌دهند. شمارهٔ همراه هیچ‌کدام به دیگری نشان داده نمی‌شود.</Empty>}
     </div>
   );
 }
@@ -267,7 +267,7 @@ export function RahyarConversation() {
       <div className="card grid gap-4 p-4">
         <Thread messages={d.messages} meId={me!.id} empty="هنوز پیامی رد و بدل نشده." />
         {d.learner.allowMessages ? <Composer onSend={async (t) => { await api(`/rahyar/messages/${learnerId}`, { body: { body: t } }); qc.invalidateQueries({ queryKey: ['rahyar-dm', learnerId] }); }} />
-          : <p className="hint">این کنشگر پیام‌دادن راهیار را خاموش کرده است؛ اگر خودش پیام بدهد، در همین‌جا می‌بینید.</p>}
+          : <p className="hint">این کنشگر پیام‌دادن راهیار را خاموش کرده است؛ اگر خودش پیام بدهد، در همین‌جا می‌بینی.</p>}
       </div>
     </div>
   );
@@ -283,7 +283,7 @@ export function RahyarAssign() {
     <div className="rise">
       <h1 className="mb-4 text-[clamp(22px,3vw,30px)] font-extrabold">تقسیم کنشگران</h1>
       <RNav extra={isProvincialUp(me.data)} />
-      <p className="mb-4 max-w-2xl text-muted">شهرستان‌هایی که بیش از یک راهیار دارند. هر کنشگر را به یکی بسپارید؛ تا سپرده نشده، مسئولش راهیار استان است.</p>
+      <p className="mb-4 max-w-2xl text-muted">شهرستان‌هایی که بیش از یک راهیار دارند. هر کنشگر را به یکی بسپار؛ تا سپرده نشده، مسئولش راهیار استان است.</p>
       {q.isLoading ? <Spinner /> : q.data?.length ? (
         <ul className="grid gap-2">{q.data.map((u) => (
           <li key={u.id} className="card flex flex-wrap items-center gap-3 p-4"><b className="flex-1 text-ink">{u.firstName} {u.lastName}</b>

@@ -361,7 +361,7 @@ export class Paths2Service {
     return { id: p.id, slug: p.slug, status: p.status };
   }
   async submitPath(u: AuthUser, id: string) {
-    const pub = await this.needPub(u); const p = await this.path(id); if (p.publisherId !== pub.id) throw new ForbiddenException(err('forbidden', 'این مسیر مال شما نیست'));
+    const pub = await this.needPub(u); const p = await this.path(id); if (p.publisherId !== pub.id) throw new ForbiddenException(err('forbidden', 'این مسیر مال تو نیست'));
     const problems: string[] = [];
     if (!p.steps.length || p.steps.every((s) => !s.items.length)) problems.push('مسیر دست‌کم یک دوره یا پخش زنده لازم دارد');
     if (p.hasRahyar) { const cids = await this.pathCourseIds(p); const hasMission = cids.length ? (await this.db.select({ id: lessons.id }).from(lessons).innerJoin(modules, eq(modules.id, lessons.moduleId)).where(and(inArray(modules.courseId, cids), eq(lessons.type, 'MISSION'))).limit(1)).length > 0 : false; if (!hasMission) problems.push('مسیرِ با راهیار دست‌کم یک تکلیف میدانی لازم دارد'); }
@@ -378,9 +378,9 @@ export class Paths2Service {
     await this.db.insert(modules).values({ courseId: c.id, title: 'درس‌ها', order: 0 });
     return c;
   }
-  async patchCourse(u: AuthUser, id: string, d: CoursePatchDto) { const pub = await this.needPub(u); const c = await this.db.query.courses.findFirst({ where: eq(courses.id, id) }); if (!c || c.publisherId !== pub.id) throw new ForbiddenException(err('forbidden', 'این دوره مال شما نیست')); if (d.libraryShare) await this.db.update(courses).set({ libraryShare: d.libraryShare }).where(eq(courses.id, id)); return { ok: true }; }
+  async patchCourse(u: AuthUser, id: string, d: CoursePatchDto) { const pub = await this.needPub(u); const c = await this.db.query.courses.findFirst({ where: eq(courses.id, id) }); if (!c || c.publisherId !== pub.id) throw new ForbiddenException(err('forbidden', 'این دوره مال تو نیست')); if (d.libraryShare) await this.db.update(courses).set({ libraryShare: d.libraryShare }).where(eq(courses.id, id)); return { ok: true }; }
   async submitCourse(u: AuthUser, id: string) {
-    const pub = await this.needPub(u); const c = await this.db.query.courses.findFirst({ where: eq(courses.id, id) }); if (!c || c.publisherId !== pub.id) throw new ForbiddenException(err('forbidden', 'این دوره مال شما نیست'));
+    const pub = await this.needPub(u); const c = await this.db.query.courses.findFirst({ where: eq(courses.id, id) }); if (!c || c.publisherId !== pub.id) throw new ForbiddenException(err('forbidden', 'این دوره مال تو نیست'));
     await this.readyOrThrow(c.id);
     await this.db.update(courses).set({ reviewStatus: 'IN_REVIEW', submittedAt: new Date(), returnNote: null, reviewNotes: {} }).where(eq(courses.id, c.id));
     await this.notifyStaff(`دورهٔ تازه برای بازبینی: ${c.title}`, pub.name); return { ok: true };
@@ -486,13 +486,13 @@ export class Paths2Service {
     return c;
   }
   async studioSubmit(u: AuthUser, id: string) {
-    await this.needOstad(u); const c = await this.db.query.courses.findFirst({ where: eq(courses.id, id) }); if (!c || c.instructorId !== u.id) throw new ForbiddenException(err('forbidden', 'این دوره مال شما نیست'));
+    await this.needOstad(u); const c = await this.db.query.courses.findFirst({ where: eq(courses.id, id) }); if (!c || c.instructorId !== u.id) throw new ForbiddenException(err('forbidden', 'این دوره مال تو نیست'));
     await this.readyOrThrow(c.id);
     await this.db.update(courses).set({ reviewStatus: 'IN_REVIEW', submittedAt: new Date(), returnNote: null, reviewNotes: {} }).where(eq(courses.id, c.id));
     await this.notifyStaff(`دورهٔ تازه برای بازبینی: ${c.title}`, await this.name(u.id)); return { ok: true };
   }
   async assignInstructor(u: AuthUser, id: string, mobile: string) {
-    const pub = await this.needPub(u); const c = await this.db.query.courses.findFirst({ where: eq(courses.id, id) }); if (!c || c.publisherId !== pub.id) throw new ForbiddenException(err('forbidden', 'این دوره مال شما نیست'));
+    const pub = await this.needPub(u); const c = await this.db.query.courses.findFirst({ where: eq(courses.id, id) }); if (!c || c.publisherId !== pub.id) throw new ForbiddenException(err('forbidden', 'این دوره مال تو نیست'));
     const mob = normalizeMobile(mobile); if (!mob) throw new BadRequestException(err('bad_mobile', 'شماره باید ۱۱ رقم باشد و با ۰۹ شروع شود'));
     const t = await this.db.query.users.findFirst({ where: eq(users.mobile, mobileKey(mob)), columns: { id: true } });
     if (!t) throw new NotFoundException(err('no_user', 'کسی با این شماره هنوز وارد مدرسه نشده؛ بگو یک بار با همین شماره وارد شود، بعد دوره را بسپار'));

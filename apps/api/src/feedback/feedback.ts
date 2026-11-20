@@ -44,10 +44,10 @@ export class FeedbackService {
 
   async create(u: AuthUser, d: FeedbackDto) {
     const [n] = await this.db.select({ n: count() }).from(feedback).where(and(eq(feedback.userId, u.id), gte(feedback.createdAt, new Date(Date.now() - 86400_000))));
-    if (n.n >= 10) throw new BadRequestException(err('too_many', 'امروز ۱۰ بازخورد فرستاده‌اید؛ ممنون! فردا دوباره می‌توانید بفرستید'));
+    if (n.n >= 10) throw new BadRequestException(err('too_many', 'امروز ۱۰ بازخورد فرستاده‌ای؛ ممنون! فردا دوباره می‌توانی بفرستی'));
     if (d.imageKey) {
       const f = await this.db.query.privateFiles.findFirst({ where: eq(privateFiles.key, d.imageKey) });
-      if (!f || f.ownerId !== u.id || f.kind !== 'FEEDBACK') throw new BadRequestException(err('bad_image', 'عکس پیدا نشد؛ دوباره بارگذاری کنید'));
+      if (!f || f.ownerId !== u.id || f.kind !== 'FEEDBACK') throw new BadRequestException(err('bad_image', 'عکس پیدا نشد؛ دوباره بارگذاری کن'));
     }
     const context = d.context ? Object.fromEntries(Object.entries(d.context).filter(([k, v]) => CTX_KEYS.includes(k) && typeof v === 'string' && v.length < 40)) : null;
     const [f] = await this.db.insert(feedback).values({ userId: u.id, anonymous: !!d.anonymous, kind: d.kind, mood: d.mood ?? null, body: enc(d.body.trim())!, path: d.path ?? null,
@@ -90,7 +90,7 @@ export class FeedbackService {
     // حلقه را می‌بندیم: فرستنده می‌فهمد بازخوردش چه شد
     const statusChanged = set.status && set.status !== f.status && set.status !== 'NEW';
     if (replying || statusChanged) {
-      await this.notify.send(f.userId, { kind: 'feedback', title: replying ? 'به بازخوردتان پاسخ داده شد' : `بازخوردتان ${STATUS_FA[set.status!]}`,
+      await this.notify.send(f.userId, { kind: 'feedback', title: replying ? 'به بازخوردت پاسخ داده شد' : `بازخوردت ${STATUS_FA[set.status!]}`,
         body: replying ? set.reply!.slice(0, 140) : undefined, link: '/help#feedback' });
     }
     return { ok: true };
@@ -113,7 +113,7 @@ export class FeedbackService {
     if (!l) throw new NotFoundException(err('no_lesson', 'این درس پیدا نشد'));
     const m = await this.db.query.modules.findFirst({ where: eq(modules.id, l.moduleId), columns: { courseId: true } });
     const e = m ? await this.db.query.enrollments.findFirst({ where: and(eq(enrollments.userId, u.id), eq(enrollments.courseId, m.courseId)) }) : null;
-    if (!e) throw new ForbiddenException(err('not_enrolled', 'برای امتیاز دادن اول در دوره ثبت‌نام کنید'));
+    if (!e) throw new ForbiddenException(err('not_enrolled', 'برای امتیاز دادن اول در دوره ثبت‌نام کن'));
     const allowed = d.up ? LESSON_REASONS.up : LESSON_REASONS.down;
     const reasons = (d.reasons ?? []).filter((r) => allowed.includes(r));
     const v = { up: d.up, reasons, comment: d.comment?.trim() ? enc(d.comment.trim()) : null };
@@ -129,10 +129,10 @@ export class FeedbackService {
     const c = await this.db.query.courses.findFirst({ where: or(eq(courses.slug, key), eq(courses.id, key)), columns: { id: true } });
     if (!c) throw new NotFoundException(err('no_course', 'این دوره پیدا نشد'));
     const e = await this.db.query.enrollments.findFirst({ where: and(eq(enrollments.userId, u.id), eq(enrollments.courseId, c.id)) });
-    if (!e) throw new ForbiddenException(err('not_enrolled', 'برای امتیاز دادن اول در دوره ثبت‌نام کنید'));
+    if (!e) throw new ForbiddenException(err('not_enrolled', 'برای امتیاز دادن اول در دوره ثبت‌نام کن'));
     const [done] = await this.db.select({ n: count() }).from(sql`lesson_progress lp join lessons l on l.id = lp.lesson_id join modules m on m.id = l.module_id`)
       .where(sql`lp.user_id = ${u.id} and m.course_id = ${c.id} and lp.completed_at is not null`);
-    if (!e.completedAt && done.n < 3) throw new BadRequestException(err('too_early', 'بعد از گذراندن دست‌کم سه درس می‌توانید به دوره امتیاز بدهید'));
+    if (!e.completedAt && done.n < 3) throw new BadRequestException(err('too_early', 'بعد از گذراندن دست‌کم سه درس می‌توانی به دوره امتیاز بدهی'));
     const v = { stars: d.stars, comment: d.comment?.trim() ? enc(d.comment.trim()) : null };
     await this.db.insert(courseRatings).values({ userId: u.id, courseId: c.id, ...v }).onConflictDoUpdate({ target: [courseRatings.userId, courseRatings.courseId], set: v });
     return { ok: true };

@@ -23,7 +23,7 @@ const RoleChip = ({ p }: { p: Person }) => p.role === 'RAHYAR' ? <span className
 export default function PeersPage() {
   const [sp, setSp] = useSearchParams();
   const tab = sp.get('tab') ?? 'gaade';
-  const T: [string, string][] = [['gaade', 'گعده‌های من'], ['qa', 'پرسش از همتایان'], ['peer', 'نظر همتا'], ['stories', 'تجربه‌های میدان']];
+  const T: [string, string][] = [['gaade', 'گعده‌ها'], ['qa', 'پرسش‌ها'], ['peer', 'نظر همتا'], ['stories', 'تجربه‌ها']];
   return (
     <div className="grid gap-6">
       <header><h1 className="text-[clamp(24px,3vw,32px)] font-extrabold">گعده و همتایان</h1><p className="mt-1 text-muted">یادگیری از همتا: گعده، پرسش و پاسخ، نظر همتا روی گزارش‌ها و تجربه‌های میدان.</p></header>
@@ -41,9 +41,9 @@ function GaadeTile({ g }: { g: GaadeCard }) {
     <Link to={`/gaade/${g.id}`} className="card is-link grid gap-3 p-5 no-underline">
       <div className="flex items-start gap-3"><UsersRound className="size-11 shrink-0 rounded-2xl bg-flame-soft p-2.5 text-flame-ink" />
         <div className="min-w-0 flex-1"><b className="block text-ink">{g.title}</b><span className="text-sm text-muted">{fa(g.memberCount)} عضو · {g.rhythm}</span></div>
-        {g.joined && <span className="chip chip-leaf">عضو هستید</span>}</div>
+        {g.joined && <span className="chip chip-leaf">عضو هستی</span>}</div>
       {g.next && <div className="rounded-xl bg-sunken p-3 text-sm leading-7"><b className="text-ink">جلسهٔ بعد:</b> {jDateTime(g.next.at)}، {g.next.where}<br /><b className="text-ink">موضوع:</b> {g.next.topic}
-        {g.joined && <><br /><b className={g.rsvp === 'YES' ? 'text-leaf-ink' : g.rsvp === 'NO' ? 'text-rose-ink' : 'text-flame-ink'}>{g.rsvp === 'YES' ? 'می‌آیید' : g.rsvp === 'NO' ? 'نمی‌آیید' : 'هنوز پاسخ نداده‌اید'}</b></>}</div>}
+        {g.joined && <><br /><b className={g.rsvp === 'YES' ? 'text-leaf-ink' : g.rsvp === 'NO' ? 'text-rose-ink' : 'text-flame-ink'}>{g.rsvp === 'YES' ? 'می‌آیی' : g.rsvp === 'NO' ? 'نمی‌آیی' : 'هنوز پاسخ نداده‌ای'}</b></>}</div>}
       <div className="flex -space-x-2 space-x-reverse">{g.members.map((p) => <Av key={p.id} p={p} s={8} />)}</div>
     </Link>
   );
@@ -58,9 +58,9 @@ function GaadeTab() {
     <div className="grid gap-6">
       <p className="rounded-2xl bg-flame-soft p-4 leading-8 text-ink"><b>گعده چیست؟</b> جمع کوچکی از همتایان (پنج تا نُه نفر) با زمان ثابت؛ هر کس <b>یک تجربه</b> می‌گوید، <b>یک گره</b> را مطرح می‌کند و <b>یک قرار</b> برای جلسهٔ بعد می‌گذارد.</p>
       {q.data!.mine.length ? <div className="grid gap-4 lg:grid-cols-2">{q.data!.mine.map((g) => <GaadeTile key={g.id} g={g} />)}</div>
-        : <Empty icon={UsersRound} title="هنوز در گعده‌ای نیستید">یک گعده بسازید یا به گعدهٔ همتایان نزدیکتان بپیوندید.</Empty>}
+        : <Empty icon={UsersRound} title="هنوز در گعده‌ای نیستی">یک گعده بساز یا به گعدهٔ همتایان نزدیکت بپیوند.</Empty>}
       <button className="btn btn-primary w-fit" onClick={() => setOpen(true)}><Plus />ساختن گعدهٔ تازه</button>
-      {q.data!.near.length > 0 && <section className="grid gap-4"><h2 className="text-lg font-extrabold">گعده‌های همتایان نزدیک شما</h2><div className="grid gap-4 lg:grid-cols-2">{q.data!.near.map((g) => <GaadeTile key={g.id} g={g} />)}</div></section>}
+      {q.data!.near.length > 0 && <section className="grid gap-4"><h2 className="text-lg font-extrabold">گعده‌های همتایان نزدیک تو</h2><div className="grid gap-4 lg:grid-cols-2">{q.data!.near.map((g) => <GaadeTile key={g.id} g={g} />)}</div></section>}
       <NewGaade open={open} onClose={() => setOpen(false)} />
     </div>
   );
@@ -83,7 +83,7 @@ function NewGaade({ open, onClose }: { open: boolean; onClose: () => void }) {
         <div className="field"><label htmlFor="ga">زمان جلسهٔ اول</label><input id="ga" type="datetime-local" className="input ltr" value={f.at} onChange={(e) => setF({ ...f, at: e.target.value })} /></div>
         <fieldset className="grid gap-2"><legend className="mb-1 text-sm font-bold text-ink">دعوت از همتایان (چهار تا هشت نفر بهتر است)</legend>
           {cand.isLoading ? <Spinner /> : (cand.data ?? []).map((p) => <label key={p.id} className="flex items-center gap-2 text-sm"><input type="checkbox" checked={inv.includes(p.id)} onChange={(e) => setInv(e.target.checked ? [...inv, p.id] : inv.filter((x) => x !== p.id))} />{p.name} <RoleChip p={p} /></label>)}
-          {cand.data?.length === 0 && <span className="text-sm text-muted">همتایی در شهرستان شما پیدا نشد؛ بعداً از صفحهٔ گعده دعوت کنید.</span>}</fieldset>
+          {cand.data?.length === 0 && <span className="text-sm text-muted">همتایی در شهرستان تو پیدا نشد؛ بعداً از صفحهٔ گعده دعوت کن.</span>}</fieldset>
         <div className="flex justify-end gap-2"><button type="button" className="btn btn-secondary" onClick={onClose}>انصراف</button><button className="btn btn-primary" disabled={m.isPending}>ساختن</button></div>
       </form>
     </Dialog>
@@ -113,7 +113,7 @@ export function GaadePage() {
               <div className="flex items-center justify-between"><h2 className="text-lg font-extrabold">جلسهٔ بعد</h2>{g.isHost && <button className="btn btn-secondary btn-sm" onClick={() => setEdit({ at: g.next!.at.slice(0, 16), where: g.next!.where, topic: g.next!.topic })}>ویرایش جلسه</button>}</div>
               <div className="grid gap-3 sm:grid-cols-3">{[['زمان', jDateTime(g.next.at)], ['مکان', g.next.where], ['موضوع', g.next.topic]].map(([k, v]) => <div key={k} className="rounded-xl bg-sunken p-3"><span className="text-xs text-muted">{k}</span><b className="block text-ink">{v}</b></div>)}</div>
               <div><b className="text-sm text-ink">دستور جلسه</b><ol className="mt-1 list-decimal ps-5 text-body"><li>هر نفر یک تجربه از ماه گذشته (سه دقیقه)</li><li>یک گره؛ همتایان راه پیشنهاد می‌دهند</li><li>هر نفر یک قرار برای جلسهٔ بعد</li></ol></div>
-              {g.joined && <div className="flex flex-wrap items-center gap-2"><b className="text-sm text-ink">می‌آیید؟</b>
+              {g.joined && <div className="flex flex-wrap items-center gap-2"><b className="text-sm text-ink">می‌آیی؟</b>
                 <button className={`btn btn-sm ${g.rsvp === 'YES' ? 'btn-primary' : 'btn-secondary'}`} aria-pressed={g.rsvp === 'YES'} onClick={() => act.mutate({ path: 'rsvp', body: { rsvp: 'YES' } })}>می‌آیم</button>
                 <button className={`btn btn-sm ${g.rsvp === 'NO' ? 'btn-danger' : 'btn-secondary'}`} aria-pressed={g.rsvp === 'NO'} onClick={() => act.mutate({ path: 'rsvp', body: { rsvp: 'NO' } })}>نمی‌توانم</button>
                 <span className="text-sm text-muted">{fa(g.members.filter((m) => m.rsvp === 'YES').length)} نفر می‌آیند</span></div>}
@@ -129,7 +129,7 @@ export function GaadePage() {
                   <div className="field"><label htmlFor="np">قرار من تا جلسهٔ بعد</label><input id="np" className="input" required value={note.promise} onChange={(e) => setNote({ ...note, promise: e.target.value })} /></div>
                   <div className="flex gap-2"><button className="btn btn-primary" disabled={act.isPending}>ثبت</button><button type="button" className="btn btn-secondary" onClick={() => setNote(null)}>انصراف</button></div>
                 </form>
-              ) : <p className="text-sm text-muted">بعد از هر جلسه، تجربه، گره و قرار خودتان را بنویسید تا در جلسهٔ بعد مرور شود.</p>}
+              ) : <p className="text-sm text-muted">بعد از هر جلسه، تجربه، گره و قرار خودت را بنویس تا در جلسهٔ بعد مرور شود.</p>}
               {g.notes.length > 0 && <div className="grid gap-2">{g.notes.map((n) => (
                 <div key={n.id} className="flex gap-3 rounded-xl bg-sunken p-3 text-sm leading-7"><Av p={n.user} s={8} /><div className="min-w-0 flex-1"><b className="text-ink">{n.user.name}</b> <span className="text-xs text-muted">· {n.topic} · {ago(n.createdAt)}</span>
                   <div><b>تجربه:</b> {n.experience}</div>{n.knot && <div><b>گره:</b> {n.knot}</div>}<div><b>قرار:</b> {n.promise}</div></div></div>))}</div>}
@@ -185,8 +185,8 @@ export function AskDialog({ open, onClose, lessonId }: { open: boolean; onClose:
   return (
     <Dialog open={open} onClose={onClose} title="پرسش از همتایان">
       <form className="grid gap-3" onSubmit={(e) => { e.preventDefault(); m.mutate(); }}>
-        <div className="field"><label htmlFor="qt">پرسش</label><input id="qt" className="input" required maxLength={160} value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} placeholder="پرسش را کوتاه و روشن بنویسید" /></div>
-        <div className="field"><label htmlFor="qb">توضیح (اختیاری)</label><textarea id="qb" className="input" value={f.body} onChange={(e) => setF({ ...f, body: e.target.value })} placeholder="موقعیت را بگویید؛ بدون نام و نکتهٔ آبرویی." /></div>
+        <div className="field"><label htmlFor="qt">پرسش</label><input id="qt" className="input" required maxLength={160} value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} placeholder="پرسش را کوتاه و روشن بنویس" /></div>
+        <div className="field"><label htmlFor="qb">توضیح (اختیاری)</label><textarea id="qb" className="input" value={f.body} onChange={(e) => setF({ ...f, body: e.target.value })} placeholder="موقعیت را بگو؛ بدون نام و نکتهٔ آبرویی." /></div>
         <div className="flex justify-end gap-2"><button type="button" className="btn btn-secondary" onClick={onClose}>انصراف</button><button className="btn btn-primary" disabled={m.isPending}>پرسیدن</button></div>
       </form>
     </Dialog>
@@ -213,7 +213,7 @@ export function LessonQuestions({ lessonId }: { lessonId: string }) {
   return (
     <section className="card grid gap-3 p-5" aria-labelledby="lq-h">
       <div className="flex items-center justify-between gap-2"><h2 id="lq-h" className="text-base font-extrabold">پرسش از همتایان دربارهٔ این درس</h2><button className="btn btn-secondary btn-sm" onClick={() => setOpen(true)}><Plus />پرسیدن</button></div>
-      {q.data?.length ? q.data.map((x) => <QRowLink key={x.id} q={x} />) : <p className="text-sm text-muted">هنوز پرسشی نیست. اگر جایی گره دارید بپرسید؛ امامان و کنشگرانی که همین درس را خوانده‌اند پاسخ می‌دهند.</p>}
+      {q.data?.length ? q.data.map((x) => <QRowLink key={x.id} q={x} />) : <p className="text-sm text-muted">هنوز پرسشی نیست. اگر جایی گره داری بپرس؛ امامان و کنشگرانی که همین درس را خوانده‌اند پاسخ می‌دهند.</p>}
       <AskDialog open={open} onClose={() => setOpen(false)} lessonId={lessonId} />
     </section>
   );
@@ -245,9 +245,9 @@ export function QuestionPage() {
             <div className="flex gap-2"><button className={`btn btn-sm ${a.voted ? 'btn-primary' : 'btn-secondary'}`} aria-pressed={a.voted} onClick={() => act.mutate(`/answers/${a.id}/vote`)}><Heart />مفید بود · {fa(a.votes)}</button>
               {x.mine && !a.best && !a.mine && <button className="btn btn-secondary btn-sm" onClick={() => act.mutate(`/answers/${a.id}/best`)}>برگزیدن این پاسخ</button>}</div>
           </div>))}
-        {!x.answers.length && <p className="text-muted">هنوز پاسخی نیامده؛ اگر تجربه‌ای دارید بنویسید.</p>}
+        {!x.answers.length && <p className="text-muted">هنوز پاسخی نیامده؛ اگر تجربه‌ای داری بنویس.</p>}
         <form className="card grid gap-3 p-5" onSubmit={(e) => { e.preventDefault(); send.mutate(); }}>
-          <div className="field"><label htmlFor="an">پاسخ شما</label><textarea id="an" className="input" required value={ans} onChange={(e) => setAns(e.target.value)} placeholder="از تجربهٔ خودتان بگویید؛ مشخص و کوتاه." /></div>
+          <div className="field"><label htmlFor="an">پاسخ تو</label><textarea id="an" className="input" required value={ans} onChange={(e) => setAns(e.target.value)} placeholder="از تجربهٔ خودت بگو؛ مشخص و کوتاه." /></div>
           <button className="btn btn-primary w-fit" disabled={send.isPending || !ans.trim()}>فرستادن پاسخ</button></form>
       </section>
     </div>
@@ -260,22 +260,22 @@ function PeerTab() {
   const gs = useQuery({ queryKey: ['gaade'], queryFn: () => api<{ mine: GaadeCard[]; near: GaadeCard[] }>('/gaade') });
   const [txt, setTxt] = useState<Record<string, string>>({});
   const [nw, setNw] = useState<{ gaadeId: string; title: string; body: string } | null>(null);
-  const reply = useMutation({ mutationFn: (id: string) => api(`/peer-requests/${id}/replies`, { body: { body: txt[id] } }), onSuccess: (_d, id) => { setTxt({ ...txt, [id]: '' }); qc.invalidateQueries({ queryKey: ['peer-requests'] }); toast('نظرتان رسید'); }, onError: (e) => toast(errorText(e), 'err') });
+  const reply = useMutation({ mutationFn: (id: string) => api(`/peer-requests/${id}/replies`, { body: { body: txt[id] } }), onSuccess: (_d, id) => { setTxt({ ...txt, [id]: '' }); qc.invalidateQueries({ queryKey: ['peer-requests'] }); toast('نظرت رسید'); }, onError: (e) => toast(errorText(e), 'err') });
   const create = useMutation({ mutationFn: () => api('/peer-requests', { body: nw }), onSuccess: () => { setNw(null); qc.invalidateQueries({ queryKey: ['peer-requests'] }); toast('درخواست نظر برای همتایان گعده رفت'); }, onError: (e) => toast(errorText(e), 'err') });
   if (q.isLoading) return <Spinner />;
   const mine = gs.data?.mine ?? [];
   return (
     <div className="grid gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-3"><p className="text-muted">گزارش‌هایی که همتایان گعده‌تان برای گرفتن نظر گذاشته‌اند. نظر کوتاه، مشخص و مهربان بنویسید.</p>
+      <div className="flex flex-wrap items-center justify-between gap-3"><p className="text-muted">گزارش‌هایی که همتایان گعده‌ات برای گرفتن نظر گذاشته‌اند. نظر کوتاه، مشخص و مهربان بنویس.</p>
         {mine.length > 0 && <button className="btn btn-primary" onClick={() => setNw({ gaadeId: mine[0].id, title: '', body: '' })}><Plus />درخواست نظر</button>}</div>
       {q.data?.length ? q.data.map((r) => (
         <div key={r.id} className="card grid gap-3 p-5">
           <div className="flex items-center gap-3"><Av p={r.author} /><span className="min-w-0 flex-1"><b className="block text-ink">{r.title}</b><span className="text-xs text-muted">{r.author.name} · {r.gaade} · {ago(r.createdAt)}</span></span></div>
           <p className="leading-8">{r.body}</p>
           {r.replies.map((x) => <div key={x.id} className="flex gap-2 rounded-xl bg-sunken p-3 text-sm"><b className="text-ink">{x.author.name}:</b><span className="flex-1">{x.body}</span><span className="text-xs text-muted">{ago(x.createdAt)}</span></div>)}
-          {!r.mine ? <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); reply.mutate(r.id); }}><label className="sr-only" htmlFor={`pr-${r.id}`}>نظر شما</label><input id={`pr-${r.id}`} className="input" required value={txt[r.id] ?? ''} onChange={(e) => setTxt({ ...txt, [r.id]: e.target.value })} placeholder="یک نکتهٔ مشخص و مهربان…" /><button className="btn btn-primary">فرستادن</button></form>
+          {!r.mine ? <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); reply.mutate(r.id); }}><label className="sr-only" htmlFor={`pr-${r.id}`}>نظر تو</label><input id={`pr-${r.id}`} className="input" required value={txt[r.id] ?? ''} onChange={(e) => setTxt({ ...txt, [r.id]: e.target.value })} placeholder="یک نکتهٔ مشخص و مهربان…" /><button className="btn btn-primary">فرستادن</button></form>
             : <span className="text-xs text-muted">این درخواست شماست{me ? '' : ''}.</span>}
-        </div>)) : <Empty icon={UsersRound} title="درخواست نظری نیست">از گزارش یک تکلیف یا تجربه‌ای که می‌خواهید نظر همتایان را بدانید، درخواست نظر بگذارید.</Empty>}
+        </div>)) : <Empty icon={UsersRound} title="درخواست نظری نیست">از گزارش یک تکلیف یا تجربه‌ای که می‌خواهی نظر همتایان را بدان، درخواست نظر بگذار.</Empty>}
       <Dialog open={!!nw} onClose={() => setNw(null)} title="درخواست نظر از همتایان">
         {nw && <form className="grid gap-3" onSubmit={(e) => { e.preventDefault(); create.mutate(); }}>
           <div className="field"><label htmlFor="pg">گعده</label><select id="pg" className="input" value={nw.gaadeId} onChange={(e) => setNw({ ...nw, gaadeId: e.target.value })}>{mine.map((g) => <option key={g.id} value={g.id}>{g.title}</option>)}</select></div>
@@ -297,7 +297,7 @@ export function PeersCard() {
   return (
     <section className="card grid gap-3 p-6" aria-labelledby="pc-h">
       <div className="flex items-end justify-between"><h2 id="pc-h" className="text-lg font-extrabold">گعده و همتایان</h2><Link to="/peers" className="text-sm font-bold text-deep">همه</Link></div>
-      {next ? <Link to={`/gaade/${next.id}`} className="flex items-center gap-3 rounded-xl bg-sunken p-3 no-underline"><UsersRound className="size-10 shrink-0 rounded-xl bg-flame-soft p-2 text-flame-ink" /><span className="min-w-0 flex-1"><b className="block text-ink">{next.title}</b><span className="text-xs text-muted">جلسهٔ بعد: {jDateTime(next.next!.at)}، {next.next!.where}</span></span><span className={`chip ${next.rsvp === 'YES' ? 'chip-leaf' : 'chip-flame'}`}>{next.rsvp === 'YES' ? 'می‌آیم' : 'پاسخ نداده‌اید'}</span></Link>
+      {next ? <Link to={`/gaade/${next.id}`} className="flex items-center gap-3 rounded-xl bg-sunken p-3 no-underline"><UsersRound className="size-10 shrink-0 rounded-xl bg-flame-soft p-2 text-flame-ink" /><span className="min-w-0 flex-1"><b className="block text-ink">{next.title}</b><span className="text-xs text-muted">جلسهٔ بعد: {jDateTime(next.next!.at)}، {next.next!.where}</span></span><span className={`chip ${next.rsvp === 'YES' ? 'chip-leaf' : 'chip-flame'}`}>{next.rsvp === 'YES' ? 'می‌آیم' : 'پاسخ نداده‌ای'}</span></Link>
         : <p className="text-sm text-muted">گعده جای «یک تجربه، یک گره، یک قرار» با همتایان است. <Link to="/peers">پیدا کردن یا ساختن گعده</Link></p>}
       {open && <Link to={`/questions/${open.id}`} className="flex items-center gap-3 rounded-xl bg-sunken p-3 no-underline"><MessageCircleQuestion className="size-6 text-muted" /><span className="min-w-0 flex-1"><span className="text-xs text-muted">پرسش همتایان</span><b className="block text-sm text-ink">{open.title}</b></span><span className="chip tnum">{fa(open.answerCount)} پاسخ</span></Link>}
     </section>

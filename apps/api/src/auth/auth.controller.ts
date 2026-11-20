@@ -144,7 +144,7 @@ export class AuthController {
     const mobile = phone ? normalizeMobile(phone) : null;
     if (!mobile) throw new BadRequestException({ code: 'eitaa_contact', message: 'شماره از ایتا نرسید؛ با کد پیامکی وارد شو' });
     // ورود بی‌کد فقط اگر سرور ایتا هم این امضا را یک‌بار تأیید کند
-    if (!(await eitaaVerifyOnce(new URLSearchParams(String(d.contact)).get('hash') ?? '', req.ip ?? ''))) throw new BadRequestException({ code: 'eitaa_contact', message: 'تأیید ایتا انجام نشد؛ با کد پیامکی وارد شوید' });
+    if (!(await eitaaVerifyOnce(new URLSearchParams(String(d.contact)).get('hash') ?? '', req.ip ?? ''))) throw new BadRequestException({ code: 'eitaa_contact', message: 'تأیید ایتا انجام نشد؛ با شماره و کد وارد شو' });
     const r = await this.auth.loginByVerifiedMobile(mobile);
     if (r.needsRegistration) return r;
     await this.linkEitaa(req, res, r.userId);

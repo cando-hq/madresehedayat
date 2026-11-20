@@ -34,7 +34,7 @@ export class Broadcasts {
     const ids = a.ids ?? [];
     const active = eq(users.isActive, true);
     const pick = async (where: any) => (await this.db.select({ id: users.id }).from(users).where(and(active, where))).map((r) => r.id);
-    const need = (ok: boolean) => { if (!ok) throw new ForbiddenException({ code: 'forbidden', message: 'به این گروه نمی‌توانید پیام بدهید' }); };
+    const need = (ok: boolean) => { if (!ok) throw new ForbiddenException({ code: 'forbidden', message: 'به این گروه نمی‌توانی پیام بدهی' }); };
     switch (a.kind) {
       case 'ALL': need(hq); return { ids: await pick(undefined), label: 'همهٔ کاربران' };
       case 'PROVINCE': {
@@ -147,7 +147,7 @@ export class Broadcasts {
       await this.db.update(broadcasts).set({ status: 'SENT', reviewedById: u.id, sentAt: new Date(), recipientCount: ids.length }).where(eq(broadcasts.id, id));
       await this.deliver(b, ids);
     } else await this.db.update(broadcasts).set({ status: 'REJECTED', reviewedById: u.id }).where(eq(broadcasts.id, id));
-    await this.notify.send(b.senderId, { kind: 'broadcast_review', title: approve ? 'پیام گروهی شما فرستاده شد' : 'پیام گروهی شما تأیید نشد', body: b.title, link: '/broadcast' });
+    await this.notify.send(b.senderId, { kind: 'broadcast_review', title: approve ? 'پیام گروهی تو فرستاده شد' : 'پیام گروهی تو تأیید نشد', body: b.title, link: '/broadcast' });
     return { ok: true };
   }
 

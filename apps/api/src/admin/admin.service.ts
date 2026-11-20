@@ -21,7 +21,7 @@ function validateChecks(c: any): string | null {
     if (!q.text?.trim()) return `متن پرسش کوتاه ${i + 1} خالی است`;
     if (!Array.isArray(q.options) || q.options.length < 2) return `پرسش کوتاه ${i + 1} دست‌کم دو گزینه لازم دارد`;
     if (q.options.some((o: any) => !o.text?.trim())) return `یکی از گزینه‌های پرسش کوتاه ${i + 1} خالی است`;
-    if (!Array.isArray(q.correct) || !q.correct.length) return `پاسخ درست پرسش کوتاه ${i + 1} را مشخص کنید`;
+    if (!Array.isArray(q.correct) || !q.correct.length) return `پاسخ درست پرسش کوتاه ${i + 1} را مشخص کن`;
     if (q.correct.some((id: string) => !q.options.some((o: any) => o.id === id))) return `پاسخ درست پرسش کوتاه ${i + 1} در گزینه‌ها نیست`;
   }
   return null;
@@ -33,35 +33,35 @@ export function validateContent(type: LessonTypeName, c: any): string | null {
   switch (type) {
     case 'VIDEO':
       if (c.provider === 'aparat' && !/^[A-Za-z0-9]{3,20}$/.test(c.aparatHash ?? '')) return 'شناسهٔ ویدیوی آپارات درست نیست';
-      if (c.provider === 'file' && !c.fileKey) return 'فایل ویدیو را بارگذاری کنید';
-      if (!['aparat', 'file'].includes(c.provider)) return 'منبع ویدیو را انتخاب کنید';
+      if (c.provider === 'file' && !c.fileKey) return 'فایل ویدیو را بارگذاری کن';
+      if (!['aparat', 'file'].includes(c.provider)) return 'منبع ویدیو را انتخاب کن';
       return null;
-    case 'AUDIO': return c.fileKey || c.url ? null : 'فایل صوتی را بارگذاری کنید';
+    case 'AUDIO': return c.fileKey || c.url ? null : 'فایل صوتی را بارگذاری کن';
     case 'TEXT': return typeof c.body === 'string' && c.body.trim().length >= 20 ? null : 'متن درس کوتاه است';
     case 'QUIZ': {
       if (!Array.isArray(c.questions) || !c.questions.length) return 'دست‌کم یک پرسش لازم است';
       for (const [i, q] of c.questions.entries()) {
         if (!q.text?.trim()) return `متن پرسش ${i + 1} خالی است`;
         if (!Array.isArray(q.options) || q.options.length < 2) return `پرسش ${i + 1} دست‌کم دو گزینه لازم دارد`;
-        if (!Array.isArray(q.correct) || !q.correct.length) return `پاسخ درست پرسش ${i + 1} را مشخص کنید`;
+        if (!Array.isArray(q.correct) || !q.correct.length) return `پاسخ درست پرسش ${i + 1} را مشخص کن`;
         if (q.correct.some((id: string) => !q.options.some((o: any) => o.id === id))) return `پاسخ درست پرسش ${i + 1} در گزینه‌ها نیست`;
       }
       return null;
     }
     case 'WORKSHEET': return c.prompt && Array.isArray(c.fields) && c.fields.length ? null : 'برگه دست‌کم یک خانه لازم دارد';
-    case 'MISSION': return c.goal && Array.isArray(c.steps) ? null : 'هدف مأموریت را بنویسید';
+    case 'MISSION': return c.goal && Array.isArray(c.steps) ? null : 'هدف مأموریت را بنویس';
     case 'PRACTICE': {
       if (!Array.isArray(c.steps) || !c.steps.length) return 'تمرین دست‌کم یک موقعیت لازم دارد';
       for (const [i, s] of c.steps.entries()) {
         if (!s.situation?.trim()) return `متن موقعیت ${i + 1} خالی است`;
         if (!Array.isArray(s.choices) || s.choices.length < 2) return `موقعیت ${i + 1} دست‌کم دو انتخاب لازم دارد`;
         if (s.choices.some((x: any) => !x.text?.trim() || !x.feedback?.trim())) return `هر انتخاب در موقعیت ${i + 1} متن و بازخورد لازم دارد`;
-        if (!s.choices.some((x: any) => x.score === 2)) return `در موقعیت ${i + 1} دست‌کم یک انتخاب را «بهترین» علامت بزنید`;
+        if (!s.choices.some((x: any) => x.score === 2)) return `در موقعیت ${i + 1} دست‌کم یک انتخاب را «بهترین» علامت بزن`;
       }
       return null;
     }
-    case 'TOOL': return c.toolId && toolById(c.toolId) ? null : 'ابزار درس را انتخاب کنید';
-    case 'LIVE': return c.eventId ? null : 'برنامهٔ آنلاین این جلسه را انتخاب کنید';
+    case 'TOOL': return c.toolId && toolById(c.toolId) ? null : 'ابزار درس را انتخاب کن';
+    case 'LIVE': return c.eventId ? null : 'برنامهٔ آنلاین این جلسه را انتخاب کن';
     default: return null;
   }
 }
@@ -152,7 +152,7 @@ export class AdminService {
     if (bumpVersion) set.version = c.version + 1;
     if (rest.skills) {
       const ids = rest.skills.map((x) => x.id);
-      if (new Set(ids).size !== ids.length) throw new BadRequestException({ code: 'dup_skill', message: 'دو مهارت شناسهٔ یکسان دارند؛ صفحه را تازه کنید' });
+      if (new Set(ids).size !== ids.length) throw new BadRequestException({ code: 'dup_skill', message: 'دو مهارت شناسهٔ یکسان دارند؛ صفحه را تازه کن' });
       // مهارتی که برداشته شده از درس‌ها هم برداشته می‌شود
       const removed = ((c.skills ?? []) as { id: string }[]).map((x) => x.id).filter((x) => !ids.includes(x));
       if (removed.length) {
@@ -185,7 +185,7 @@ export class AdminService {
 
   async deleteCourse(actor: string, id: string) {
     const [en] = await this.db.select({ n: count() }).from(enrollments).where(eq(enrollments.courseId, id));
-    if (en.n) throw new BadRequestException({ code: 'has_learners', message: 'این دوره یادگیرنده دارد؛ به‌جای حذف بایگانی‌اش کنید' });
+    if (en.n) throw new BadRequestException({ code: 'has_learners', message: 'این دوره یادگیرنده دارد؛ به‌جای حذف بایگانی‌اش کن' });
     await this.db.delete(courses).where(eq(courses.id, id));
     await this.audit(actor, 'course.delete', id);
     return { ok: true };
@@ -218,7 +218,7 @@ export class AdminService {
   async updateModule(id: string, title: string) { const [m] = await this.db.update(modules).set({ title }).where(eq(modules.id, id)).returning(); return m; }
   async deleteModule(id: string) {
     const [{ n }] = await this.db.select({ n: count() }).from(lessons).where(eq(lessons.moduleId, id));
-    if (n) throw new BadRequestException({ code: 'module_not_empty', message: 'اول درس‌های این بخش را جابه‌جا یا حذف کنید' });
+    if (n) throw new BadRequestException({ code: 'module_not_empty', message: 'اول درس‌های این بخش را جابه‌جا یا حذف کن' });
     await this.db.delete(modules).where(eq(modules.id, id)); return { ok: true };
   }
 
@@ -250,7 +250,7 @@ export class AdminService {
       const m = await this.db.query.modules.findFirst({ where: eq(modules.id, l.moduleId) });
       const c = m && await this.db.query.courses.findFirst({ where: eq(courses.id, m.courseId) });
       const known = new Set(((c?.skills ?? []) as { id: string }[]).map((x) => x.id));
-      if (patch.skillIds.some((x) => !known.has(x))) throw new BadRequestException({ code: 'bad_skill', message: 'این مهارت در دوره تعریف نشده است؛ صفحه را تازه کنید' });
+      if (patch.skillIds.some((x) => !known.has(x))) throw new BadRequestException({ code: 'bad_skill', message: 'این مهارت در دوره تعریف نشده است؛ صفحه را تازه کن' });
     }
     const [u] = await this.db.update(lessons).set(patch).where(eq(lessons.id, id)).returning();
     await this.audit(actor, 'lesson.update', id);
@@ -280,7 +280,7 @@ export class AdminService {
     const qs = (patch.quiz as any)?.questions as any[] | undefined;
     if (qs) qs.forEach((q, i) => {
       if (!q.text?.trim()) throw new BadRequestException({ code: 'bad_quiz', message: `متن پرسش ${i + 1} خالی است` });
-      if (!q.correct?.length) throw new BadRequestException({ code: 'bad_quiz', message: `پاسخ درست پرسش ${i + 1} را مشخص کنید` });
+      if (!q.correct?.length) throw new BadRequestException({ code: 'bad_quiz', message: `پاسخ درست پرسش ${i + 1} را مشخص کن` });
     });
     const [p] = await this.db.update(paths).set(patch).where(eq(paths.id, id)).returning();
     await this.audit(actor, 'path.update', id); return p;

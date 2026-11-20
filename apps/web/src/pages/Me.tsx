@@ -41,14 +41,14 @@ export default function Me() {
         <span className="grid size-16 place-items-center rounded-full bg-deep-soft text-2xl font-extrabold text-deep">{me?.firstName[0]}</span>
         <div className="flex-1 min-w-0"><h1 className="text-[clamp(22px,3vw,30px)] font-extrabold">{me?.firstName} {me?.lastName}</h1>
           <p className="text-muted">{me?.actorRole && me.actorRole !== 'OTHER' ? `${ROLE_FA[me.actorRole]}، ` : ''}{me?.mosque?.name ?? me?.nearMosque ?? 'بدون مسجد'}{me?.county ? `، ${me.county.name}` : ''}</p></div>
-        <div className="flex items-center gap-4 text-sm"><span><b className="tnum text-2xl font-extrabold text-ink">{fa(d.total)}</b> <span className="text-muted">گام رشد</span></span><span><b className="tnum text-2xl font-extrabold text-ink">{fa(d.certs.length)}</b> <span className="text-muted">گواهی</span></span><Link to="/settings" className="btn btn-ghost btn-icon" aria-label="تنظیمات"><Settings className="size-5" /></Link></div>
+        <div className="flex w-full items-center gap-5 border-t border-line pt-4 text-sm sm:w-auto sm:border-0 sm:pt-0"><span><b className="tnum text-2xl font-extrabold text-ink">{fa(d.total)}</b> <span className="text-muted">گام رشد</span></span><span><b className="tnum text-2xl font-extrabold text-ink">{fa(d.certs.length)}</b> <span className="text-muted">گواهی</span></span><Link to="/settings" className="btn btn-ghost btn-icon ms-auto sm:ms-0" aria-label="تنظیمات"><Settings className="size-5" /></Link></div>
       </header>
 
       {main ? (
         <section className="card grid gap-5 p-6 md:grid-cols-[1.2fr_1fr_auto] md:items-center" style={{ borderInlineStartWidth: 10, borderInlineStartColor: main.color }}>
           <div className="grid gap-1"><span className="text-[13px] font-bold" style={{ color: main.color }}>مسیر اصلی تو</span><b className="text-2xl font-extrabold text-ink">{main.title}</b><span className="text-sm text-body">{pathStateText(main)}؛ {fa(main.growthSteps)} گام رشد تأییدشده</span><PubName pub={main.publisher} /></div>
           <div className="grid gap-2"><div className="flex items-center gap-1.5">{main.steps.map((s, i) => <Toranj key={s.id} state={s.done ? 'done' : i === main.currentStep ? 'now' : 'todo'} color={main.color} size={18} />)}</div><span className="text-sm text-muted">{main.rahyar ? `راهیار: ${main.rahyar.name}` : main.hasRahyar ? 'راهیار به‌زودی' : 'خودآموز'}</span></div>
-          <Link to={`/paths/${main.slug}`} className="btn btn-secondary">قدم بعدی</Link>
+          <Link to={`/paths/${main.slug}`} className="btn btn-secondary">ادامهٔ مسیر</Link>
         </section>
       ) : (
         <div className="rounded-2xl bg-sunken p-5 text-body">هنوز مسیر اصلی نداری. <Link to="/learn?tab=main" className="font-bold text-leaf-ink">ببین برای نقشت چه مسیری هست</Link>.</div>

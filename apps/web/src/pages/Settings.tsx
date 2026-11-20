@@ -65,7 +65,7 @@ export default function Settings() {
 
   async function save(e: FormEvent) {
     e.preventDefault(); setErr('');
-    if (f.firstName.trim().length < 2 || f.lastName.trim().length < 2) { setErr('نام و نام خانوادگی را کامل بنویسید.'); return; }
+    if (f.firstName.trim().length < 2 || f.lastName.trim().length < 2) { setErr('نام و نام خانوادگی را کامل بنویس.'); return; }
     setBusy(true);
     try {
       const body: Record<string, string> = { firstName: f.firstName, lastName: f.lastName, countyId: f.countyId, mosqueId: f.mosqueId, nearMosque: f.mosqueId ? '' : f.nearMosque };
@@ -84,14 +84,14 @@ export default function Settings() {
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="field"><label htmlFor="fn">نام</label><input id="fn" className="input" value={f.firstName} onChange={(e) => setF({ ...f, firstName: e.target.value })} /></div>
           <div className="field"><label htmlFor="ln">نام خانوادگی</label><input id="ln" className="input" value={f.lastName} onChange={(e) => setF({ ...f, lastName: e.target.value })} /></div>
-          <div className="field"><label htmlFor="pr">استان</label><select id="pr" className="input" value={f.provinceId} onChange={(e) => setF({ ...f, provinceId: e.target.value, countyId: '', mosqueId: '' })}><option value="">انتخاب کنید</option>{geo.data?.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div>
-          <div className="field"><label htmlFor="ct">شهرستان</label><select id="ct" className="input" value={f.countyId} onChange={(e) => setF({ ...f, countyId: e.target.value, mosqueId: '' })}><option value="">انتخاب کنید</option>{counties.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
+          <div className="field"><label htmlFor="pr">استان</label><select id="pr" className="input" value={f.provinceId} onChange={(e) => setF({ ...f, provinceId: e.target.value, countyId: '', mosqueId: '' })}><option value="">انتخاب کن</option>{geo.data?.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div>
+          <div className="field"><label htmlFor="ct">شهرستان</label><select id="ct" className="input" value={f.countyId} onChange={(e) => setF({ ...f, countyId: e.target.value, mosqueId: '' })}><option value="">انتخاب کن</option>{counties.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
         </div>
         <div className="field"><label htmlFor="mq">مسجد</label>
           <select id="mq" className="input" value={f.mosqueId} onChange={(e) => setF({ ...f, mosqueId: e.target.value })}><option value="">مسجدم در فهرست نیست / عضو مسجدی نیستم</option>{mosques.data?.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}</select></div>
         {!f.mosqueId && <div className="field"><label htmlFor="nm">نزدیک‌ترین مسجد</label><input id="nm" className="input" value={f.nearMosque} onChange={(e) => setF({ ...f, nearMosque: e.target.value })} /></div>}
         <div className="field"><label htmlFor="nid">کد ملی <span className="font-normal text-muted">(اختیاری؛ {me!.hasNationalId ? 'ثبت شده است' : 'بعضی خدمات لازمش دارند'})</span></label>
-          <input id="nid" className="input ltr tnum" inputMode="numeric" maxLength={10} placeholder={me!.hasNationalId ? 'برای تغییر، کد تازه را بنویسید' : '۱۰ رقم'} value={f.nationalId} onChange={(e) => setF({ ...f, nationalId: e.target.value })} /></div>
+          <input id="nid" className="input ltr tnum" inputMode="numeric" maxLength={10} placeholder={me!.hasNationalId ? 'برای تغییر، کد تازه را بنویس' : '۱۰ رقم'} value={f.nationalId} onChange={(e) => setF({ ...f, nationalId: e.target.value })} /></div>
         {err && <p className="err"><CircleAlert className="size-4" />{err}</p>}
         <div><button className="btn btn-primary" disabled={busy}>{busy ? 'در حال ذخیره…' : 'ذخیره'}</button></div>
       </form>
@@ -102,7 +102,7 @@ export default function Settings() {
         <div className="flex flex-wrap items-center justify-between gap-3"><div><b className="block text-ink">نقش من در مسجد و مسجدم</b><span className="text-sm text-muted">{[me!.actorRole ? { IMAM: 'امام', SHARIK: 'شریکة‌الامام', BAZU: 'بازو', HASTEH: 'عضو هسته', OTHER: 'دیگر' }[me!.actorRole] : null, me!.mosque?.name].filter(Boolean).join('، ') || 'هنوز نگفته‌ای'}</span></div><Link to="/onboard" className="btn btn-secondary btn-sm">عوض کن</Link></div>
         {me!.roles.length > 0 && <div><b className="block text-ink">نقش‌ها</b><div className="mt-1 flex flex-wrap gap-2">{me!.roles.map((r) => <span key={r} className="chip chip-dome">{ROLE_LABEL[r]}</span>)}</div></div>}
         {me!.cores.length > 0 && <div><b className="block text-ink">هسته‌ها</b><div className="mt-1 flex flex-wrap gap-2">{me!.cores.map((c) => <span key={c.id} className="chip">{c.name}{c.isLeader ? ' · مسئول' : ''}</span>)}</div></div>}
-        <div className="flex flex-wrap items-center justify-between gap-3"><div><b className="block text-ink">ورود با سامانهٔ پایه</b><span className="text-sm text-muted">{me!.ssoLinked ? 'حساب شما وصل است' : 'به‌زودی؛ هنوز راه نیفتاده'}</span></div><KeyRound className="size-5 text-muted" /></div>
+        <div className="flex flex-wrap items-center justify-between gap-3"><div><b className="block text-ink">ورود با سامانهٔ پایه</b><span className="text-sm text-muted">{me!.ssoLinked ? 'حساب تو وصل است' : 'به‌زودی؛ هنوز راه نیفتاده'}</span></div><KeyRound className="size-5 text-muted" /></div>
       </section>
 
       <OrgsSection />
@@ -114,9 +114,9 @@ export default function Settings() {
         <label className="flex cursor-pointer items-start gap-3">
           <input type="checkbox" className="mt-1 size-5 accent-[var(--leaf)]" checked={me!.allowRahyarMessages} onChange={async (e) => {
             const v = e.target.checked;
-            try { await api('/me/prefs', { method: 'PATCH', body: { allowRahyarMessages: v } }); setMe({ ...me!, allowRahyarMessages: v }); toast(v ? 'راهیار می‌تواند به شما پیام بدهد' : 'پیام راهیار خاموش شد'); } catch (er) { toast((er as Error).message, 'err'); }
+            try { await api('/me/prefs', { method: 'PATCH', body: { allowRahyarMessages: v } }); setMe({ ...me!, allowRahyarMessages: v }); toast(v ? 'راهیار می‌تواند به تو پیام بدهد' : 'پیام راهیار خاموش شد'); } catch (er) { toast((er as Error).message, 'err'); }
           }} />
-          <span><b className="block text-ink">راهیارم بتواند به من پیام بدهد</b><span className="text-sm text-muted">شمارهٔ همراه شما در هیچ حالتی به راهیار نشان داده نمی‌شود. اگر خاموش باشد، راهیار فقط به پیام‌هایی که خودتان می‌فرستید پاسخ می‌دهد. بازخورد گزارش مأموریت‌ها همیشه می‌رسد.</span></span>
+          <span><b className="block text-ink">راهیارم بتواند به من پیام بدهد</b><span className="text-sm text-muted">شمارهٔ همراه تو در هیچ حالتی به راهیار نشان داده نمی‌شود. اگر خاموش باشد، راهیار فقط به پیام‌هایی که خودت می‌فرستی پاسخ می‌دهد. بازخورد گزارش مأموریت‌ها همیشه می‌رسد.</span></span>
         </label>
       </section>
 
@@ -139,7 +139,7 @@ function OrgsSection() {
   const qc = useQueryClient(); const toast = useToast();
   const q = useQuery({ queryKey: ['my-orgs'], queryFn: () => api<{ invites: { id: string; name: string; invitedAt: string }[]; member: { id: string; name: string }[] }>('/me/orgs') });
   const done = () => { qc.invalidateQueries({ queryKey: ['my-orgs'] }); qc.invalidateQueries({ queryKey: ['me'] }); };
-  const accept = useMutation({ mutationFn: (id: string) => api(`/me/orgs/${id}/accept`, { method: 'POST' }), onSuccess: () => { done(); toast('عضو اشتراک شدید؛ دوره‌هایش حالا باز است'); }, onError: (e) => toast((e as Error).message, 'err') });
+  const accept = useMutation({ mutationFn: (id: string) => api(`/me/orgs/${id}/accept`, { method: 'POST' }), onSuccess: () => { done(); toast('عضو اشتراک شدی؛ دوره‌هایش حالا باز است'); }, onError: (e) => toast((e as Error).message, 'err') });
   const leave = useMutation({ mutationFn: (id: string) => api(`/me/orgs/${id}/leave`, { method: 'POST' }), onSuccess: () => { done(); toast('انجام شد'); }, onError: (e) => toast((e as Error).message, 'err') });
   const d = q.data;
   // از اعلان دعوت با #orgs می‌آیند
@@ -150,14 +150,14 @@ function OrgsSection() {
       <h2 className="text-lg font-extrabold">سازمان‌ها</h2>
       {d.invites.map((o) => (
         <div key={o.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-leaf-soft p-3">
-          <span className="text-ink"><b>«{o.name}»</b> شما را به اشتراکش دعوت کرده است.</span>
+          <span className="text-ink"><b>«{o.name}»</b> تو را به اشتراکش دعوت کرده است.</span>
           <div className="flex gap-2"><button className="btn btn-primary btn-sm" disabled={accept.isPending} onClick={() => accept.mutate(o.id)}>می‌پذیرم</button><button className="btn btn-ghost btn-sm" disabled={leave.isPending} onClick={() => leave.mutate(o.id)}>عضو این سازمان نیستم</button></div>
         </div>
       ))}
       {d.member.map((o) => (
         <div key={o.id} className="flex flex-wrap items-center justify-between gap-3"><span className="text-ink">عضو اشتراک <b>«{o.name}»</b></span><button className="btn btn-ghost btn-sm" disabled={leave.isPending} onClick={() => leave.mutate(o.id)}>بیرون آمدن</button></div>
       ))}
-      <p className="hint">مدیر سازمان فقط نام شما و پیشرفت دوره‌های همان اشتراک را می‌بیند؛ شمارهٔ همراه و نوشته‌هایتان را نمی‌بیند.</p>
+      <p className="hint">مدیر سازمان فقط نام تو و پیشرفت دوره‌های همان اشتراک را می‌بیند؛ شمارهٔ همراه و نوشته‌هایت را نمی‌بیند.</p>
     </section>
   );
 }

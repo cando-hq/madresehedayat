@@ -25,7 +25,7 @@ const STATUS_CHIP: Record<string, string> = { DRAFT: '', IN_REVIEW: 'chip-flame'
 
 export function PubShell() {
   const { me } = useAuth();
-  if (!me?.publisher) return <Empty title="این بخش برای برگزارکنندگان است">اگر سازمان یا گروه شما می‌خواهد مسیر یا دوره منتشر کند، از <Link to="/help" className="font-bold text-leaf-ink">پشتیبانی</Link> درخواست بدهید.</Empty>;
+  if (!me?.publisher) return <Empty title="این بخش برای برگزارکنندگان است">اگر سازمان یا گروه تو می‌خواهد مسیر یا دوره منتشر کند، از <Link to="/help" className="font-bold text-leaf-ink">پشتیبانی</Link> درخواست بده.</Empty>;
   return (
     <div className="min-h-dvh bg-bg md:grid md:grid-cols-[248px_1fr]">
       <aside className="border-b border-line bg-ink text-white md:min-h-dvh md:border-b-0">
@@ -163,7 +163,7 @@ function Picker({ all, onPick }: { all: LibItem[]; onPick: (it: LibItem) => void
     <div className="grid gap-3">
       <div className="flex flex-wrap gap-2"><input className="input h-10 flex-1" placeholder="جست‌وجو" value={q} onChange={(e) => setQ(e.target.value)} /><div className="seg seg-pill">{([['all', 'همه'], ['mine', 'مال ما'], ['course', 'دوره'], ['path', 'مسیر خرد/میانه'], ['live', 'پخش زنده']] as const).map(([kk, t]) => <button key={kk} aria-pressed={k === kk} onClick={() => setK(kk)}>{t}</button>)}</div></div>
       <div className="grid max-h-[50vh] gap-1.5 overflow-auto">{list.map((it) => <button key={it.kind + it.id} type="button" onClick={() => onPick(it)} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-start hover:bg-sunken"><span className={`chip ${it.kind === 'live' ? 'chip-rose' : it.kind === 'path' ? 'chip-leaf' : 'chip-flame'}`}>{it.kind === 'live' ? 'پخش زنده' : it.kind === 'path' ? it.sizeFa : 'دوره'}</span><span className="min-w-0 flex-1"><b className="block truncate text-ink">{it.title}</b><span className="text-xs text-muted">{it.mine ? 'مال ما' : `از ${it.publisher?.name}${it.needsApproval ? '، با تأیید سازنده' : ''}`}</span></span><Plus className="size-4 text-deep" /></button>)}{!list.length && <p className="p-3 text-sm text-muted">چیزی پیدا نشد.</p>}</div>
-      <p className="text-xs text-muted">دوره‌های دیگران با نام سازنده‌شان در مسیر شما نشان داده می‌شوند و به نسخهٔ فعلی‌شان وصل می‌مانند.</p>
+      <p className="text-xs text-muted">دوره‌های دیگران با نام سازنده‌شان در مسیر تو نشان داده می‌شوند و به نسخهٔ فعلی‌شان وصل می‌مانند.</p>
     </div>
   );
 }
@@ -176,7 +176,7 @@ export function PubLibrary() {
   const Row = ({ it }: { it: LibItem }) => <div className="flex items-center gap-3 px-4 py-3"><span className="min-w-0 flex-1"><b className="block text-ink">{it.title}</b><span className="text-sm text-muted">{it.mine ? 'مال ما' : `از ${it.publisher?.name}`}{it.needsApproval ? '، استفاده با تأیید سازنده' : ''}</span></span>{it.publisher ? <span className="size-2.5 rounded-full" style={{ background: it.publisher.color }} /> : null}</div>;
   return (
     <div className="grid gap-8">
-      <header><h1 className="text-[clamp(24px,3vw,32px)] font-extrabold">کتابخانهٔ مشترک</h1><p className="mt-1 max-w-2xl text-muted">دوره‌ها و مسیرهای کوتاهی که برگزارکنندگان برای استفادهٔ دیگران باز گذاشته‌اند. در مسیرساز با «+ دوره» اضافه می‌شوند؛ نام سازنده همیشه کنار دوره می‌ماند و مسیر شما به نسخهٔ ثابت وصل است.</p></header>
+      <header><h1 className="text-[clamp(24px,3vw,32px)] font-extrabold">کتابخانهٔ مشترک</h1><p className="mt-1 max-w-2xl text-muted">دوره‌ها و مسیرهای کوتاهی که برگزارکنندگان برای استفادهٔ دیگران باز گذاشته‌اند. در مسیرساز با «+ دوره» اضافه می‌شوند؛ نام سازنده همیشه کنار دوره می‌ماند و مسیر تو به نسخهٔ ثابت وصل است.</p></header>
       <section className="grid gap-3"><h2 className="text-lg font-extrabold">دوره‌ها ({fa(d.courses.length)})</h2><div className="card divide-y divide-line">{d.courses.map((it) => <Row key={it.id} it={it} />)}</div></section>
       <section className="grid gap-3"><h2 className="text-lg font-extrabold">مسیرهای خرد و میانه ({fa(d.paths.length)})</h2><div className="card divide-y divide-line">{d.paths.map((it) => <Row key={it.id} it={it} />)}</div></section>
       {!!d.lives.length && <section className="grid gap-3"><h2 className="text-lg font-extrabold">پخش‌های زنده</h2><div className="card divide-y divide-line">{d.lives.map((it) => <Row key={it.id} it={it} />)}</div></section>}
@@ -195,7 +195,7 @@ export function PubRahyars() {
   const d = q.data!;
   return (
     <div className="grid gap-8">
-      <header><h1 className="text-[clamp(24px,3vw,32px)] font-extrabold">راهیاران مسیرها</h1><p className="mt-1 text-muted">هر مسیرِ با تکلیف باید راهیار داشته باشد. با شماره دعوت کن؛ با همان شماره وارد می‌شود. راهیار می‌تواند بیرون از سازمان شما باشد.</p></header>
+      <header><h1 className="text-[clamp(24px,3vw,32px)] font-extrabold">راهیاران مسیرها</h1><p className="mt-1 text-muted">هر مسیرِ با تکلیف باید راهیار داشته باشد. با شماره دعوت کن؛ با همان شماره وارد می‌شود. راهیار می‌تواند بیرون از سازمان تو باشد.</p></header>
       {!!d.missing.length && <div className="rounded-2xl bg-rose-soft p-4 text-rose-ink"><b>مسیر بی‌راهیار:</b> {d.missing.map((m) => `${m.title} (${fa(m.learners)} کنشگر)`).join('، ')}؛ تا تعیین راهیار، روایت‌ها به راهیار مسیر اصلیِ کنشگر می‌رود.</div>}
       <div className="card divide-y divide-line">{d.rows.map((r) => <div key={r.userId + r.path.id} className="flex flex-wrap items-center gap-3 px-4 py-3"><span className="grid size-10 place-items-center rounded-full bg-dome-soft font-extrabold text-dome-ink">{r.name[0]}</span><span className="min-w-0 flex-1"><b className="block text-ink">{r.name}</b><span className="text-sm text-muted" dir="ltr">{r.mobile}</span></span><span className="text-sm text-body">{r.path.title}</span><span className="text-sm text-muted">{fa(r.learners)} کنشگر</span><span className="chip chip-leaf">فعال</span></div>)}{!d.rows.length && <p className="p-4 text-muted">هنوز راهیاری دعوت نکرده‌ای.</p>}</div>
       <form className="card grid gap-3 p-5 sm:grid-cols-[1fr_1fr_auto] sm:items-end" onSubmit={(e) => { e.preventDefault(); invite.mutate(); }}>
@@ -217,7 +217,7 @@ export function PubImpact() {
       <header><h1 className="text-[clamp(24px,3vw,32px)] font-extrabold">گزارش اثر</h1><p className="mt-1 text-muted">نه بازدید، نه دقیقهٔ تماشا. چند نفر برداشتند، چند نفر در حرکت‌اند، چند گام رشد تأیید شد.</p></header>
       <div className="grid gap-3 sm:grid-cols-3">{[['کنشگرِ برداشته', d.totals.enrolled], ['در حرکت (روایت در ۳ هفتهٔ اخیر)', d.totals.active], ['گام رشد تأییدشده', d.totals.growth]].map(([t, v]) => <div key={t as string} className="stat card p-5"><span className="text-sm text-muted">{t}</span><b className="n block">{fa(v as number)}</b></div>)}</div>
       <div className="card overflow-x-auto"><table className="w-full text-sm"><thead><tr className="text-start text-muted">{['مسیر', 'برداشته', 'در حرکت', 'گام رشد', 'افتاده', 'راهیار'].map((h) => <th key={h} className="px-4 py-3 text-start font-bold">{h}</th>)}</tr></thead><tbody>{d.rows.map((r) => <tr key={r.id} className="border-t border-line"><td className="px-4 py-3"><b className="text-ink">{r.title}</b><span className="block text-xs text-muted">{r.sizeFa}</span></td><td className="tnum px-4 py-3">{fa(r.enrolled)}</td><td className="tnum px-4 py-3">{fa(r.active)}</td><td className="tnum px-4 py-3 font-bold text-leaf-ink">{fa(r.growth)}</td><td className={`tnum px-4 py-3 ${r.dropped > 0 ? 'text-rose-ink' : ''}`}>{fa(r.dropped)}</td><td className="px-4 py-3">{r.rahyar ?? <span className="text-rose-ink">بی راهیار</span>}</td></tr>)}{!d.rows.length && <tr><td colSpan={6} className="p-4 text-muted">هنوز مسیری منتشر نشده. بعد از انتشار، لینک مسیر را بفرست.</td></tr>}</tbody></table></div>
-      <section className="card grid gap-2 p-5"><b className="text-ink">محتوای ما در مسیر دیگران</b>{d.others.length ? <ul className="grid gap-1 text-sm text-body">{d.others.map((o) => <li key={o.title}>{o.title}: {o.paths.map((p) => `«${p.title}» (${p.publisher})`).join('، ')}</li>)}</ul> : <p className="text-sm text-muted">هنوز کسی از دوره‌های شما در مسیرش استفاده نکرده.</p>}</section>
+      <section className="card grid gap-2 p-5"><b className="text-ink">محتوای ما در مسیر دیگران</b>{d.others.length ? <ul className="grid gap-1 text-sm text-body">{d.others.map((o) => <li key={o.title}>{o.title}: {o.paths.map((p) => `«${p.title}» (${p.publisher})`).join('، ')}</li>)}</ul> : <p className="text-sm text-muted">هنوز کسی از دوره‌های تو در مسیرش استفاده نکرده.</p>}</section>
     </div>
   );
 }

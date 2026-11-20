@@ -20,7 +20,7 @@ export default function Course() {
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: ['course', slug] });
       qc.invalidateQueries({ queryKey: ['my-courses'] }); qc.invalidateQueries({ queryKey: ['catalog'] });
-      toast('در دوره ثبت‌نام شدید');
+      toast('در دوره ثبت‌نام شدی');
       const first = q.data?.modules[0]?.lessons[0];
       if (first) nav(`/lessons/${first.id}`);
     },
@@ -40,7 +40,7 @@ export default function Course() {
   let cta;
   if (c.me?.completedAt) cta = (
     <div className="flex flex-wrap items-center gap-3">
-      <span className="chip chip-leaf"><CircleCheck className="size-4" />{jDate(c.me.completedAt)} تمامش کردید</span>
+      <span className="chip chip-leaf"><CircleCheck className="size-4" />{jDate(c.me.completedAt)} تمامش کردی</span>
       {c.me.certificate && <Link className="btn btn-primary" to={`/verify/${c.me.certificate.code}`}><Award className="size-4" />دیدن گواهی</Link>}
     </div>
   );
@@ -55,7 +55,7 @@ export default function Course() {
   else if (c.locked) cta = (
     <div className="flex items-start gap-3 rounded-2xl bg-flame-soft p-4 text-flame-ink">
       <Lock className="mt-1 size-5 shrink-0" />
-      <div><b>اول این دوره‌ها را تمام کنید:</b>
+      <div><b>اول این دوره‌ها را تمام کن:</b>
         <ul className="mt-1">{prereq.filter((d) => !d.done).map((d) => <li key={d.course.id}><Link className="font-bold underline" to={`/courses/${d.course.slug}`}>{d.course.title}</Link></li>)}</ul></div>
     </div>
   );
@@ -100,7 +100,7 @@ export default function Course() {
             <span className="text-[13px] font-bold text-flame-ink">از درس تا میدان</span>
             <h2 id="mis-h" className="text-lg font-extrabold">{mission.title}</h2>
           </div>
-          {c.me && (mission.done ? <span className="chip chip-leaf self-center"><CircleCheck className="size-4" />انجام دادید</span>
+          {c.me && (mission.done ? <span className="chip chip-leaf self-center"><CircleCheck className="size-4" />انجام دادی</span>
             : <Link className="btn btn-secondary btn-sm self-center" to={`/lessons/${mission.id}`}>دیدن مأموریت</Link>)}
         </section>
       )}

@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { ManageTabs } from '../components/ManageTabs';
 import { Check, Megaphone, Send, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
@@ -37,15 +38,17 @@ export function BroadcastPage() {
   if (o.isLoading) return <Spinner />;
   const opts = o.data!;
   const hqKinds: [string, string][] = opts.hq ? [['PROVINCE', 'استان'], ['COUNTY', 'شهرستان'], ['NETWORK', 'شبکه یا سازمان'], ['ROLE', 'نقش'], ['COURSE', 'یادگیرندگان یک دوره']] : [];
-  if (!opts.options.length && !opts.hq) return <Empty icon={Megaphone} title="هنوز گروهی ندارید">پیام گروهی برای راهیار، امام محله و مسئول هسته است.</Empty>;
+  if (!opts.options.length && !opts.hq) return <Empty icon={Megaphone} title="هنوز گروهی نداری">پیام گروهی برای راهیار، امام محله و مسئول هسته است.</Empty>;
   const pickSel = (kind: string, label: string, list: { id: string; name?: string; title?: string; label?: string }[]) => (
     <select className="input" value={aud?.kind === kind ? aud.ids?.[0] ?? '' : ''} onChange={(e) => { const x = list.find((i) => i.id === e.target.value); setAud(x ? { kind, ids: [x.id], label: `${label}: ${x.name ?? x.title ?? x.label}` } : null); }}>
-      <option value="">انتخاب کنید</option>{list.map((i) => <option key={i.id} value={i.id}>{i.name ?? i.title ?? i.label}</option>)}
+      <option value="">انتخاب کن</option>{list.map((i) => <option key={i.id} value={i.id}>{i.name ?? i.title ?? i.label}</option>)}
     </select>
   );
   return (
-    <div className="rise mx-auto grid max-w-3xl gap-6">
-      <div><h1 className="text-[clamp(22px,3vw,30px)] font-extrabold">پیام گروهی</h1><p className="mt-1 text-muted">پیام به‌صورت اعلان داخل سامانه (و بله، برای کسانی که وصل کرده‌اند) می‌رسد. بیش از {fa(opts.approvalOver)} گیرنده، تأیید مدیر ستاد می‌خواهد.</p></div>
+    <div className="rise grid gap-6">
+      <ManageTabs />
+      <div className="mx-auto grid w-full max-w-3xl gap-6">
+      <div><h1 className="text-[clamp(22px,3vw,30px)] font-extrabold">پیام گروهی</h1><p className="mt-1 text-muted">پیام در سامانه اعلان می‌شود و برای کسانی که بله را وصل کرده‌اند در بله هم می‌رسد. بیش از {fa(opts.approvalOver)} گیرنده، تأیید ستاد می‌خواهد.</p></div>
       <section className="card grid gap-4 p-5">
         <b className="text-ink">به چه کسانی؟</b>
         <div className="flex flex-wrap gap-2">{opts.options.map((a) => <button key={a.kind + (a.ids?.[0] ?? '')} className={`chip h-9 cursor-pointer px-3 ${aud?.label === a.label ? 'chip-leaf' : ''}`} onClick={() => setAud(a)}>{a.label}</button>)}</div>
@@ -68,6 +71,7 @@ export function BroadcastPage() {
         <button className="btn btn-primary w-fit" disabled={!aud || f.title.trim().length < 2 || !count || send.isPending} onClick={() => send.mutate()}><Send className="size-4 -scale-x-100" />فرستادن</button>
       </section>
       <section><h2 className="mb-3 font-extrabold">پیام‌های من</h2><BroadcastList rows={mine.data ?? []} /></section>
+      </div>
     </div>
   );
 }

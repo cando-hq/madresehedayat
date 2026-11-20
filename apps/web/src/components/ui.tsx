@@ -57,13 +57,13 @@ export function TopLoader() {
 
 /** چهرهٔ هر خطا: نماد و عنوان بر پایهٔ کد؛ متن اصلی همان پیام فارسی سرور است */
 function errorFace(e: unknown): { icon: LucideIcon; title: string; text: string; ref?: string; retry: boolean } {
-  if (!(e instanceof ApiError)) return { icon: CircleAlert, title: 'چیزی درست کار نکرد', text: 'این بخش باز نشد. یک بار دوباره امتحان کنید.', retry: true };
+  if (!(e instanceof ApiError)) return { icon: CircleAlert, title: 'چیزی درست کار نکرد', text: 'این بخش باز نشد. یک بار دوباره امتحان کن.', retry: true };
   const ref = typeof e.data?.ref === 'string' ? e.data.ref : undefined;
   if (e.code === 'offline') return { icon: WifiOff, title: 'اتصال برقرار نیست', text: e.message, retry: true };
   if (e.code === 'unavailable' || e.code === 'db_unavailable' || e.code === 'timeout') return { icon: Clock, title: 'سامانه لحظه‌ای در دسترس نیست', text: e.message, ref, retry: true };
-  if (e.status === 404) return { icon: SearchX, title: e.message, text: 'شاید پاک شده یا نشانی را اشتباه زده‌اید.', retry: false };
-  if (e.status === 403) return { icon: Lock, title: 'دسترسی ندارید', text: e.message, retry: false };
-  if (e.status >= 500) return { icon: CircleAlert, title: 'خطایی در سرور پیش آمد', text: ref ? 'خطا ثبت شد و بررسی می‌شود. اگر تکرار شد، کد پیگیری را به پشتیبانی بدهید.' : e.message, ref, retry: true };
+  if (e.status === 404) return { icon: SearchX, title: e.message, text: 'شاید پاک شده یا نشانی را اشتباه زده‌ای.', retry: false };
+  if (e.status === 403) return { icon: Lock, title: 'دسترسی نداری', text: e.message, retry: false };
+  if (e.status >= 500) return { icon: CircleAlert, title: 'خطایی در سرور پیش آمد', text: ref ? 'خطا ثبت شد و بررسی می‌شود. اگر تکرار شد، کد پیگیری را به پشتیبانی بده.' : e.message, ref, retry: true };
   return { icon: CircleAlert, title: e.message, text: '', retry: e.status === 0 || e.status === 429 };
 }
 
@@ -76,7 +76,7 @@ export function ErrorBox({ error, onRetry }: { error: unknown; onRetry?: () => v
       {f.text && <p className="text-sm text-muted">{f.text}</p>}
       {f.ref && <p className="text-xs text-muted">کد پیگیری: <b className="ltr tnum select-all text-ink">{f.ref}</b></p>}
       <div className="mt-2 flex flex-wrap justify-center gap-2">
-        {onRetry && f.retry && <button className="btn btn-secondary btn-sm" onClick={onRetry}>دوباره امتحان کنید</button>}
+        {onRetry && f.retry && <button className="btn btn-secondary btn-sm" onClick={onRetry}>دوباره امتحان کن</button>}
         {f.ref && <a className="btn btn-ghost btn-sm" href="/help">پشتیبانی</a>}
       </div>
     </div>

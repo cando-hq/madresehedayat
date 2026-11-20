@@ -78,7 +78,7 @@ export function Board({ tool: t, data: d, onChange, readOnly }: { tool: Tool; da
             </span>
           ))}
         </div>
-        {!readOnly && <AddNote ph={c.ph ?? 'یک مورد بنویسید…'} label={c.h} onAdd={(v) => set((x) => ({ ...x, n: { ...x.n, [c.k]: [...(x.n[c.k] ?? []), { t: v }] } }))} />}
+        {!readOnly && <AddNote ph={c.ph ?? 'یک مورد بنویس…'} label={c.h} onAdd={(v) => set((x) => ({ ...x, n: { ...x.n, [c.k]: [...(x.n[c.k] ?? []), { t: v }] } }))} />}
       </div>
     );
   };
@@ -187,7 +187,7 @@ export function Board({ tool: t, data: d, onChange, readOnly }: { tool: Tool; da
               {!readOnly && <td><button type="button" className="btn btn-ghost btn-icon btn-sm text-rose" aria-label="حذف گزینه" onClick={() => set((x) => { x.dm!.opts.splice(ri, 1); const s: Record<string, number> = {}; Object.entries(x.dm!.s).forEach(([k, v]) => { const [a, b] = k.split('_').map(Number); if (a !== ri) s[`${a > ri ? a - 1 : a}_${b}`] = v; }); x.dm!.s = s; return x; })}><X className="size-4" /></button></td>}</tr>
           ))}</tbody></table></div>
         {!readOnly && <div className="mt-2 flex gap-2"><button type="button" className="btn btn-ghost btn-sm" onClick={() => set((x) => { x.dm!.opts.push(''); return x; })}><Plus className="size-4" />گزینهٔ تازه</button><button type="button" className="btn btn-ghost btn-sm" onClick={() => set((x) => { x.dm!.crit.push({ t: 'معیار تازه', w: 1 }); return x; })}><Plus className="size-4" />معیار تازه</button></div>}
-        {best > 0 && <p className="mt-3 flex gap-2 rounded-xl bg-leaf-soft p-3 text-sm"><Trophy className="size-4 shrink-0 text-leaf" /><span>بالاترین جمع وزنی: <b>{D.opts[bi]}</b> با {fa(best)} از {fa(mx)}. عدد پایان گفت‌وگو نیست؛ دلیل امتیازها را با تیم مرور کنید.</span></p>}
+        {best > 0 && <p className="mt-3 flex gap-2 rounded-xl bg-leaf-soft p-3 text-sm"><Trophy className="size-4 shrink-0 text-leaf" /><span>بالاترین جمع وزنی: <b>{D.opts[bi]}</b> با {fa(best)} از {fa(mx)}. عدد پایان گفت‌وگو نیست؛ دلیل امتیازها را با تیم مرور کن.</span></p>}
       </>;
       break;
     }

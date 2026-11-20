@@ -27,7 +27,7 @@ export class MissionsService {
     const { l, c, p } = await this.ctx(learnerId, lessonId);
     const prev = (decJson(p?.data) ?? {}) as any;
     if (prev.status && prev.status !== 'needs_revision') throw new BadRequestException({ code: 'already_sent', message: 'این گزارش فرستاده شده است' });
-    if (!report.did || report.did.trim().length < 10) throw new BadRequestException({ code: 'short', message: 'کمی بیشتر بنویسید چه کردید' });
+    if (!report.did || report.did.trim().length < 10) throw new BadRequestException({ code: 'short', message: 'کمی بیشتر بنویس چه کردی' });
     await this.assertOwnFiles(learnerId, [report.mainPhoto, ...(report.evidence ?? [])].filter(Boolean) as string[]);
     const status: MissionStatus = c.missionRule === 'ON_SUBMIT' ? 'submitted' : 'pending';
     const data = { ...prev, ...report, status, submittedAt: new Date().toISOString(), round: (prev.round ?? 0) + 1 };
@@ -43,7 +43,7 @@ export class MissionsService {
   }
 
   async thread(viewer: { id: string; roles: string[] }, learnerId: string, lessonId: string) {
-    if (viewer.id !== learnerId && !(await this.rahyar.canSeeLearner(viewer.id, learnerId, viewer.roles))) throw new ForbiddenException({ code: 'forbidden', message: 'این گزارش برای شما نیست' });
+    if (viewer.id !== learnerId && !(await this.rahyar.canSeeLearner(viewer.id, learnerId, viewer.roles))) throw new ForbiddenException({ code: 'forbidden', message: 'این گزارش برای تو نیست' });
     const { l, c, p } = await this.ctx(learnerId, lessonId);
     const msgs = await this.db.select({ id: missionMessages.id, kind: missionMessages.kind, body: missionMessages.body, createdAt: missionMessages.createdAt, authorId: missionMessages.authorId, firstName: users.firstName, lastName: users.lastName })
       .from(missionMessages).innerJoin(users, eq(users.id, missionMessages.authorId))
@@ -56,8 +56,8 @@ export class MissionsService {
   async reply(viewer: { id: string; roles: string[] }, learnerId: string, lessonId: string, kind: 'FEEDBACK' | 'REVISE' | 'APPROVE' | 'REPLY', body: string, onApproved: (courseId: string) => Promise<unknown>) {
     const isLearner = viewer.id === learnerId;
     if (isLearner && kind !== 'REPLY') throw new ForbiddenException({ code: 'forbidden', message: 'فقط راهیار می‌تواند بازخورد یا تأیید بدهد' });
-    if (!isLearner && !(await this.rahyar.canSeeLearner(viewer.id, learnerId, viewer.roles))) throw new ForbiddenException({ code: 'forbidden', message: 'این کنشگر در دامنهٔ شما نیست' });
-    if (!body?.trim() && kind !== 'APPROVE') throw new BadRequestException({ code: 'empty', message: 'متن را بنویسید' });
+    if (!isLearner && !(await this.rahyar.canSeeLearner(viewer.id, learnerId, viewer.roles))) throw new ForbiddenException({ code: 'forbidden', message: 'این کنشگر در دامنهٔ تو نیست' });
+    if (!body?.trim() && kind !== 'APPROVE') throw new BadRequestException({ code: 'empty', message: 'متن را بنویس' });
     const { l, c, p } = await this.ctx(learnerId, lessonId);
     const data = { ...((decJson(p?.data) ?? {}) as any) };
     if (!data.status) throw new BadRequestException({ code: 'not_sent', message: 'هنوز گزارشی فرستاده نشده' });
@@ -74,7 +74,7 @@ export class MissionsService {
       const { responsible } = await this.rahyar.responsibleFor(learnerId);
       if (responsible?.holderId) await this.notify.send(responsible.holderId, { kind: 'mission_reply', title: 'پاسخ کنشگر به بازخورد', body: l.title, link: `/rahyar/reports/${learnerId}/${lessonId}` });
     } else {
-      const t = kind === 'REVISE' ? 'راهیارتان گزارش را برای اصلاح برگرداند' : kind === 'APPROVE' ? 'گزارش مأموریتتان تأیید شد' : 'راهیارتان به گزارش مأموریت پاسخ داد';
+      const t = kind === 'REVISE' ? 'راهیارت گزارش را برای اصلاح برگرداند' : kind === 'APPROVE' ? 'گزارش مأموریتت تأیید شد' : 'راهیارت به گزارش مأموریت پاسخ داد';
       await this.notify.send(learnerId, { kind: 'mission_feedback', title: t, body: l.title, link: `/lessons/${lessonId}` });
     }
     return { ok: true, status: data.status };
@@ -128,7 +128,7 @@ export class MissionsService {
     if (ex) return;
     await this.db.insert(missionSamples).values({ learnerId, lessonId, proposedById: rahyarId, status: 'PROPOSED' });
     const { l } = await this.ctx(learnerId, lessonId);
-    await this.notify.send(learnerId, { kind: 'sample_proposed', title: 'راهیارتان پیشنهاد داده گزارشتان «نمونه» شود', body: `اگر اجازه بدهید، متن گزارش «${l.title}» برای الهام دیگران زیر همین مأموریت نشان داده می‌شود؛ با نام یا بی‌نام، به انتخاب خودتان.`, link: `/lessons/${lessonId}` });
+    await this.notify.send(learnerId, { kind: 'sample_proposed', title: 'راهیارت پیشنهاد داده گزارشت «نمونه» شود', body: `اگر اجازه بده، متن گزارش «${l.title}» برای الهام دیگران زیر همین مأموریت نشان داده می‌شود؛ با نام یا بی‌نام، به انتخاب خودت.`, link: `/lessons/${lessonId}` });
   }
 
   /** کنشگر اجازه می‌دهد (با نام یا بی‌نام) یا نمی‌دهد؛ فقط با اجازه، متن کپی می‌شود */
@@ -156,7 +156,7 @@ export class MissionsService {
     if (!s || !['CONSENTED', 'PUBLISHED'].includes(s.status)) throw new BadRequestException({ code: 'no_consent', message: 'کنشگر هنوز اجازه نداده است' });
     await this.db.update(missionSamples).set(publish ? { status: 'PUBLISHED', publishedAt: new Date(), ...(text?.trim() ? { text: text.trim() } : {}) } : { status: 'CONSENTED', publishedAt: null })
       .where(and(eq(missionSamples.learnerId, learnerId), eq(missionSamples.lessonId, lessonId)));
-    if (publish && s.status !== 'PUBLISHED') await this.notify.send(learnerId, { kind: 'sample_published', title: 'گزارش شما به‌عنوان نمونه منتشر شد', link: `/lessons/${lessonId}` });
+    if (publish && s.status !== 'PUBLISHED') await this.notify.send(learnerId, { kind: 'sample_published', title: 'گزارش تو به‌عنوان نمونه منتشر شد', link: `/lessons/${lessonId}` });
     return { ok: true };
   }
 
@@ -168,7 +168,7 @@ export class MissionsService {
   private async assertOwnFiles(ownerId: string, keys: string[]) {
     if (!keys.length) return;
     const fs = await this.db.select({ key: privateFiles.key }).from(privateFiles).where(and(inArray(privateFiles.key, keys), eq(privateFiles.ownerId, ownerId)));
-    if (fs.length !== keys.length) throw new BadRequestException({ code: 'bad_file', message: 'یکی از عکس‌ها پیدا نشد؛ دوباره بارگذاری کنید' });
+    if (fs.length !== keys.length) throw new BadRequestException({ code: 'bad_file', message: 'یکی از عکس‌ها پیدا نشد؛ دوباره بارگذاری کن' });
   }
 
   /** عکس‌های منقضی را پاک می‌کند (اصلی ۱ سال، شاهد ۶ ماه) */

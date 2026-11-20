@@ -107,11 +107,11 @@ export class LiveService {
     if (!host && e.status !== 'PUBLISHED') throw new BadRequestException(err('not_published', 'این کلاس هنوز منتشر نشده است'));
     if (!host) {
       const r = await this.db.query.registrations.findFirst({ where: and(eq(registrations.eventId, e.id), eq(registrations.userId, u.id)) });
-      if (r?.status !== 'REGISTERED') throw new ForbiddenException(err('not_registered', 'اول در این برنامه ثبت‌نام کنید'));
+      if (r?.status !== 'REGISTERED') throw new ForbiddenException(err('not_registered', 'اول در این برنامه ثبت‌نام کن'));
       if (Date.now() < e.startsAt.getTime() - 15 * MIN) throw new BadRequestException(err('early', 'کلاس از ۱۵ دقیقه پیش از شروع باز می‌شود'));
     }
-    if (Date.now() > e.endsAt.getTime() + 30 * MIN) throw new BadRequestException(err('ended', 'زمان این کلاس تمام شده است؛ اگر ضبط شده باشد، از صفحهٔ برنامه ببینید'));
-    try { await this.bbb.create(e); } catch (x: any) { this.log.error(x?.message); throw new BadRequestException(err('bbb_error', 'سرور کلاس زنده الان در دسترس نیست؛ چند دقیقهٔ دیگر دوباره امتحان کنید')); }
+    if (Date.now() > e.endsAt.getTime() + 30 * MIN) throw new BadRequestException(err('ended', 'زمان این کلاس تمام شده است؛ اگر ضبط شده باشد، از صفحهٔ برنامه ببین'));
+    try { await this.bbb.create(e); } catch (x: any) { this.log.error(x?.message); throw new BadRequestException(err('bbb_error', 'سرور کلاس زنده الان در دسترس نیست؛ چند دقیقهٔ دیگر دوباره امتحان کن')); }
     const me = await this.db.query.users.findFirst({ where: eq(users.id, u.id), columns: { firstName: true, lastName: true } });
     return { url: this.bbb.joinUrl(e, { id: u.id, name: [me?.firstName, me?.lastName].filter(Boolean).join(' ') || 'کاربر مدرسه' }, host), live: true };
   }
@@ -165,7 +165,7 @@ export class LiveService {
             startedAt: r.start ? new Date(r.start) : null, expiresAt: new Date(e.endsAt.getTime() + RECORD_KEEP_DAYS * 86400_000) }).onConflictDoNothing().returning({ id: liveRecordings.recordId });
           if (ins.length) {
             const regs = await this.db.select({ id: registrations.userId }).from(registrations).where(and(eq(registrations.eventId, e.id), eq(registrations.status, 'REGISTERED')));
-            await this.notify.send(regs.map((x) => x.id), { kind: 'live_recording', title: `ضبط «${e.title}» آماده است`, body: 'تا ۶ ماه از صفحهٔ برنامه می‌توانید ببینید.', link: `/events/${e.id}` });
+            await this.notify.send(regs.map((x) => x.id), { kind: 'live_recording', title: `ضبط «${e.title}» آماده است`, body: 'تا ۶ ماه از صفحهٔ برنامه می‌توانی ببینی‌اش.', link: `/events/${e.id}` });
           }
         }
       } catch (x: any) { this.log.warn(x?.message); }

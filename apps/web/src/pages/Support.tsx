@@ -14,12 +14,12 @@ export const TSTATUS: Record<string, [string, string]> = { OPEN: ['chip-flame', 
 export interface TRow { id: string; category: string; subject: string; status: string; priority?: boolean; createdAt: string; updatedAt: string; userName: string; assignee: string | null }
 
 const FAQ: [string, string][] = [
-  ['کد ورود نمی‌رسد', 'شماره را با ۰۹ و ۱۱ رقم وارد کنید. اگر ورود با بله است، بات مدرسه را در بله باز کنید و «شماره‌ام را بفرست» را بزنید؛ شماره‌ای که در بله دارید باید همان شمارهٔ سایت باشد. اگر کد با پیامک می‌آید و نرسید، یک دقیقه بعد «کد تازه بگیر» را بزنید.'],
-  ['گواهی دوره کی صادر می‌شود؟', 'وقتی همهٔ درس‌های لازم را تمام کنید و در آزمون پایانی دست‌کم نمرهٔ قبولی دوره را بگیرید. گواهی در «گواهی‌ها و پیشرفت» می‌آید و شناسهٔ استعلام دارد.'],
-  ['در آزمون رد شدم؛ دوباره می‌شود؟', 'بله. دو بار اول بی‌فاصله، از بار سوم هر ۲۴ ساعت یک بار. بهترین نمره‌تان می‌ماند.'],
-  ['راهیار من کیست؟', 'از روی شهرستان و جنسیتتان تعیین می‌شود. در «پیام با راهیار» نامش را می‌بینید. اگر شهرستانتان را اشتباه زده‌اید، از تنظیمات درستش کنید.'],
-  ['شماره‌ام را چه کسی می‌بیند؟', 'هیچ‌کس جز خودتان و مدیر ستاد. راهیار، مسئول هسته، امام محله و برگزارکنندهٔ برنامه شماره را نمی‌بینند.'],
-  ['اعلان‌ها را در بله بگیرم', 'از «تنظیمات ← پیام‌رسان» کد اتصال بگیرید و برای بات مدرسه در بله بفرستید.'],
+  ['کد ورود نمی‌رسد', 'شماره را با ۰۹ و ۱۱ رقم وارد کن. اگر ورود با بله است، بات مدرسه را در بله باز کن و «شماره‌ام را بفرست» را بزن؛ شماره‌ای که در بله داری باید همان شمارهٔ سایت باشد. اگر کد با پیامک می‌آید و نرسید، یک دقیقه بعد «کد تازه بگیر» را بزن.'],
+  ['گواهی دوره کی صادر می‌شود؟', 'وقتی همهٔ درس‌های لازم را تمام کنی و در آزمون پایانی دست‌کم نمرهٔ قبولی دوره را بگیری. گواهی در «گواهی‌ها و پیشرفت» می‌آید و شناسهٔ استعلام دارد.'],
+  ['در آزمون رد شدم؛ دوباره می‌شود؟', 'بله. دو بار اول بی‌فاصله، از بار سوم هر ۲۴ ساعت یک بار. بهترین نمره‌ات می‌ماند.'],
+  ['راهیار من کیست؟', 'از روی شهرستان و جنسیتت تعیین می‌شود. در «پیام با راهیار» نامش را می‌بینی. اگر شهرستانت را اشتباه زده‌ای، از تنظیمات درستش کن.'],
+  ['شماره‌ام را چه کسی می‌بیند؟', 'هیچ‌کس جز خودت و مدیر ستاد. راهیار، مسئول هسته، امام محله و برگزارکنندهٔ برنامه شماره را نمی‌بینند.'],
+  ['اعلان‌ها را در بله بگیرم', 'از «تنظیمات ← پیام‌رسان» کد اتصال بگیر و برای بات مدرسه در بله بفرست.'],
 ];
 
 export function Help() {
@@ -40,7 +40,7 @@ export function Help() {
   return (
     <div className="rise mx-auto grid max-w-3xl gap-8">
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <div><h1 className="text-[clamp(22px,3vw,30px)] font-extrabold">کمک و پشتیبانی</h1><p className="mt-1 text-muted">اول پرسش‌های پرتکرار را ببینید؛ اگر جوابتان نبود، درخواست بفرستید.</p></div>
+        <div><h1 className="text-[clamp(22px,3vw,30px)] font-extrabold">کمک و پشتیبانی</h1><p className="mt-1 text-muted">اول پرسش‌های پرتکرار را ببین؛ اگر جوابت نبود، درخواست بفرست.</p></div>
         <button className="btn btn-primary" onClick={() => setOpen(true)}><Plus className="size-4" />درخواست پشتیبانی</button>
       </div>
       <section className="grid gap-2">
@@ -55,15 +55,15 @@ export function Help() {
       {!!assigned.data?.length && <TicketList title="ارجاع‌شده به من" rows={assigned.data} showUser />}
       <section>
         <h2 className="mb-3 font-extrabold">درخواست‌های من</h2>
-        {mine.isLoading ? <Spinner /> : mine.data?.length ? <TicketList rows={mine.data} /> : <Empty icon={LifeBuoy} title="درخواستی نفرستاده‌اید" />}
+        {mine.isLoading ? <Spinner /> : mine.data?.length ? <TicketList rows={mine.data} /> : <Empty icon={LifeBuoy} title="درخواستی نفرستاده‌ای" />}
       </section>
       <MyFeedback />
       <Dialog open={open} onClose={() => setOpen(false)} title="درخواست پشتیبانی">
         <form className="grid gap-4" onSubmit={(e) => { e.preventDefault(); create.mutate(); }}>
           <div className="field"><label htmlFor="cat">موضوع کلی</label><select id="cat" className="input" value={f.category} onChange={(e) => setF({ ...f, category: e.target.value })}>{Object.entries(CATEGORY).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></div>
           <div className="field"><label htmlFor="sub">عنوان</label><input id="sub" className="input" value={f.subject} onChange={(e) => setF({ ...f, subject: e.target.value })} placeholder="مثلاً دکمهٔ آزمون کار نمی‌کند" /></div>
-          <div className="field"><label htmlFor="bd">توضیح</label><textarea id="bd" className="input min-h-32" value={f.body} onChange={(e) => setF({ ...f, body: e.target.value })} placeholder="چه کردید، چه دیدید، کدام دوره یا صفحه" /></div>
-          <p className="hint">{me?.firstName} عزیز، شمارهٔ همراهتان را اینجا ننویسید؛ پاسخ داخل همین سامانه می‌آید.</p>
+          <div className="field"><label htmlFor="bd">توضیح</label><textarea id="bd" className="input min-h-32" value={f.body} onChange={(e) => setF({ ...f, body: e.target.value })} placeholder="چه کردی، چه دیدی، کدام دوره یا صفحه" /></div>
+          <p className="hint">{me?.firstName} عزیز، شمارهٔ همراهت را اینجا ننویسید؛ پاسخ داخل همین سامانه می‌آید.</p>
           <button className="btn btn-primary w-fit" disabled={f.subject.trim().length < 3 || f.body.trim().length < 5 || create.isPending}>فرستادن</button>
         </form>
       </Dialog>
@@ -111,7 +111,7 @@ export function TicketPage({ admin }: { admin?: boolean }) {
         </li>
       ))}</ol>
       {t.status !== 'CLOSED' || t.role !== 'owner' ? <Composer placeholder="پاسخ…" onSend={async (b) => { await api(`/support/${id}/reply`, { body: { body: b } }); qc.invalidateQueries({ queryKey: ['ticket', id] }); }} />
-        : <p className="hint">این درخواست بسته شده است؛ اگر مشکل باقی است، درخواست تازه بفرستید.</p>}
+        : <p className="hint">این درخواست بسته شده است؛ اگر مشکل باقی است، درخواست تازه بفرست.</p>}
       <div className="flex flex-wrap gap-2">
         {t.status !== 'CLOSED' && <button className="btn btn-ghost btn-sm" onClick={() => status.mutate('CLOSED')}>{t.role === 'owner' ? 'مشکلم حل شد؛ ببند' : 'بستن درخواست'}</button>}
         {t.role === 'staff' && t.status === 'CLOSED' && <button className="btn btn-ghost btn-sm" onClick={() => status.mutate('OPEN')}>باز کردن دوباره</button>}
@@ -146,7 +146,7 @@ export function AdminSupport() {
   const q = useQuery({ queryKey: ['admin-tickets', st], queryFn: () => api<TRow[]>(`/admin/support${st ? `?status=${st}` : ''}`) });
   return (
     <div className="rise grid gap-5">
-      <div><h1 className="text-[clamp(22px,2.6vw,28px)] font-extrabold">پشتیبانی</h1><p className="mt-1 text-muted">درخواست‌های کاربران. می‌توانید به راهیار یا مدرس ارجاع بدهید.</p></div>
+      <div><h1 className="text-[clamp(22px,2.6vw,28px)] font-extrabold">پشتیبانی</h1><p className="mt-1 text-muted">درخواست‌های کاربران. می‌توانی به راهیار یا مدرس ارجاع بدهی.</p></div>
       <div className="seg w-fit">{[['', 'باز و پاسخ‌داده'], ['OPEN', 'منتظر پاسخ'], ['CLOSED', 'بسته']].map(([k, t]) => <button key={k} aria-pressed={st === k} onClick={() => setSt(k)}>{t}</button>)}</div>
       {q.isLoading ? <Spinner /> : q.data?.length ? <TicketList rows={q.data} showUser base="/admin/support" /> : <Empty icon={LifeBuoy} title="درخواستی نیست" />}
     </div>
@@ -162,7 +162,7 @@ function MyFeedback() {
     <section id="feedback" className="scroll-mt-24">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2"><h2 className="font-extrabold">بازخوردهای من</h2>
         <button className="btn btn-secondary btn-sm" onClick={() => open('IDEA')}><MessageSquarePlus className="size-4" />بازخورد تازه</button></div>
-      <p className="hint mb-3">پیشنهاد، مشکل یا نظرتان دربارهٔ محتوا را بفرستید؛ تیم مدرسه می‌خواند و وضعیتش را همین‌جا می‌بینید. برای مشکلی که فوری کمک می‌خواهد، «درخواست پشتیبانی» بفرستید.</p>
+      <p className="hint mb-3">پیشنهاد، مشکل یا نظرت دربارهٔ محتوا را بفرست؛ تیم مدرسه می‌خواند و وضعیتش را همین‌جا می‌بینی. برای مشکلی که فوری کمک می‌خواهد، «درخواست پشتیبانی» بفرست.</p>
       {q.isLoading ? <Spinner /> : q.data?.length ? (
         <ul className="grid gap-2">{q.data.map((f) => (
           <li key={f.id} className="card grid gap-2 p-4">
@@ -170,7 +170,7 @@ function MyFeedback() {
             <p className="line-clamp-3 text-body">{f.body}</p>
             {f.reply && <div className="rounded-xl bg-leaf-soft p-3 text-sm"><b className="text-leaf-ink">پاسخ تیم مدرسه: </b><span className="text-ink">{f.reply}</span></div>}
           </li>))}</ul>
-      ) : <Empty icon={MessageSquarePlus} title="هنوز بازخوردی نفرستاده‌اید" />}
+      ) : <Empty icon={MessageSquarePlus} title="هنوز بازخوردی نفرستاده‌ای" />}
     </section>
   );
 }

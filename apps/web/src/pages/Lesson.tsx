@@ -35,7 +35,7 @@ export default function Lesson() {
       <div className="card mx-auto my-10 grid max-w-md justify-items-center gap-3 p-6 text-center">
         <BookOpen className="size-8 text-leaf" aria-hidden="true" />
         <p className="font-bold text-ink">این درس از دورهٔ «{e.data.course.title}» است</p>
-        <p className="text-sm text-muted">ثبت‌نام رایگان است و درس‌ها همین حالا باز می‌شوند. هر جا بمانید، از همان‌جا ادامه می‌دهید.</p>
+        <p className="text-sm text-muted">ثبت‌نام رایگان است و درس‌ها همین حالا باز می‌شوند. هر جا بمانی، از همان‌جا ادامه می‌دهی.</p>
         <Link className="btn btn-primary" to={`/courses/${e.data.course.slug}`}>رفتن به صفحهٔ دوره</Link>
       </div>
     );
@@ -103,7 +103,7 @@ export default function Lesson() {
           </ol>
         </div>
       </aside>
-      <Dialog open={!!done} onClose={() => setDone(null)} title="دوره را تمام کردید">
+      <Dialog open={!!done} onClose={() => setDone(null)} title="دوره را تمام کردی">
         <div className="grid justify-items-center gap-3 text-center">
           <Award className="size-14 rounded-2xl bg-flame-soft p-3 text-flame-ink" />
           {done?.certificate ? (<>
@@ -113,7 +113,7 @@ export default function Lesson() {
           </>) : done?.waitingFor?.length ? (
             <p>گواهی پس از تمام کردن دورهٔ هم‌نیاز «{done.waitingFor.join('، ')}» صادر می‌شود.</p>
           ) : <p>همهٔ درس‌های لازم این دوره را گذراندید.</p>}
-          <p className="text-sm text-muted">سه روز دیگر یک مرور کوتاه از همین دوره برایتان باز می‌شود تا آموخته‌ها بمانند.</p>
+          <p className="text-sm text-muted">سه روز دیگر یک مرور کوتاه از همین دوره برایت باز می‌شود تا آموخته‌ها بمانند.</p>
           {nextCourse && inPath && <Link className="btn btn-secondary" to={`/courses/${nextCourse.slug}`} onClick={() => setDone(null)}>ایستگاه بعدی مسیر: {nextCourse.title}</Link>}
           {!nextCourse && inPath?.hasExam && inPath.courses.every((x) => x.me?.completedAt || x.slug === l.course.slug) && <Link className="btn btn-secondary" to={`/paths/${inPath.slug}/exam`} onClick={() => setDone(null)}>آزمون جامع مسیر «{inPath.title}»</Link>}
         </div>
@@ -139,10 +139,10 @@ function useFocusMode() {
 function NextCard({ next, courseSlug, courseDone, path, nextCourse }: { next: { id: string; title: string } | null; courseSlug: string; courseDone: boolean; path?: PathCard; nextCourse?: { slug: string; title: string } }) {
   let kicker = '', title = '', to = '', cta = '';
   if (next && !courseDone) { kicker = 'قدم بعد'; title = next.title; to = `/lessons/${next.id}`; cta = 'برو به درس بعد'; }
-  else if (!courseDone) { kicker = 'چیزی نمانده'; title = 'وضعیت دوره را در صفحهٔ دوره ببینید'; to = `/courses/${courseSlug}`; cta = 'صفحهٔ دوره'; }
+  else if (!courseDone) { kicker = 'چیزی نمانده'; title = 'وضعیت دوره را در صفحهٔ دوره ببین'; to = `/courses/${courseSlug}`; cta = 'صفحهٔ دوره'; }
   else if (path && nextCourse) { kicker = `ایستگاه بعدی مسیر «${path.title}»`; title = nextCourse.title; to = `/courses/${nextCourse.slug}`; cta = 'رفتن به ایستگاه بعد'; }
   else if (path?.hasExam) { kicker = `پایان مسیر «${path.title}»`; title = 'آزمون جامع و گواهی مسیر'; to = `/paths/${path.slug}/exam`; cta = 'رفتن به آزمون'; }
-  else { kicker = 'دوره تمام شد'; title = 'دورهٔ بعدی را انتخاب کنید'; to = '/learn'; cta = 'دیدن مسیرها'; }
+  else { kicker = 'دوره تمام شد'; title = 'دورهٔ بعدی را انتخاب کن'; to = '/learn'; cta = 'دیدن مسیرها'; }
   return (
     <Link to={to} className="next-card card is-link flex flex-wrap items-center gap-4 p-5 no-underline">
       <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-leaf-soft text-leaf-ink">{path && courseDone ? <Route className="size-5" /> : <ChevronLeft className="size-5" />}</span>
@@ -163,7 +163,7 @@ function useProgress(id: string, onChange: (c?: Completion | null) => void) {
 
 function DoneBar({ l, onChange, label = 'تمام کردم' }: { l: LessonDetail; onChange: (c?: Completion | null) => void; label?: string }) {
   const p = useProgress(l.id, onChange);
-  if (l.progress?.completedAt) return <p className="flex items-center gap-2 font-bold text-leaf-ink"><CheckCircle2 className="size-5" />این درس را {jDate(l.progress.completedAt)} تمام کردید</p>;
+  if (l.progress?.completedAt) return <p className="flex items-center gap-2 font-bold text-leaf-ink"><CheckCircle2 className="size-5" />این درس را {jDate(l.progress.completedAt)} تمام کردی</p>;
   return <div><button className="btn btn-primary" onClick={() => p.mutate({ completed: true })} disabled={p.isPending}><CircleCheck className="size-4" />{label}</button></div>;
 }
 
@@ -206,7 +206,7 @@ function VideoLesson({ l, onChange }: { l: LessonDetail; onChange: (c?: Completi
       </div>
       {c.summary && <p className="prose-fa">{c.summary}</p>}
       <LessonChecks lessonId={l.id} checks={c.checks} />
-      <p className="hint">ویدیو از آپارات پخش می‌شود؛ وقتی تا آخر دیدید، «دیدم» را بزنید.</p>
+      <p className="hint">ویدیو از آپارات پخش می‌شود؛ وقتی تا آخر دیدی، «دیدم» را بزن.</p>
       <DoneBar l={l} onChange={onChange} label="دیدم" />
     </div>
   );
@@ -241,8 +241,8 @@ function MediaFile({ l, kind, onChange }: { l: LessonDetail; kind: 'audio' | 'vi
         : <audio ref={(e) => { ref.current = e; }} src={src} controls preload="metadata" className="w-full" onTimeUpdate={onTime} />}
       {l.content.summary && <p className="prose-fa">{l.content.summary}</p>}
       <LessonChecks lessonId={l.id} checks={l.content.checks} />
-      {l.progress?.completedAt ? <p className="flex items-center gap-2 font-bold text-leaf-ink"><CheckCircle2 className="size-5" />این درس را تمام کردید</p>
-        : <p className="hint">وقتی تا آخر گوش دادید، درس خودکار تمام می‌شود.</p>}
+      {l.progress?.completedAt ? <p className="flex items-center gap-2 font-bold text-leaf-ink"><CheckCircle2 className="size-5" />این درس را تمام کردی</p>
+        : <p className="hint">وقتی تا آخر گوش دادی، درس خودکار تمام می‌شود.</p>}
     </div>
   );
 }
@@ -270,17 +270,17 @@ function Quiz({ l, onChange }: { l: LessonDetail; onChange: (c?: Completion | nu
       {res ? (
         <div className={`rise flex flex-wrap items-center gap-4 rounded-2xl p-5 ${res.passed ? 'bg-leaf-soft text-leaf-ink' : 'bg-rose-soft text-rose'}`}>
           <b className="tnum text-4xl">٪{fa(res.score)}</b>
-          <div className="flex-1"><b className="block">{res.passed ? 'قبول شدید' : 'هنوز به حد قبولی نرسیدید'}</b><span className="text-sm">حد قبولی ٪{fa(res.passScore)}؛ توضیح هر پرسش را پایین ببینید.</span></div>
+          <div className="flex-1"><b className="block">{res.passed ? 'قبول شدی' : 'هنوز به حد قبولی نرسیدی'}</b><span className="text-sm">حد قبولی ٪{fa(res.passScore)}؛ توضیح هر پرسش را پایین ببین.</span></div>
           {!res.passed && !wait && <button className="btn btn-secondary" onClick={() => { setRes(null); setAns({}); }}><RotateCcw className="size-4" />دوباره</button>}
         </div>
       ) : (
         <div className="flex flex-wrap gap-3 text-sm text-muted">
           <span>{fa(qs.length)} پرسش · حد قبولی ٪{fa(l.course.passScore)}</span>
-          {best >= 0 && <span className="font-bold text-ink">بهترین نمرهٔ شما: ٪{fa(best)}</span>}
+          {best >= 0 && <span className="font-bold text-ink">بهترین نمرهٔ تو: ٪{fa(best)}</span>}
           {!!l.quiz?.attempts.length && <span>{fa(l.quiz.attempts.length)} بار تلاش</span>}
         </div>
       )}
-      {wait && <p className="flex items-center gap-2 rounded-2xl bg-flame-soft p-4 text-sm text-flame-ink"><Clock className="size-4" />تلاش بعدی از {new Intl.DateTimeFormat('fa-IR', { weekday: 'long', hour: '2-digit', minute: '2-digit' }).format(new Date(wait))} ممکن است. در این فاصله درس‌ها را مرور کنید.</p>}
+      {wait && <p className="flex items-center gap-2 rounded-2xl bg-flame-soft p-4 text-sm text-flame-ink"><Clock className="size-4" />تلاش بعدی از {new Intl.DateTimeFormat('fa-IR', { weekday: 'long', hour: '2-digit', minute: '2-digit' }).format(new Date(wait))} ممکن است. در این فاصله درس‌ها را مرور کن.</p>}
       <ol className="grid gap-4">
         {qs.map((q, i) => {
           const r = res?.results.find((x) => x.id === q.id);
@@ -311,7 +311,7 @@ function Quiz({ l, onChange }: { l: LessonDetail; onChange: (c?: Completion | nu
       {!res && (
         <div className="flex flex-wrap items-center gap-3">
           <button className="btn btn-primary btn-lg" disabled={!answered || submit.isPending || !!wait} onClick={() => { setErr(''); submit.mutate(); }}>{submit.isPending ? 'در حال ثبت…' : 'ثبت پاسخ‌ها'}</button>
-          {!answered && <span className="hint">به همهٔ پرسش‌ها پاسخ دهید.</span>}
+          {!answered && <span className="hint">به همهٔ پرسش‌ها پاسخ بده.</span>}
           {err && <span className="err"><CircleAlert className="size-4" />{err}</span>}
         </div>
       )}
@@ -347,7 +347,7 @@ function Practice({ l, onChange }: { l: LessonDetail; onChange: (c?: Completion 
         <span className="ms-2 text-sm text-muted">موقعیت {fa(i + 1)} از {fa(steps.length)}</span>
       </div>
       <div className="rounded-2xl bg-sunken p-5"><b className="mb-1 block text-sm text-muted">موقعیت</b><p className="text-ink">{st.situation}</p></div>
-      <div className="grid gap-2" role="radiogroup" aria-label="انتخاب شما">
+      <div className="grid gap-2" role="radiogroup" aria-label="انتخاب تو">
         {st.choices.map((c) => {
           const on = c.id === picks[st.id];
           const tone = on ? P_TONE[Math.max(0, Math.min(2, c.score))] : null;
@@ -361,14 +361,14 @@ function Practice({ l, onChange }: { l: LessonDetail; onChange: (c?: Completion 
           );
         })}
       </div>
-      {pick && pick.score < 2 && <p className="hint">می‌توانید انتخاب دیگری را هم امتحان کنید و بازخوردش را ببینید.</p>}
+      {pick && pick.score < 2 && <p className="hint">می‌توانی انتخاب دیگری را هم امتحان کنی و بازخوردش را ببینی.</p>}
       <div className="flex flex-wrap items-center gap-2">
         {i > 0 && <button className="btn btn-ghost" onClick={() => setI(i - 1)}><ChevronRight className="size-4" />موقعیت قبل</button>}
         {i < steps.length - 1 ? <button className="btn btn-primary" disabled={!pick} onClick={() => setI(i + 1)}>موقعیت بعد<ChevronLeft className="size-4" /></button>
           : done ? <span className="chip chip-leaf"><CircleCheck className="size-4" />تمرین تمام شد</span>
           : <button className="btn btn-primary" disabled={!all || p.isPending} onClick={() => p.mutate({ data: { picks }, completed: true })}>پایان تمرین</button>}
       </div>
-      {all && <p className="text-sm text-body">در {fa(steps.length)} موقعیت، {fa(best)} بار بهترین انتخاب را کردید. این تمرین نمره ندارد؛ برای فکر کردن به موقعیت‌های واقعی است.</p>}
+      {all && <p className="text-sm text-body">در {fa(steps.length)} موقعیت، {fa(best)} بار بهترین انتخاب را کردی. این تمرین نمره ندارد؛ برای فکر کردن به موقعیت‌های واقعی است.</p>}
     </div>
   );
 }
@@ -462,13 +462,13 @@ function PhotoPicker({ kind, value, onChange, label }: { kind: 'main' | 'evidenc
 function SampleConsent({ lessonId, onDone }: { lessonId: string; onDone: () => void }) {
   const toast = useToast();
   const go = async (decision: 'named' | 'anon' | 'no') => {
-    try { await api(`/missions/${lessonId}/sample`, { body: { decision } }); toast(decision === 'no' ? 'باشد؛ گزارش فقط برای شما و راهیارتان می‌ماند' : 'ممنون؛ پس از تأیید ستاد منتشر می‌شود'); onDone(); }
+    try { await api(`/missions/${lessonId}/sample`, { body: { decision } }); toast(decision === 'no' ? 'باشد؛ گزارش فقط برای تو و راهیارت می‌ماند' : 'ممنون؛ پس از تأیید ستاد منتشر می‌شود'); onDone(); }
     catch (e) { toast((e as Error).message, 'err'); }
   };
   return (
     <div className="grid gap-3 rounded-2xl border border-leaf bg-leaf-soft p-4">
-      <b className="text-ink">راهیارتان پیشنهاد داده گزارشتان «نمونه» شود</b>
-      <p className="text-sm text-body">اگر اجازه بدهید، متن گزارش (بدون عکس) زیر همین مأموریت برای دیگران نشان داده می‌شود تا الهام بگیرند. می‌توانید نامتان بیاید یا نه.</p>
+      <b className="text-ink">راهیارت پیشنهاد داده گزارشت «نمونه» شود</b>
+      <p className="text-sm text-body">اگر اجازه بدهی، متن گزارش (بدون عکس) زیر همین مأموریت برای دیگران نشان داده می‌شود تا الهام بگیرند. می‌توانی نامت بیاید یا نه.</p>
       <div className="flex flex-wrap gap-2"><button className="btn btn-primary btn-sm" onClick={() => go('named')}>بله، با نامم</button><button className="btn btn-secondary btn-sm" onClick={() => go('anon')}>بله، بی‌نام</button><button className="btn btn-ghost btn-sm" onClick={() => go('no')}>نه</button></div>
     </div>
   );
@@ -519,9 +519,9 @@ function Mission({ l, onChange }: { l: LessonDetail; onChange: (c?: Completion |
   return (
     <div className="grid gap-5">
       <div className="rounded-2xl bg-flame-soft p-5"><b className="flex items-center gap-2 text-flame-ink"><Flag className="size-5" />مأموریت</b><p className="mt-1 text-ink">{l.content.goal}</p>
-        {t.data?.course.missionRule === 'ON_APPROVAL' && <p className="mt-2 text-sm text-body">گزارشتان که برسد، راهیارتان می‌خواند و پاسخ می‌دهد.</p>}</div>
+        {t.data?.course.missionRule === 'ON_APPROVAL' && <p className="mt-2 text-sm text-body">گزارشت که برسد، راهیارت می‌خواند و پاسخ می‌دهد.</p>}</div>
       {status && <div className="flex flex-wrap items-center gap-2"><span className={`chip ${chip}`}>{MISSION_LABEL[status]}</span>{(d.round ?? 0) > 1 && <span className="hint">نوبت {fa(d.round!)}</span>}</div>}
-      {status === 'needs_revision' && <p className="flex gap-2 rounded-xl bg-flame-soft p-3 text-sm text-ink"><CircleAlert className="size-4 shrink-0 text-flame-ink" />راهیارتان خواسته گزارش را کامل‌تر کنید. پیامش را پایین ببینید، گزارش را اصلاح کنید و دوباره بفرستید.</p>}
+      {status === 'needs_revision' && <p className="flex gap-2 rounded-xl bg-flame-soft p-3 text-sm text-ink"><CircleAlert className="size-4 shrink-0 text-flame-ink" />راهیارت خواسته گزارش را کامل‌تر کن. پیامش را پایین ببین، گزارش را اصلاح کن و دوباره بفرست.</p>}
 
       {steps.length > 0 && (
         <ul className="grid gap-2">{steps.map((s, i) => (
@@ -532,22 +532,22 @@ function Mission({ l, onChange }: { l: LessonDetail; onChange: (c?: Completion |
 
       {editing ? (
         <div className="grid gap-4">
-          <div className="field"><label htmlFor="did">چه کردید؟</label><textarea id="did" className="input min-h-28" placeholder="با چه کسی، کجا، چطور" value={did} onChange={(e) => setDid(e.target.value)} /></div>
-          <div className="field"><label htmlFor="lr">چه چیزی یاد گرفتید یا شما را غافلگیر کرد؟</label><textarea id="lr" className="input" value={learned} onChange={(e) => setLearned(e.target.value)} /></div>
+          <div className="field"><label htmlFor="did">چه کردی؟</label><textarea id="did" className="input min-h-28" placeholder="با چه کسی، کجا، چطور" value={did} onChange={(e) => setDid(e.target.value)} /></div>
+          <div className="field"><label htmlFor="lr">چه چیزی یاد گرفتی یا تو را غافلگیر کرد؟</label><textarea id="lr" className="input" value={learned} onChange={(e) => setLearned(e.target.value)} /></div>
           <div className="field"><label>عکس <span className="font-normal text-muted">(اختیاری)</span></label>
             <div className="flex flex-wrap gap-6"><PhotoPicker kind="main" value={main} onChange={setMain} label="عکس اصلی" /><PhotoPicker kind="evidence" value={evidence} onChange={setEvidence} label="عکس شاهد" /></div>
-            <span className="hint">فقط خودتان و راهیارتان عکس‌ها را می‌بینید. عکس اصلی یک سال و عکس‌های شاهد شش ماه نگه داشته می‌شوند. از افراد فقط با اجازهٔ خودشان عکس بگیرید.</span></div>
+            <span className="hint">فقط خودت و راهیارت عکس‌ها را می‌بینی. عکس اصلی یک سال و عکس‌های شاهد شش ماه نگه داشته می‌شوند. از افراد فقط با اجازهٔ خودشان عکس بگیر.</span></div>
           <div><button className="btn btn-primary" disabled={did.trim().length < 10 || submit.isPending} onClick={() => submit.mutate()}>{status === 'needs_revision' ? 'فرستادن گزارش اصلاح‌شده' : 'فرستادن گزارش'}</button></div>
         </div>
       ) : (
         <div className="card grid gap-3 p-5">
-          <b className="text-ink">گزارش شما</b><p className="whitespace-pre-line"><b>چه کردید: </b>{d.did}</p>{d.learned && <p className="whitespace-pre-line"><b>چه یاد گرفتید: </b>{d.learned}</p>}
+          <b className="text-ink">گزارش تو</b><p className="whitespace-pre-line"><b>چه کردی: </b>{d.did}</p>{d.learned && <p className="whitespace-pre-line"><b>چه یاد گرفتی: </b>{d.learned}</p>}
           {(d.mainPhoto || d.evidence?.length) ? <div className="flex flex-wrap gap-2">{[d.mainPhoto, ...(d.evidence ?? [])].filter(Boolean).map((k) => <div key={k} className="w-32"><PrivatePhoto k={k!} alt="عکس گزارش" /></div>)}</div> : null}
         </div>
       )}
 
       {t.data?.sample?.status === 'PROPOSED' && <SampleConsent lessonId={l.id} onDone={() => qc.invalidateQueries({ queryKey: ['mission', l.id] })} />}
-      {t.data?.sample && ['CONSENTED', 'PUBLISHED'].includes(t.data.sample.status) && <p className="chip chip-leaf w-fit">{t.data.sample.status === 'PUBLISHED' ? 'گزارش شما به‌عنوان نمونه منتشر شده' : 'اجازهٔ نمونه دادید؛ منتظر تأیید ستاد'}</p>}
+      {t.data?.sample && ['CONSENTED', 'PUBLISHED'].includes(t.data.sample.status) && <p className="chip chip-leaf w-fit">{t.data.sample.status === 'PUBLISHED' ? 'گزارش تو به‌عنوان نمونه منتشر شده' : 'اجازهٔ نمونه دادی؛ منتظر تأیید ستاد'}</p>}
       {(t.data?.messages.length ?? 0) > 1 && (
         <section className="grid gap-3">
           <h3 className="font-extrabold">گفت‌وگو با راهیار</h3>
@@ -557,7 +557,7 @@ function Mission({ l, onChange }: { l: LessonDetail; onChange: (c?: Completion |
       {status && status !== 'approved' && !editing && (
         <div className="grid gap-2">
           <label htmlFor="rep" className="text-sm font-bold text-ink">نکته‌ای برای راهیار</label>
-          <textarea id="rep" className="input" value={reply} onChange={(e) => setReply(e.target.value)} placeholder="اگر پرسشی دارید یا چیزی را جا انداختید" />
+          <textarea id="rep" className="input" value={reply} onChange={(e) => setReply(e.target.value)} placeholder="اگر پرسشی داری یا چیزی را جا انداختی" />
           <button className="btn btn-secondary btn-sm w-fit" disabled={!reply.trim() || send.isPending} onClick={() => send.mutate()}>فرستادن</button>
         </div>
       )}
@@ -571,7 +571,7 @@ function LiveLesson({ l }: { l: LessonDetail }) {
   const eventId = l.content?.eventId as string | undefined;
   const qc = useQueryClient(); const toast = useToast();
   const ev = useQuery({ queryKey: ['event', eventId], queryFn: () => api<EventDetail>(`/events/${eventId}`), enabled: !!eventId });
-  const reg = useMutation({ mutationFn: () => api(`/events/${eventId}/register`, { method: 'POST' }), onSuccess: () => { qc.invalidateQueries({ queryKey: ['event', eventId] }); toast('ثبت‌نام شدید؛ یادآوری می‌فرستیم'); }, onError: (e) => toast((e as Error).message, 'err') });
+  const reg = useMutation({ mutationFn: () => api(`/events/${eventId}/register`, { method: 'POST' }), onSuccess: () => { qc.invalidateQueries({ queryKey: ['event', eventId] }); toast('ثبت‌نام شدی؛ یادآوری می‌فرستیم'); }, onError: (e) => toast((e as Error).message, 'err') });
   const openLink = useOpenLink();
   const join = useMutation({ mutationFn: () => api<{ url: string }>(`/events/${eventId}/join`, { method: 'POST' }), onSuccess: (r) => openLink(r.url), onError: (e) => toast((e as Error).message, 'err') });
   if (!eventId) return <p className="text-muted">این جلسه هنوز به برنامه‌ای وصل نشده است.</p>;
@@ -588,7 +588,7 @@ function LiveLesson({ l }: { l: LessonDetail }) {
         {done ? <p className="flex items-center gap-2 font-bold text-leaf-ink"><CheckCircle2 className="size-5" />این درس تمام شده است</p>
           : e.my?.status === 'REGISTERED' ? (!ended && <button className="btn btn-primary w-fit" disabled={join.isPending || !e.onlineSoon} onClick={() => join.mutate()}>ورود به کلاس</button>)
           : !ended && e.status === 'PUBLISHED' ? <button className="btn btn-primary w-fit" disabled={reg.isPending} onClick={() => reg.mutate()}>ثبت‌نام در جلسه</button> : null}
-        <p className="hint">این درس با حضور در جلسه (دست‌کم نیمی از زمان آن) تمام می‌شود.{e.record ? ' اگر نرسیدید، با دیدن ضبط جلسه هم تمام می‌شود.' : ''}</p>
+        <p className="hint">این درس با حضور در جلسه (دست‌کم نیمی از زمان آن) تمام می‌شود.{e.record ? ' اگر نرسیدی، با دیدن ضبط جلسه هم تمام می‌شود.' : ''}</p>
         <Link to={`/events/${e.id}`} className="text-sm font-bold text-leaf-ink">صفحهٔ برنامه ←</Link>
       </div>
       {e.useBbb && <LiveSection eventId={e.id} ended={ended} />}

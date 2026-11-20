@@ -37,7 +37,7 @@ export default function Review() {
       <div className="rise mx-auto grid max-w-2xl gap-6">
         {head}
         <section className="card grid gap-3 p-6">
-          <b className="text-xl text-ink">{!all ? 'این مرور بسته شد' : ok === all ? 'همه را به یاد داشتید' : ok ? `${fa(ok)} از ${fa(all)} را به یاد داشتید` : 'این‌ها کمی کم‌رنگ شده بودند'}</b>
+          <b className="text-xl text-ink">{!all ? 'این مرور بسته شد' : ok === all ? 'همه را به یاد داشتی' : ok ? `${fa(ok)} از ${fa(all)} را به یاد داشتی` : 'این‌ها کمی کم‌رنگ شده بودند'}</b>
           <p className="text-body">{!all ? 'پرسش‌های این مرور از دوره برداشته شده بود.' : ok === all ? 'آموخته‌ها جا افتاده‌اند. مرور بعدی، اگر باشد، چند روز دیگر است.' : 'همین که حالا دوباره دیدیدشان، بیشتر می‌مانند. توضیح هر پرسش این پایین است.'}</p>
           {all > 0 && <ol className="grid gap-2">{r.questions.map((qq, i) => { const x = res.results.find((y) => y.id === qq.id); return (
             <li key={qq.id} className={`rounded-xl p-3 text-sm ${x?.ok ? 'bg-leaf-soft' : 'bg-sunken'}`}>
@@ -53,12 +53,12 @@ export default function Review() {
 
   if (r.doneAt) return (
     <div className="rise mx-auto grid max-w-2xl gap-6">{head}
-      <Empty icon={CircleCheck} title="این مرور را انجام داده‌اید">{jDate(r.doneAt)}{r.score != null ? ` · ٪${fa(r.score)} را به یاد داشتید` : ''}. <Link to="/" className="font-bold text-leaf-ink">بازگشت به خانه</Link></Empty>
+      <Empty icon={CircleCheck} title="این مرور را انجام داده‌ای">{jDate(r.doneAt)}{r.score != null ? ` · ٪${fa(r.score)} را به یاد داشتی` : ''}. <Link to="/" className="font-bold text-leaf-ink">بازگشت به خانه</Link></Empty>
     </div>
   );
   if (!r.open) return (
     <div className="rise mx-auto grid max-w-2xl gap-6">{head}
-      <Empty icon={Clock} title="هنوز وقت این مرور نرسیده">از {jShort(r.dueAt)} باز می‌شود و همان روز خبرتان می‌کنیم. فاصله است که مرور را اثرگذار می‌کند.</Empty>
+      <Empty icon={Clock} title="هنوز وقت این مرور نرسیده">از {jShort(r.dueAt)} باز می‌شود و همان روز خبرت می‌کنیم. فاصله است که مرور را اثرگذار می‌کند.</Empty>
     </div>
   );
 
@@ -67,7 +67,7 @@ export default function Review() {
   return (
     <div className="rise mx-auto grid max-w-2xl gap-6">
       {head}
-      <p className="text-body">{fa(r.questions.length)} پرسش از همین دوره. نمره‌ای ثبت نمی‌شود که روی گواهی اثر بگذارد؛ فقط برای این است که ببینید چه مانده و چه کم‌رنگ شده.</p>
+      <p className="text-body">{fa(r.questions.length)} پرسش از همین دوره. نمره‌ای ثبت نمی‌شود که روی گواهی اثر بگذارد؛ فقط برای این است که ببینی چه مانده و چه کم‌رنگ شده.</p>
       {r.questions.length ? (
         <>
           <ol className="grid gap-4">{r.questions.map((qq, i) => (
@@ -77,7 +77,7 @@ export default function Review() {
           ))}</ol>
           <div className="flex flex-wrap items-center gap-3">
             <button className="btn btn-primary btn-lg" disabled={!answered || send.isPending} onClick={() => send.mutate()}>{send.isPending && <InlineSpinner />}دیدن نتیجه</button>
-            {!answered && <span className="hint">به همهٔ پرسش‌ها پاسخ دهید.</span>}
+            {!answered && <span className="hint">به همهٔ پرسش‌ها پاسخ بده.</span>}
           </div>
         </>
       ) : (

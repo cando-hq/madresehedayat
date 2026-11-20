@@ -17,7 +17,7 @@ async def main():
         for W in (390, 1280):
             await lr.set_viewport_size({'width': W, 'height': 860})
             await lr.goto(f'{BASE}/lessons/{L}'); await lr.wait_for_load_state('networkidle')
-            await lr.get_by_role('button', name='نظر یا مشکلی دربارهٔ این صفحه دارید؟').click()
+            await lr.get_by_role('button', name='نظر یا مشکلی دربارهٔ این صفحه داری؟').click()
             dlg = lr.locator('dialog[open]'); await dlg.get_by_role('button', name='مشکل', exact=True).click()
             await lr.get_by_label('حس کلی').get_by_role('radio').nth(3).click()
             await lr.locator('#fb-body').fill(f'متن آزمایشی بازخورد از صفحهٔ درس در عرض {W}')

@@ -35,9 +35,9 @@ export function seedGrowth(db: Any) {
     set(by('دنبال چه'), ['needs01']); set(by('گفت‌وگوی اول'), ['talk01']); set(by('مسئولیت کوچک'), ['role01']);
     set(ls.find((l: Any) => l.type === 'WORKSHEET'), ['needs01', 'role01']); set(ls.find((l: Any) => l.type === 'MISSION'), ['talk01']);
     const l1 = by('دنبال چه');
-    if (l1) l1.content.checks = [{ id: 'c1', text: 'وقتی اسم نوجوانی را در مسجد صدا می‌زنید، به کدام نیازش پاسخ داده‌اید؟', options: [{ id: 'a', text: 'دیده شدن' }, { id: 'b', text: 'سرگرمی' }, { id: 'c', text: 'جایزه' }], correct: ['a'], explain: 'صدا زدن با اسم یعنی «تو را می‌بینم»؛ ساده‌ترین پاسخ به نیاز دیده شدن.' }];
+    if (l1) l1.content.checks = [{ id: 'c1', text: 'وقتی اسم نوجوانی را در مسجد صدا می‌زنی، به کدام نیازش پاسخ داده‌ای؟', options: [{ id: 'a', text: 'دیده شدن' }, { id: 'b', text: 'سرگرمی' }, { id: 'c', text: 'جایزه' }], correct: ['a'], explain: 'صدا زدن با اسم یعنی «تو را می‌بینم»؛ ساده‌ترین پاسخ به نیاز دیده شدن.' }];
     const l2 = by('گفت‌وگوی اول');
-    if (l2) l2.content.checks = [{ id: 'c1', text: 'گفت‌وگوی اول بهتر است از کجا شروع شود؟', options: [{ id: 'a', text: 'از یک نصیحت کوتاه' }, { id: 'b', text: 'از چیزی که برای خودش مهم است' }, { id: 'c', text: 'از برنامه‌های مسجد' }], correct: ['b'], explain: 'از دنیای خودش شروع کنید: مدرسه، ورزش، دوستان. نصیحت بعداً جا دارد، اگر لازم شد.' }];
+    if (l2) l2.content.checks = [{ id: 'c1', text: 'گفت‌وگوی اول بهتر است از کجا شروع شود؟', options: [{ id: 'a', text: 'از یک نصیحت کوتاه' }, { id: 'b', text: 'از چیزی که برای خودش مهم است' }, { id: 'c', text: 'از برنامه‌های مسجد' }], correct: ['b'], explain: 'از دنیای خودش شروع کن: مدرسه، ورزش، دوستان. نصیحت بعداً جا دارد، اگر لازم شد.' }];
   }
 
   // زینب: دو درس این هفته، هدف ۳، یک دورهٔ تمام‌شده با مرور آماده
@@ -120,9 +120,9 @@ export function registerGrowth(X: Any) {
   });
   on('POST', '/lessons/([^/]+)/check', (m: Any, b: Any) => {
     const u = me(); const l = DB().lessons.find((x: Any) => x.id === m[1]); if (!l) throw E(404, 'no_lesson', 'این درس پیدا نشد');
-    const md = DB().modules.find((x: Any) => x.id === l.moduleId); if (!enr(u.id, md.courseId)) throw E(403, 'not_enrolled', 'اول در دوره ثبت‌نام کنید');
+    const md = DB().modules.find((x: Any) => x.id === l.moduleId); if (!enr(u.id, md.courseId)) throw E(403, 'not_enrolled', 'اول در دوره ثبت‌نام کن');
     const qq = (l.content?.checks ?? []).find((x: Any) => x.id === b.checkId);
-    if (!qq) throw E(404, 'no_check', 'این پرسش در درس نیست؛ صفحه را تازه کنید');
+    if (!qq) throw E(404, 'no_check', 'این پرسش در درس نیست؛ صفحه را تازه کن');
     const g = [...new Set<string>(b.answer ?? [])].sort(); const w = [...qq.correct].sort();
     return { ok: g.length === w.length && g.every((x, i) => x === w[i]), correct: qq.correct, explain: qq.explain ?? '' };
   });
@@ -156,7 +156,7 @@ export function registerGrowth(X: Any) {
   });
   on('POST', '/reviews/([^/]+)', (m: Any, b: Any) => {
     const { r, qs } = own(m[1]);
-    if (r.doneAt) throw E(400, 'review_done', 'این مرور را قبلاً انجام داده‌اید');
+    if (r.doneAt) throw E(400, 'review_done', 'این مرور را قبلاً انجام داده‌ای');
     if (+new Date(r.dueAt) > Date.now()) throw E(403, 'review_early', 'وقت این مرور هنوز نرسیده است');
     const results = qs.map((q: Any) => { const g = [...new Set<string>(b.answers?.[q.id] ?? [])].sort(); const w = [...q.correct].sort(); return { id: q.id, ok: g.length === w.length && g.every((x, i) => x === w[i]), correct: q.correct, explain: q.explain ?? '' }; });
     const score = qs.length ? Math.round((results.filter((x: Any) => x.ok).length / qs.length) * 100) : null;
@@ -239,7 +239,7 @@ export function registerGrowth(X: Any) {
   });
   on('GET', '/cores/([^/]+)/cohorts', (m: Any) => {
     const u = me(); const c = core(m[1]); const a = access(u, c);
-    if (!a.member && !a.canManage) throw E(403, 'forbidden', 'به این هسته دسترسی ندارید');
+    if (!a.member && !a.canManage) throw E(403, 'forbidden', 'به این هسته دسترسی نداری');
     return DB().cohorts.filter((h: Any) => h.coreId === c.id && !h.cancelledAt).map((h: Any) => detail(u, h.id));
   });
   on('GET', '/cohorts/([^/]+)', (m: Any) => detail(me(), m[1]));
@@ -250,8 +250,8 @@ export function registerGrowth(X: Any) {
     if (!p) throw E(404, 'no_path', 'این مسیر پیدا نشد یا هنوز منتشر نشده است');
     if (!pathCourses(p.id).length) throw E(400, 'empty_path', 'این مسیر هنوز دورهٔ منتشرشده‌ای ندارد');
     const s = +new Date(b.startsAt);
-    if (!s) throw E(400, 'invalid', 'تاریخ شروع را انتخاب کنید');
-    if (s < Date.now() - DAY) throw E(400, 'past_start', 'تاریخ شروع گذشته است؛ امروز یا روزی در آینده را انتخاب کنید');
+    if (!s) throw E(400, 'invalid', 'تاریخ شروع را انتخاب کن');
+    if (s < Date.now() - DAY) throw E(400, 'past_start', 'تاریخ شروع گذشته است؛ امروز یا روزی در آینده را انتخاب کن');
     if (s > Date.now() + 90 * DAY) throw E(400, 'far_start', 'تاریخ شروع حداکثر تا سه ماه دیگر می‌تواند باشد');
     if (DB().cohorts.some((h: Any) => h.coreId === c.id && h.pathId === p.id && !h.cancelledAt)) throw E(409, 'cohort_exists', 'این هسته همین حالا این مسیر را گروهی پیش می‌برد');
     const h = { id: rid(), pathId: p.id, coreId: c.id, startsAt: iso(s), weeksPerStation: b.weeksPerStation ?? 1, note: b.note?.trim() || null, createdById: u.id, cancelledAt: null, createdAt: now() };
@@ -259,7 +259,7 @@ export function registerGrowth(X: Any) {
     const ppl = people(c);
     if (ppl.includes(u.id)) DB().cohortMembers.push({ cohortId: h.id, userId: u.id, joinedAt: now() });
     const fd = new Intl.DateTimeFormat('fa-IR-u-ca-persian', { day: 'numeric', month: 'long' }).format(new Date(s));
-    notify(ppl.filter((x) => x !== u.id), { kind: 'COHORT', title: `هستهٔ «${c.name}» مسیر «${p.title}» را با هم شروع می‌کند`, body: `از ${fd}، ${h.weeksPerStation === 1 ? 'هر هفته یک ایستگاه' : `هر ${h.weeksPerStation} هفته یک ایستگاه`}. اگر همراه می‌شوید، در صفحهٔ دوره «همراه می‌شوم» را بزنید.`, link: `/cohorts/${h.id}` });
+    notify(ppl.filter((x) => x !== u.id), { kind: 'COHORT', title: `هستهٔ «${c.name}» مسیر «${p.title}» را با هم شروع می‌کند`, body: `از ${fd}، ${h.weeksPerStation === 1 ? 'هر هفته یک ایستگاه' : `هر ${h.weeksPerStation} هفته یک ایستگاه`}. اگر همراه می‌شوی، در صفحهٔ دوره «همراه می‌شوم» را بزن.`, link: `/cohorts/${h.id}` });
     return detail(u, h.id);
   });
   on('POST', '/cohorts/([^/]+)/join', (m: Any) => {
@@ -277,7 +277,7 @@ export function registerGrowth(X: Any) {
     if (h.cancelledAt) return { ok: true };
     h.cancelledAt = now();
     const p = DB().paths.find((x: Any) => x.id === h.pathId);
-    notify(DB().cohortMembers.filter((x: Any) => x.cohortId === h.id && x.userId !== u.id).map((x: Any) => x.userId), { kind: 'COHORT', title: `دورهٔ گروهی «${p.title}» در هستهٔ «${c.name}» لغو شد`, body: 'پیشرفت خودتان در دوره‌ها سر جایش می‌ماند و می‌توانید مسیر را تنها ادامه دهید.', link: `/paths/${p.slug}` });
+    notify(DB().cohortMembers.filter((x: Any) => x.cohortId === h.id && x.userId !== u.id).map((x: Any) => x.userId), { kind: 'COHORT', title: `دورهٔ گروهی «${p.title}» در هستهٔ «${c.name}» لغو شد`, body: 'پیشرفت خودت در دوره‌ها سر جایش می‌ماند و می‌توانی مسیر را تنها ادامه بدهی.', link: `/paths/${p.slug}` });
     return { ok: true };
   });
 }

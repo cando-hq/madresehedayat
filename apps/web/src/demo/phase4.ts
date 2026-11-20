@@ -17,22 +17,22 @@ export function seedPhase4(db: Any) {
     tasks.forEach(([title, body], i) => db.ctasks.push({ id: `${id}-t${i + 1}`, campaignId: id, order: i, title, body }));
   };
   C('cmp-noj', { title: 'مسجد، خانهٔ نوجوان', summary: 'یک ماه، سه کار کوتاه برای اینکه نوجوان‌های محله مسجد را جای خودشان بدانند.', scope: 'NATIONAL', goal: 5000,
-    body: 'هر کنشگر در این یک ماه سه کار کوچک انجام می‌دهد. لازم نیست برنامهٔ بزرگ بگذارید؛ همین که یک نوجوان را به اسم صدا بزنید شروع خوبی است.\nکارهایی که انجام دادید را علامت بزنید تا نقشهٔ کشور پر شود.',
+    body: 'هر کنشگر در این یک ماه سه کار کوچک انجام می‌دهد. لازم نیست برنامهٔ بزرگ بگذار؛ همین که یک نوجوان را به اسم صدا بزن شروع خوبی است.\nکارهایی که انجام دادی را علامت بزن تا نقشهٔ کشور پر شود.',
     startsAt: iso(-10), endsAt: iso(20) }, [
-    ['با یک نوجوان محله گفت‌وگوی کوتاه داشته باشید', 'بعد از نماز، اسمش را بپرسید و از علاقه‌اش بپرسید.'],
-    ['یک نوجوان را برای یک کار کوچک در مسجد دعوت کنید', 'مثلاً پخش چای، اذان، یا کمک در برنامهٔ هفتگی.'],
-    ['از یک نوجوان دربارهٔ برنامهٔ مسجد نظر بخواهید', null],
+    ['با یک نوجوان محله گفت‌وگوی کوتاه داشته باش', 'بعد از نماز، اسمش را بپرس و از علاقه‌اش بپرس.'],
+    ['یک نوجوان را برای یک کار کوچک در مسجد دعوت کن', 'مثلاً پخش چای، اذان، یا کمک در برنامهٔ هفتگی.'],
+    ['از یک نوجوان دربارهٔ برنامهٔ مسجد نظر بخواه', null],
   ]);
   if (isf) C('cmp-isf', { title: 'نماز جماعت صبح، با نوجوان‌ها', summary: 'پویش استانی: دعوت نوجوان‌ها به نماز صبح جماعت در هفتهٔ اول ماه.', scope: 'PROVINCE', provinceId: isf, goal: 400, createdById: 'p-prov', startsAt: iso(-3), endsAt: iso(11) }, [
-    ['دست‌کم یک نوجوان را به نماز صبح دعوت کنید', null],
+    ['دست‌کم یک نوجوان را به نماز صبح دعوت کن', null],
     ['بعد از نماز صبحانهٔ ساده‌ای با هم بخورید', 'اگر مسجد امکانش را ندارد، یک خرما و چای هم کافی است.'],
   ]);
-  C('cmp-barakat', { title: 'برکت: یک کار خیر در هفته', summary: 'ویژهٔ اعضای برکت — هر هفته یک کار کوچک برای همسایه‌ها، با هستهٔ خودتان.', scope: 'ORG', networkId: 'org-barakat', createdById: 'p-prov', startsAt: iso(2), endsAt: iso(30) }, [
-    ['یک کار خیر کوچک برای همسایه انجام دهید', null],
-    ['تجربه‌تان را در جلسهٔ هسته بگویید', null],
+  C('cmp-barakat', { title: 'برکت: یک کار خیر در هفته', summary: 'ویژهٔ اعضای برکت — هر هفته یک کار کوچک برای همسایه‌ها، با هستهٔ خودت.', scope: 'ORG', networkId: 'org-barakat', createdById: 'p-prov', startsAt: iso(2), endsAt: iso(30) }, [
+    ['یک کار خیر کوچک برای همسایه انجام بده', null],
+    ['تجربه‌ات را در جلسهٔ هسته بگو', null],
   ]);
-  C('cmp-past', { title: 'دههٔ کرامت: یک دیدار', summary: 'پویش پایان‌یافته: دیدار با یک خانوادهٔ محله.', scope: 'NATIONAL', startsAt: iso(-50), endsAt: iso(-40) }, [['با یک خانوادهٔ محله دیدار کنید', null]]);
-  C('cmp-draft', { title: 'پیش‌نویس: هفتهٔ کتاب در مسجد', summary: 'معرفی یک کتاب کوتاه به نوجوان‌ها.', scope: 'NATIONAL', status: 'DRAFT', startsAt: iso(14), endsAt: iso(28) }, [['یک کتاب کوتاه را به یک نوجوان معرفی کنید', null]]);
+  C('cmp-past', { title: 'دههٔ کرامت: یک دیدار', summary: 'پویش پایان‌یافته: دیدار با یک خانوادهٔ محله.', scope: 'NATIONAL', startsAt: iso(-50), endsAt: iso(-40) }, [['با یک خانوادهٔ محله دیدار کن', null]]);
+  C('cmp-draft', { title: 'پیش‌نویس: هفتهٔ کتاب در مسجد', summary: 'معرفی یک کتاب کوتاه به نوجوان‌ها.', scope: 'NATIONAL', status: 'DRAFT', startsAt: iso(14), endsAt: iso(28) }, [['یک کتاب کوتاه را به یک نوجوان معرفی کن', null]]);
 
   // مشارکت جمعی ساختگی در استان‌ها (فقط عدد؛ نامی در کار نیست)
   const provs = db.provinces.map((p: Any) => p.id);
@@ -67,7 +67,7 @@ export function seedPhase4(db: Any) {
   // کلاس زنده: یکی پیش رو (با ثبت‌نام زینب)، یکی برگزارشده با حضور و ضبط
   const base = db.events.find((e: Any) => e.id === 'ev-online') ?? {};
   db.events.push({ ...base, id: 'ev-live', title: 'کلاس زنده: گفت‌وگو با نوجوان، پرسش و پاسخ', kind: 'ONLINE', startsAt: iso(2, 19), endsAt: iso(2, 20), onlineUrl: null, useBbb: true, record: true,
-    hostName: 'فاطمه حسینی', capacity: 60, audienceGender: null, description: 'یک ساعت پرسش و پاسخ زنده دربارهٔ درس‌های دورهٔ «همراهی نوجوانان». سؤال‌هایتان را از پیش در یادداشت نگه دارید.', agenda: 'مرور کوتاه درس‌ها\nپرسش و پاسخ\nجمع‌بندی', bring: null, createdById: 'p-cty', status: 'PUBLISHED' });
+    hostName: 'فاطمه حسینی', capacity: 60, audienceGender: null, description: 'یک ساعت پرسش و پاسخ زنده دربارهٔ درس‌های دورهٔ «همراهی نوجوانان». سؤال‌هایتان را از پیش در یادداشت نگه داری.', agenda: 'مرور کوتاه درس‌ها\nپرسش و پاسخ\nجمع‌بندی', bring: null, createdById: 'p-cty', status: 'PUBLISHED' });
   db.events.push({ ...base, id: 'ev-live-past', title: 'کلاس زنده: شروع گفت‌وگو', kind: 'ONLINE', startsAt: iso(-5, 19), endsAt: iso(-5, 20), onlineUrl: null, useBbb: true, record: true, liveFinalizedAt: iso(-5, 21),
     hostName: 'فاطمه حسینی', capacity: 60, audienceGender: null, description: 'جلسهٔ اول کلاس‌های زندهٔ دوره.', agenda: null, bring: null, createdById: 'p-cty', status: 'PUBLISHED' });
   // کلاسی که همیشه «همین حالا» در جریان است (زمانش با هر درخواست جابه‌جا می‌شود؛ HOOK.beforeRequest)
@@ -106,7 +106,7 @@ export function registerPhase4(X: Any, H: { orgGate: (nid: string, f?: string) =
     if (c.scope === 'ORG' && myOrgs(uid).includes(c.networkId)) { try { H.orgGate(c.networkId, 'campaigns'); return true; } catch { return false; } }
     return false;
   };
-  const assertManage = (c: Any) => { if (!canManage(c, me().id)) throw E(403, 'forbidden', 'مدیریت این پویش با شما نیست؛ پویش استانی را فقط راهیار همان استان یا ستاد ویرایش می‌کند'); };
+  const assertManage = (c: Any) => { if (!canManage(c, me().id)) throw E(403, 'forbidden', 'مدیریت این پویش با تو نیست؛ پویش استانی را فقط راهیار همان استان یا ستاد ویرایش می‌کند'); };
   const tasksOf = (id: string) => DB().ctasks.filter((t: Any) => t.campaignId === id).sort((a: Any, b: Any) => a.order - b.order);
   const totals = (c: Any) => {
     const mem = DB().cmembers.filter((m: Any) => m.campaignId === c.id), dn = DB().cdone.filter((d: Any) => d.campaignId === c.id);
@@ -120,7 +120,7 @@ export function registerPhase4(X: Any, H: { orgGate: (nid: string, f?: string) =
     if (p === 'ENDED') throw E(400, 'campaign_ended', 'زمان این پویش تمام شده است و دیگر نمی‌شود کاری ثبت کرد');
     if (p === 'CANCELLED') throw E(400, 'campaign_cancelled', 'این پویش لغو شده است');
     if (p === 'DRAFT') throw E(400, 'campaign_draft', 'این پویش هنوز منتشر نشده است');
-    if (p === 'UPCOMING' && !joining) throw E(400, 'campaign_not_started', 'پویش هنوز شروع نشده؛ می‌توانید از حالا بپیوندید و از روز شروع کارها را ثبت کنید');
+    if (p === 'UPCOMING' && !joining) throw E(400, 'campaign_not_started', 'پویش هنوز شروع نشده؛ می‌توانی از حالا بپیوندی و از روز شروع کارها را ثبت کنی');
   };
   const addMembers = (c: Any, ids: string[], coreId: string | null) => {
     const org = c.scope === 'ORG' ? new Set(H.memberIds(c.networkId)) : null;
@@ -150,7 +150,7 @@ export function registerPhase4(X: Any, H: { orgGate: (nid: string, f?: string) =
   });
   on('GET', '/campaigns/([^/]+)', (m: Any) => {
     const u = me(); const c = camp(m[1]); const manage = canManage(c, u.id);
-    if (!visible(c, u.id) && !manage) throw E(404, 'no_campaign', 'این پویش پیدا نشد یا برای استان شما نیست');
+    if (!visible(c, u.id) && !manage) throw E(404, 'no_campaign', 'این پویش پیدا نشد یا برای استان تو نیست');
     const mine = DB().cdone.filter((d: Any) => d.campaignId === c.id && d.userId === u.id);
     const mem = DB().cmembers.find((x: Any) => x.campaignId === c.id && x.userId === u.id);
     const t = totals(c);
@@ -174,7 +174,7 @@ export function registerPhase4(X: Any, H: { orgGate: (nid: string, f?: string) =
     if (!DB().ccores.some((x: Any) => x.campaignId === c.id && x.coreId === core.id)) DB().ccores.push({ campaignId: c.id, coreId: core.id, joinedById: u.id });
     const added = addMembers(c, all, core.id);
     const others = added.filter((x) => x !== u.id);
-    if (others.length) notify(others, { kind: 'campaign_core', title: `هستهٔ «${core.name}» به پویش «${c.title}» پیوست`, body: 'کارهای کوتاه پویش را ببینید و هر کدام را انجام دادید علامت بزنید.', link: `/campaigns/${c.id}` });
+    if (others.length) notify(others, { kind: 'campaign_core', title: `هستهٔ «${core.name}» به پویش «${c.title}» پیوست`, body: 'کارهای کوتاه پویش را ببین و هر کدام را انجام دادی علامت بزن.', link: `/campaigns/${c.id}` });
     const inNow = DB().cmembers.filter((x: Any) => x.campaignId === c.id && all.includes(x.userId)).length;
     return { ok: true, added: added.length, skipped: all.length - inNow };
   });
@@ -182,7 +182,7 @@ export function registerPhase4(X: Any, H: { orgGate: (nid: string, f?: string) =
     const u = me(); const c = camp(m[1]); assertOpen(c);
     if (!tasksOf(c.id).some((t: Any) => t.id === m[2])) throw E(404, 'no_task', 'این کار در پویش پیدا نشد');
     const mem = DB().cmembers.find((x: Any) => x.campaignId === c.id && x.userId === u.id);
-    if (!mem) throw E(400, 'not_joined', 'اول به پویش بپیوندید، بعد کارها را علامت بزنید');
+    if (!mem) throw E(400, 'not_joined', 'اول به پویش بپیوند، بعد کارها را علامت بزن');
     const note = b.note?.trim() || null;
     const d = DB().cdone.find((x: Any) => x.taskId === m[2] && x.userId === u.id);
     if (d) d.note = note; else DB().cdone.push({ taskId: m[2], userId: u.id, campaignId: c.id, provinceId: mem.provinceId, note, doneAt: now() });
@@ -215,11 +215,11 @@ export function registerPhase4(X: Any, H: { orgGate: (nid: string, f?: string) =
     if (!b.summary?.trim()) throw E(400, 'invalid', '«خلاصه» لازم است');
     if (!b.tasks?.length) throw E(400, 'invalid', '«کارهای پویش» لازم است');
     if (new Date(b.endsAt) <= new Date(b.startsAt)) throw E(400, 'bad_dates', 'تاریخ پایان باید بعد از تاریخ شروع باشد');
-    if (+new Date(b.endsAt) - +new Date(b.startsAt) > 120 * DAY) throw E(400, 'too_long', 'پویش حداکثر ۱۲۰ روز است؛ برای حرکت بلندتر چند پویش پشت‌سرهم بسازید');
+    if (+new Date(b.endsAt) - +new Date(b.startsAt) > 120 * DAY) throw E(400, 'too_long', 'پویش حداکثر ۱۲۰ روز است؛ برای حرکت بلندتر چند پویش پشت‌سرهم بساز');
     const o = options(u.id);
-    if (b.scope === 'NATIONAL' && !isHQ(u.id)) throw E(403, 'forbidden', o.provinces.length || o.orgs.length ? 'پویش کشوری را فقط ستاد می‌سازد؛ شما پویش استانی یا ویژهٔ اعضای سازمانتان را می‌سازید' : 'ساختن پویش برای ستاد، راهیاران استانی و مدیران سازمان‌های مشترک است');
-    if (b.scope === 'PROVINCE') { if (!b.provinceId) throw E(400, 'no_province', 'استان پویش را انتخاب کنید'); if (!isHQ(u.id) && !myProvinces(u.id).includes(b.provinceId)) throw E(403, 'forbidden', 'فقط برای استانی که راهیار آن هستید می‌توانید پویش بسازید'); }
-    if (b.scope === 'ORG') { if (!b.networkId) throw E(400, 'no_org', 'سازمان پویش را انتخاب کنید'); H.orgGate(b.networkId, 'campaigns'); }
+    if (b.scope === 'NATIONAL' && !isHQ(u.id)) throw E(403, 'forbidden', o.provinces.length || o.orgs.length ? 'پویش کشوری را فقط ستاد می‌سازد؛ تو پویش استانی یا ویژهٔ اعضای سازمانت را می‌سازی' : 'ساختن پویش برای ستاد، راهیاران استانی و مدیران سازمان‌های مشترک است');
+    if (b.scope === 'PROVINCE') { if (!b.provinceId) throw E(400, 'no_province', 'استان پویش را انتخاب کن'); if (!isHQ(u.id) && !myProvinces(u.id).includes(b.provinceId)) throw E(403, 'forbidden', 'فقط برای استانی که راهیار آن هستی می‌توانی پویش بسازی'); }
+    if (b.scope === 'ORG') { if (!b.networkId) throw E(400, 'no_org', 'سازمان پویش را انتخاب کن'); H.orgGate(b.networkId, 'campaigns'); }
   };
   const saveTasks = (id: string, tasks: Any[]) => {
     const keep = new Set(tasks.map((t) => t.id).filter(Boolean));
@@ -248,13 +248,13 @@ export function registerPhase4(X: Any, H: { orgGate: (nid: string, f?: string) =
     if (c.status === 'PUBLISHED' && (b.scope !== c.scope || (b.scope === 'PROVINCE' && (b.provinceId ?? null) !== c.provinceId) || (b.scope === 'ORG' && (b.networkId ?? null) !== c.networkId))) throw E(400, 'scope_locked', 'دامنهٔ پویش منتشرشده عوض نمی‌شود؛ چون کسانی پیوسته‌اند');
     validate(b);
     const drop = tasksOf(c.id).filter((t: Any) => !b.tasks.some((x: Any) => x.id === t.id));
-    if (c.status === 'PUBLISHED' && drop.some((t: Any) => DB().cdone.some((d: Any) => d.taskId === t.id))) throw E(400, 'task_in_use', 'کاری که کسی انجامش داده را نمی‌شود حذف کرد؛ متنش را ویرایش کنید');
+    if (c.status === 'PUBLISHED' && drop.some((t: Any) => DB().cdone.some((d: Any) => d.taskId === t.id))) throw E(400, 'task_in_use', 'کاری که کسی انجامش داده را نمی‌شود حذف کرد؛ متنش را ویرایش کن');
     Object.assign(c, fields(b)); saveTasks(c.id, b.tasks); return { ok: true };
   });
   on('POST', '/manage/campaigns/([^/]+)/publish', (m: Any) => {
     const c = camp(m[1]); assertManage(c);
     if (c.status !== 'DRAFT') throw E(400, 'not_draft', 'این پویش پیش‌تر منتشر یا لغو شده است');
-    if (+new Date(c.endsAt) < Date.now()) throw E(400, 'campaign_ended', 'تاریخ پایان گذشته است؛ اول تاریخ‌ها را درست کنید');
+    if (+new Date(c.endsAt) < Date.now()) throw E(400, 'campaign_ended', 'تاریخ پایان گذشته است؛ اول تاریخ‌ها را درست کن');
     c.status = 'PUBLISHED';
     const ids = c.scope === 'ORG' ? H.memberIds(c.networkId) : DB().users.filter((u: Any) => u.isActive !== false && (c.scope === 'NATIONAL' || myProv(u.id) === c.provinceId)).map((u: Any) => u.id);
     notify(ids, { kind: 'campaign', title: `پویش تازه: ${c.title}`, body: c.summary, link: `/campaigns/${c.id}` });
@@ -291,7 +291,7 @@ export function registerPhase4(X: Any, H: { orgGate: (nid: string, f?: string) =
     const u = me(); const e = ev(m[1]);
     if (!e.useBbb) return orig(m, b, q);
     const host = isHQ(u.id) || e.createdById === u.id; const r = regOf(e.id, u.id);
-    if (!host && r?.status !== 'REGISTERED') throw E(403, 'not_registered', 'اول در کلاس ثبت‌نام کنید');
+    if (!host && r?.status !== 'REGISTERED') throw E(403, 'not_registered', 'اول در کلاس ثبت‌نام کن');
     if (!host && Date.now() < +new Date(e.startsAt) - 15 * 60_000) throw E(400, 'early', 'کلاس از ۱۵ دقیقه پیش از شروع باز می‌شود');
     if (Date.now() > +new Date(e.endsAt)) throw E(400, 'ended', 'این کلاس تمام شده است؛ اگر ضبط شده باشد، ضبطش همین‌جا می‌آید');
     // در نسخهٔ نمایشی سرور BigBlueButton نداریم: اتاق شبیه‌سازی‌شده باز می‌شود و حضور را خودش ثبت می‌کند
@@ -349,7 +349,7 @@ export function registerPhase4(X: Any, H: { orgGate: (nid: string, f?: string) =
   // انتشار برنامهٔ آنلاین: یا پیوند بیرونی یا کلاس روی سرور مدرسه
   wrap('POST', '/manage/events/([^/]+)/publish', (orig: Any) => (m: Any, b: Any, q: Any) => {
     const e = ev(m[1]);
-    if (e.kind === 'ONLINE' && !e.onlineUrl && !e.useBbb) throw E(400, 'not_ready', 'پیش از انتشار کامل کنید: پیوند کلاس آنلاین یا «کلاس روی سرور مدرسه»');
+    if (e.kind === 'ONLINE' && !e.onlineUrl && !e.useBbb) throw E(400, 'not_ready', 'پیش از انتشار کامل کن: پیوند کلاس آنلاین یا «کلاس روی سرور مدرسه»');
     return orig(m, b, q);
   });
 }

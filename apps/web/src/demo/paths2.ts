@@ -322,7 +322,7 @@ export function registerPaths2(X: Any) {
     return { id: p.id, slug: p.slug, status: p.status };
   });
   on('POST', '/v2/pub/paths/([^/]+)/submit', (m: Any) => {
-    const { pid } = needPub(); const p = PATH(m[1]); if (p.publisherId !== pid) throw E(403, 'forbidden', 'این مسیر مال شما نیست');
+    const { pid } = needPub(); const p = PATH(m[1]); if (p.publisherId !== pid) throw E(403, 'forbidden', 'این مسیر مال تو نیست');
     const probs: string[] = [];
     if (!p.steps.length || p.steps.every((s: Any) => !s.items.length)) probs.push('مسیر دست‌کم یک دوره یا پخش زنده لازم دارد');
     if (p.hasRahyar && !pathCourseIds(p).some((cid) => allLessons(cid).some((l: Any) => l.type === 'MISSION'))) probs.push('مسیرِ با راهیار دست‌کم یک تکلیف میدانی لازم دارد');
@@ -417,12 +417,12 @@ export function registerPaths2(X: Any) {
   // مثل API واقعی: مشکل هر درس کنارش، و دورهٔ ناقص به بازبینی نمی‌رود
   const lessonProblem = (t: string, c: Any): string | null => {
     c = c ?? {};
-    if (t === 'VIDEO') return c.provider === 'file' ? (c.fileKey ? null : 'فایل ویدیو را بارگذاری کنید') : /^[A-Za-z0-9]{3,20}$/.test(c.aparatHash ?? '') ? null : 'شناسهٔ ویدیوی آپارات درست نیست';
-    if (t === 'AUDIO') return c.fileKey || c.url ? null : 'فایل صوتی را بارگذاری کنید';
+    if (t === 'VIDEO') return c.provider === 'file' ? (c.fileKey ? null : 'فایل ویدیو را بارگذاری کن') : /^[A-Za-z0-9]{3,20}$/.test(c.aparatHash ?? '') ? null : 'شناسهٔ ویدیوی آپارات درست نیست';
+    if (t === 'AUDIO') return c.fileKey || c.url ? null : 'فایل صوتی را بارگذاری کن';
     if (t === 'TEXT') return typeof c.body === 'string' && c.body.trim().length >= 20 ? null : 'متن درس کوتاه است';
     if (t === 'QUIZ') return Array.isArray(c.questions) && c.questions.length ? null : 'دست‌کم یک پرسش لازم است';
     if (t === 'PRACTICE') return Array.isArray(c.steps) && c.steps.length ? null : 'تمرین دست‌کم یک موقعیت لازم دارد';
-    if (t === 'MISSION') return c.goal ? null : 'هدف مأموریت را بنویسید';
+    if (t === 'MISSION') return c.goal ? null : 'هدف مأموریت را بنویس';
     if (t === 'WORKSHEET') return c.prompt && Array.isArray(c.fields) && c.fields.length ? null : 'برگه دست‌کم یک خانه لازم دارد';
     return null;
   };
@@ -474,11 +474,11 @@ export function registerStudio(X: Any) {
     const c = { id: rid(), slug: 'course-' + rid().slice(0, 5), title: b.title.trim(), subtitle: null, about: null, level: null, instructor: nm(u.id), instructorId: u.id, color: 'green', icon: 'book-open', status: 'DRAFT', isRestricted: false, passScore: 60, missionRule: 'ON_APPROVAL', hasCertificate: false, outcomes: [], version: 1, publishedAt: null, createdAt: t, updatedAt: t, publisherId: pid, libraryShare: 'all' };
     DB().courses.push(c); DB().modules.push({ id: rid(), courseId: c.id, title: 'درس‌ها', order: 0 }); return c;
   });
-  on('POST', '/v2/studio/courses/([^/]+)/submit', (m: Any) => { const u = needOstad(); const c = C(m[1]); if (c.instructorId !== u.id) throw E(403, 'forbidden', 'این دوره مال شما نیست'); if (!allLessons(c.id).length) throw E(400, 'not_ready', 'دوره هنوز درسی ندارد'); c.reviewStatus = 'IN_REVIEW'; c.submittedAt = now(); notify(DB().roles.filter((r: Any) => r.role === 'HQ_ADMIN').map((r: Any) => r.userId), { kind: 'review', title: `دورهٔ تازه برای بازبینی: ${c.title}`, body: nm(u.id), link: '/admin/review' }); return { ok: true }; });
+  on('POST', '/v2/studio/courses/([^/]+)/submit', (m: Any) => { const u = needOstad(); const c = C(m[1]); if (c.instructorId !== u.id) throw E(403, 'forbidden', 'این دوره مال تو نیست'); if (!allLessons(c.id).length) throw E(400, 'not_ready', 'دوره هنوز درسی ندارد'); c.reviewStatus = 'IN_REVIEW'; c.submittedAt = now(); notify(DB().roles.filter((r: Any) => r.role === 'HQ_ADMIN').map((r: Any) => r.userId), { kind: 'review', title: `دورهٔ تازه برای بازبینی: ${c.title}`, body: nm(u.id), link: '/admin/review' }); return { ok: true }; });
   X.wrap('POST', '/v2/studio/courses/([^/]+)/submit', (orig: Any) => (m: Any, b: Any, q: Any) => { const c = C(m[1]); X.readyOrThrow?.(c); const r = orig(m, b, q); c.returnNote = null; c.reviewNotes = {}; return r; });
   // برگزارکننده استاد را به دوره می‌سپارد
   on('POST', '/v2/pub/courses/([^/]+)/instructor', (m: Any, b: Any) => {
-    const u = me(); const pid = DB().roles.find((r: Any) => r.userId === u.id && r.role === 'ORG_ADMIN')?.networkId; const c = C(m[1]); if (!pid || c.publisherId !== pid) throw E(403, 'forbidden', 'این دوره مال شما نیست');
+    const u = me(); const pid = DB().roles.find((r: Any) => r.userId === u.id && r.role === 'ORG_ADMIN')?.networkId; const c = C(m[1]); if (!pid || c.publisherId !== pid) throw E(403, 'forbidden', 'این دوره مال تو نیست');
     const mob = normMobile(b.mobile); if (!mob) throw E(400, 'bad_mobile', 'شماره باید ۱۱ رقم باشد و با ۰۹ شروع شود');
     let t = DB().users.find((x: Any) => x.mobile === mob);
     if (!t) { t = { id: rid(), mobile: mob, firstName: 'استاد', lastName: 'دعوت‌شده', gender: null, countyId: null, mosqueId: null, nearMosque: null, nationalId: null, isActive: true, createdAt: now(), invited: true, onboardedAt: now() }; DB().users.push(t); }

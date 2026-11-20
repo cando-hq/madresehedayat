@@ -29,7 +29,7 @@ export function JalaliInput({ id, value, onChange, withTime = true, optional, la
   if (!s) {
     return (
       <button type="button" id={id} className="input flex items-center gap-2 text-start text-muted" onClick={() => emit(cur)} aria-label={label ?? 'انتخاب تاریخ'}>
-        <CalendarDays className="size-4" />{optional ? 'تعیین نشده — برای انتخاب بزنید' : 'انتخاب تاریخ'}
+        <CalendarDays className="size-4" />{optional ? 'تعیین نشده — برای انتخاب بزن' : 'انتخاب تاریخ'}
       </button>
     );
   }

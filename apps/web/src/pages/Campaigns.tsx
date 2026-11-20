@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { ManageTabs } from '../components/ManageTabs';
 import { ArrowDown, ArrowUp, Award, CalendarRange, CheckCircle2, Circle, Flag, Plus, Target, Trash2, Users, UsersRound } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router';
@@ -40,7 +41,7 @@ export function CampaignCard({ c }: { c: Card }) {
       <p className="line-clamp-2 text-sm text-body">{c.summary}</p>
       <GoalBar done={c.done} goal={c.goal} />
       <div className="flex flex-wrap gap-3 text-sm text-muted"><span className="flex items-center gap-1"><Users className="size-4" />{fa(c.members)} نفر</span><span className="flex items-center gap-1"><CheckCircle2 className="size-4" />{fa(c.done)} کار انجام‌شده</span>
-        {c.joined && <span className="chip chip-leaf">پیوسته‌اید · {fa(c.myDone)} از {fa(c.tasks)}</span>}</div>
+        {c.joined && <span className="chip chip-leaf">پیوسته‌ای · {fa(c.myDone)} از {fa(c.tasks)}</span>}</div>
     </Link>
   );
 }
@@ -55,7 +56,7 @@ export default function CampaignList() {
   const past = q.data!.filter((c) => c.phase === 'ENDED' || c.phase === 'CANCELLED');
   return (
     <div className="rise grid gap-8">
-      <div><h1 className="text-[clamp(22px,3vw,30px)] font-extrabold">پویش‌ها</h1><p className="mt-1 max-w-2xl text-muted">حرکت‌های جمعی چندروزه با کارهای کوتاه. هر کاری که انجام دهید به شمار جمعی اضافه می‌شود؛ رتبه‌بندی فردی نداریم.</p></div>
+      <div><h1 className="text-[clamp(22px,3vw,30px)] font-extrabold">پویش‌ها</h1><p className="mt-1 max-w-2xl text-muted">حرکت‌های جمعی چندروزه با کارهای کوتاه. هر کاری که انجام بدهی به شمار جمعی اضافه می‌شود؛ رتبه‌بندی فردی نداریم.</p></div>
       {live.length ? <div className="grid gap-3 md:grid-cols-2">{live.map((c) => <CampaignCard key={c.id} c={c} />)}</div> : <Empty icon={Flag} title="الان پویشی در جریان نیست">پویش تازه که اعلام شود، با اعلان خبر می‌دهیم.</Empty>}
       {past.length > 0 && <section className="grid gap-3"><h2 className="text-lg font-extrabold">پویش‌های اخیر</h2><div className="grid gap-3 md:grid-cols-2">{past.map((c) => <CampaignCard key={c.id} c={c} />)}</div></section>}
     </div>
@@ -109,7 +110,7 @@ export function CampaignPage() {
   const [coreDlg, setCoreDlg] = useState(false);
   const refresh = () => { qc.invalidateQueries({ queryKey: ['campaign', id] }); qc.invalidateQueries({ queryKey: ['campaigns'] }); qc.invalidateQueries({ queryKey: ['badges'] }); };
   const err = (e: unknown) => toast((e as Error).message, 'err');
-  const join = useMutation({ mutationFn: () => api(`/campaigns/${id}/join`, { method: 'POST' }), onSuccess: () => { refresh(); toast('به پویش پیوستید'); }, onError: err });
+  const join = useMutation({ mutationFn: () => api(`/campaigns/${id}/join`, { method: 'POST' }), onSuccess: () => { refresh(); toast('به پویش پیوستی'); }, onError: err });
   const leave = useMutation({ mutationFn: () => api(`/campaigns/${id}/leave`, { method: 'POST' }), onSuccess: () => { refresh(); toast('از پویش بیرون آمدید'); }, onError: err });
   const joinCore = useMutation({ mutationFn: (coreId: string) => api<{ added: number; skipped: number }>(`/campaigns/${id}/join-core`, { body: { coreId } }),
     onSuccess: (r) => { refresh(); setCoreDlg(false); toast(r.skipped ? `${fa(r.added)} نفر پیوستند؛ ${fa(r.skipped)} نفر از استان دیگرند و نمی‌توانند` : `هسته پیوست؛ ${fa(r.added)} نفر تازه`); }, onError: err });
@@ -137,13 +138,13 @@ export function CampaignPage() {
             {[['شرکت‌کننده', c.totals.members], ['کار انجام‌شده', c.totals.done], ['هستهٔ همراه', c.totals.cores]].map(([l, v]) => <div key={l as string} className="rounded-xl bg-sunken p-2"><b className="tnum block text-xl text-ink">{fa(v as number)}</b><span className="text-xs text-muted">{l}</span></div>)}
           </div>
           <GoalBar done={c.totals.done} goal={c.goal} />
-          {c.badge && <div className="flex items-center gap-2 rounded-xl bg-flame-soft p-3 text-sm text-flame-ink"><Award className="size-5" />نشان مشارکت این پویش را گرفته‌اید</div>}
+          {c.badge && <div className="flex items-center gap-2 rounded-xl bg-flame-soft p-3 text-sm text-flame-ink"><Award className="size-5" />نشان مشارکت این پویش را گرفته‌ای</div>}
           {c.joined ? (
-            <div className="grid gap-2 text-sm"><span className="chip chip-leaf w-fit">پیوسته‌اید{c.viaCore ? ` با «${c.viaCore}»` : ''} · {fa(mineDone)} از {fa(c.tasks.length)} کار</span>
+            <div className="grid gap-2 text-sm"><span className="chip chip-leaf w-fit">پیوسته‌ای{c.viaCore ? ` با «${c.viaCore}»` : ''} · {fa(mineDone)} از {fa(c.tasks.length)} کار</span>
               {c.phase !== 'ENDED' && !mineDone && <button className="btn btn-ghost btn-sm w-fit" onClick={() => leave.mutate()}>بیرون آمدن از پویش</button>}</div>
           ) : (c.phase === 'ACTIVE' || c.phase === 'UPCOMING') && <button className="btn btn-primary" disabled={join.isPending} onClick={() => join.mutate()}><Flag className="size-4" />می‌پیوندم</button>}
           {c.cores.length > 0 && (c.phase === 'ACTIVE' || c.phase === 'UPCOMING') && <button className="btn btn-secondary" onClick={() => setCoreDlg(true)}><UsersRound className="size-4" />پیوستن با هسته</button>}
-          {c.phase === 'UPCOMING' && <p className="hint">از حالا بپیوندید؛ کارها از روز شروع ثبت می‌شوند.</p>}
+          {c.phase === 'UPCOMING' && <p className="hint">از حالا بپیوند؛ کارها از روز شروع ثبت می‌شوند.</p>}
         </aside>
       </section>
 
@@ -154,12 +155,12 @@ export function CampaignPage() {
             <span className="grid size-9 shrink-0 place-items-center rounded-full bg-sunken font-extrabold tnum text-ink">{fa(i + 1)}</span>
             <div className="min-w-0 flex-1"><b className="block text-ink">{t.title}</b>{t.body && <p className="mt-1 whitespace-pre-line text-sm text-body">{t.body}</p>}
               <span className="mt-1 block text-xs text-muted">{fa(t.count)} نفر انجامش داده‌اند</span>
-              {t.done && t.note && <p className="mt-2 rounded-xl bg-sunken p-2 text-sm">یادداشت شما (فقط برای خودتان): {t.note}</p>}</div>
+              {t.done && t.note && <p className="mt-2 rounded-xl bg-sunken p-2 text-sm">یادداشت تو (فقط برای خودت): {t.note}</p>}</div>
             {c.joined && (t.done
               ? <button className="btn btn-ghost btn-sm text-leaf-ink" disabled={!open || undo.isPending} onClick={() => undo.mutate(t.id)} aria-label={`برداشتن علامت «${t.title}»`}><CheckCircle2 className="size-5" />انجام دادم</button>
               : <button className="btn btn-secondary btn-sm" disabled={!open} onClick={() => setNote({ taskId: t.id, text: '' })}><Circle className="size-4" />انجام دادم</button>)}
           </li>))}</ol>
-        {!c.joined && (c.phase === 'ACTIVE' || c.phase === 'UPCOMING') && <p className="hint">برای علامت زدن کارها اول به پویش بپیوندید.</p>}
+        {!c.joined && (c.phase === 'ACTIVE' || c.phase === 'UPCOMING') && <p className="hint">برای علامت زدن کارها اول به پویش بپیوند.</p>}
       </section>
 
       {c.map.length > 0 && <section className="grid gap-3"><h2 className="text-lg font-extrabold">{c.scope === 'NATIONAL' ? 'مشارکت استان‌ها' : 'مشارکت'}</h2><div className="card p-4"><ProvinceMap cells={c.map} /></div></section>}
@@ -167,14 +168,14 @@ export function CampaignPage() {
       <Dialog open={!!note} onClose={() => setNote(null)} title="ثبت انجام کار">
         <form className="grid gap-3" onSubmit={(e) => { e.preventDefault(); done.mutate({ taskId: note!.taskId, note: note!.text.trim() || undefined }); }}>
           <p className="text-body">{c.tasks.find((t) => t.id === note?.taskId)?.title}</p>
-          <div className="field"><label htmlFor="cn">یادداشت برای خودتان <span className="font-normal text-muted">(اختیاری؛ کسی جز شما نمی‌بیند)</span></label>
+          <div className="field"><label htmlFor="cn">یادداشت برای خودت <span className="font-normal text-muted">(اختیاری؛ کسی جز تو نمی‌بیند)</span></label>
             <textarea id="cn" className="input" maxLength={1000} value={note?.text ?? ''} onChange={(e) => setNote({ ...note!, text: e.target.value })} placeholder="مثلاً با کی حرف زدم، چه شد" /></div>
           <button className="btn btn-primary" disabled={done.isPending}>ثبت</button>
         </form>
       </Dialog>
       <Dialog open={coreDlg} onClose={() => setCoreDlg(false)} title="پیوستن با هسته">
         <div className="grid gap-3">
-          <p className="text-body">همهٔ اعضای هسته یک‌جا به پویش می‌پیوندند و خبردار می‌شوند. اگر بعداً عضو تازه آمد، دوباره بزنید.</p>
+          <p className="text-body">همهٔ اعضای هسته یک‌جا به پویش می‌پیوندند و خبردار می‌شوند. اگر بعداً عضو تازه آمد، دوباره بزن.</p>
           {c.cores.map((k) => <button key={k.id} className="btn btn-secondary justify-between" disabled={joinCore.isPending} onClick={() => joinCore.mutate(k.id)}>{k.name}<span className="text-xs text-muted">{k.joined ? 'پیوسته؛ افزودن اعضای تازه' : 'پیوستن'}</span></button>)}
         </div>
       </Dialog>
@@ -205,8 +206,9 @@ export function ManageCampaigns() {
   const q = useQuery({ queryKey: ['manage-campaigns'], queryFn: () => api<MRow[]>('/manage/campaigns'), retry: false });
   return (
     <div className="rise grid gap-6">
+      <ManageTabs />
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <div><h1 className="text-[clamp(22px,3vw,30px)] font-extrabold">پویش‌ها</h1><p className="mt-1 max-w-2xl text-muted">پویش بسازید، کارهای کوتاهش را بنویسید و منتشر کنید. مخاطبان با اعلان خبردار می‌شوند. آمار فقط جمعی است.</p></div>
+        <div><h1 className="text-[clamp(22px,3vw,30px)] font-extrabold">پویش‌ها</h1><p className="mt-1 max-w-2xl text-muted">پویش بساز، کارهای کوتاهش را بنویس و منتشر کن. مخاطبان با اعلان خبردار می‌شوند. آمار فقط جمعی است.</p></div>
         {!q.error && <Link to={`${base}/new`} className="btn btn-primary"><Plus className="size-4" />پویش تازه</Link>}
       </div>
       {q.isLoading ? <Spinner /> : q.error ? <ErrorBox error={q.error} /> : q.data?.length ? (
@@ -215,7 +217,7 @@ export function ManageCampaigns() {
             <div className="min-w-0 flex-1"><b className="block text-ink">{c.title}</b><span className="text-sm text-muted">{SCOPE(c)} · {jDate(c.startsAt)} تا {jDate(c.endsAt)}</span></div>
             <span className={`chip ${PHASE[c.phase][0]}`}>{PHASE[c.phase][1]}</span><span className="chip">{fa(c.members)} نفر</span><span className="chip chip-leaf">{fa(c.done)} کار{c.goal ? ` از ${fa(c.goal)}` : ''}</span>
           </Link></li>))}</ul>
-      ) : <Empty icon={Flag} title="هنوز پویشی نساخته‌اید" />}
+      ) : <Empty icon={Flag} title="هنوز پویشی نساخته‌ای" />}
     </div>
   );
 }
@@ -265,7 +267,7 @@ export function CampaignEditor() {
         <section className="card grid gap-4 p-5">
           <h2 className="font-extrabold">مخاطب</h2>
           {scopes.length > 1 && <div className="seg w-fit">{scopes.map(([k, t]) => <button type="button" key={k} aria-pressed={f.scope === k} disabled={!!id && ex.data?.status === 'PUBLISHED'} onClick={() => setF({ ...f, scope: k })}>{t}</button>)}</div>}
-          {f.scope === 'PROVINCE' && <div className="field"><label htmlFor="cp">استان</label><select id="cp" className="input" required value={f.provinceId} disabled={!!id && ex.data?.status === 'PUBLISHED'} onChange={set('provinceId')}><option value="">انتخاب کنید</option>{o.provinces.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div>}
+          {f.scope === 'PROVINCE' && <div className="field"><label htmlFor="cp">استان</label><select id="cp" className="input" required value={f.provinceId} disabled={!!id && ex.data?.status === 'PUBLISHED'} onChange={set('provinceId')}><option value="">انتخاب کن</option>{o.provinces.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div>}
           {f.scope === 'ORG' && <div className="field"><label htmlFor="co">سازمان</label><select id="co" className="input" required value={f.networkId} disabled={!!id && ex.data?.status === 'PUBLISHED'} onChange={set('networkId')}>{o.orgs.map((n) => <option key={n.id} value={n.id}>{n.name}</option>)}</select></div>}
           <p className="hint">{f.scope === 'NATIONAL' ? 'همهٔ کاربران می‌بینند و با انتشار خبردار می‌شوند.' : f.scope === 'PROVINCE' ? 'فقط ساکنان همین استان می‌بینند و می‌پیوندند.' : 'فقط اعضای همین سازمان می‌بینند؛ بستهٔ پایه سالی ۲ پویش دارد.'} پس از انتشار، مخاطب عوض نمی‌شود.</p>
         </section>
@@ -274,7 +276,7 @@ export function CampaignEditor() {
           {f.tasks.map((t: any, i: number) => (
             <div key={i} className="grid gap-2 rounded-2xl bg-sunken p-3">
               <div className="flex gap-2"><span className="grid size-9 shrink-0 place-items-center rounded-full bg-card font-bold tnum">{fa(i + 1)}</span>
-                <input className="input h-10" aria-label={`عنوان کار ${fa(i + 1)}`} maxLength={140} value={t.title} placeholder="مثلاً با یک نوجوان دربارهٔ علاقه‌اش حرف بزنید" onChange={(e) => setF({ ...f, tasks: f.tasks.map((x: any, j: number) => (j === i ? { ...x, title: e.target.value } : x)) })} />
+                <input className="input h-10" aria-label={`عنوان کار ${fa(i + 1)}`} maxLength={140} value={t.title} placeholder="مثلاً با یک نوجوان دربارهٔ علاقه‌اش حرف بزن" onChange={(e) => setF({ ...f, tasks: f.tasks.map((x: any, j: number) => (j === i ? { ...x, title: e.target.value } : x)) })} />
                 <button type="button" className="btn btn-ghost btn-icon btn-sm" aria-label="بالا" disabled={i === 0} onClick={() => mvTask(i, -1)}><ArrowUp className="size-4" /></button>
                 <button type="button" className="btn btn-ghost btn-icon btn-sm" aria-label="پایین" disabled={i === f.tasks.length - 1} onClick={() => mvTask(i, 1)}><ArrowDown className="size-4" /></button>
                 <button type="button" className="btn btn-ghost btn-icon btn-sm" aria-label="حذف کار" disabled={f.tasks.length === 1} onClick={() => setF({ ...f, tasks: f.tasks.filter((_: any, j: number) => j !== i) })}><Trash2 className="size-4" /></button></div>

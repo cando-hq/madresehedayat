@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import { Flag, Award, BadgeDollarSign, MessageSquarePlus, BookOpen, BookOpenCheck, CalendarDays, Compass, House, KeyRound, LayoutDashboard, Landmark, LifeBuoy, Megaphone, Route, ScrollText, ShieldCheck, Users, Wrench } from 'lucide-react';
+import { Building2, Flag, Award, BadgeDollarSign, MessageSquarePlus, BookOpen, BookOpenCheck, CalendarDays, Compass, House, KeyRound, LayoutDashboard, Landmark, LifeBuoy, Megaphone, Route, ScrollText, ShieldCheck, Users, Wrench } from 'lucide-react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router';
 import { TopLoader, Spinner } from '../../components/ui';
 import { Brand } from '../../components/Shell';
@@ -7,42 +7,66 @@ import { MfaGate } from './MfaGate';
 import { useAuth } from '../../lib/auth';
 import { ROLE_LABEL } from '../../lib/fa';
 
-const SECS = [
-  { to: '/admin', label: 'پیشخوان', icon: LayoutDashboard, end: true },
-  { to: '/admin/review', label: 'صف بازبینی', icon: BookOpenCheck },
-  { to: '/admin/publishers', label: 'برگزارکنندگان', icon: Users },
-  { to: '/admin/courses', label: 'دوره‌ها', icon: BookOpen },
-  { to: '/admin/paths', label: 'مسیرها', icon: Route },
-  { to: '/admin/tools', label: 'جعبه‌ابزار', icon: Wrench },
-  { to: '/admin/rahyar', label: 'ساختار راهیاری', icon: Compass },
-  { to: '/admin/events', label: 'برنامه‌ها', icon: CalendarDays },
-  { to: '/admin/campaigns', label: 'پویش‌ها', icon: Flag },
-  { to: '/admin/users', label: 'کاربران و نقش‌ها', icon: Users },
-  { to: '/admin/business', label: 'مدل کسب‌وکار', icon: BadgeDollarSign },
-  { to: '/admin/grants', label: 'دسترسی ویژه', icon: KeyRound },
-  { to: '/admin/certificates', label: 'گواهی‌ها', icon: Award },
-  { to: '/admin/mosques', label: 'مساجد', icon: Landmark },
-  { to: '/admin/support', label: 'پشتیبانی', icon: LifeBuoy },
-  { to: '/admin/feedback', label: 'بازخورد', icon: MessageSquarePlus },
-  { to: '/admin/broadcasts', label: 'پیام گروهی', icon: Megaphone },
-  { to: '/admin/samples', label: 'گزارش‌های نمونه', icon: BookOpenCheck },
-  { to: '/admin/audit', label: 'گزارش تغییرات', icon: ScrollText, admin: true },
-  { to: '/admin/security', label: 'گزارش دسترسی', icon: ShieldCheck, admin: true },
+type Sec = { to: string; label: string; icon: typeof House; end?: boolean; admin?: boolean };
+/** منوی ستاد در چهار دسته؛ کارهای کم‌کاربرد زیر «بیشتر» جمع‌اند */
+const GROUPS: { title?: string; more?: boolean; items: Sec[] }[] = [
+  { items: [
+    { to: '/admin', label: 'پیشخوان', icon: LayoutDashboard, end: true },
+    { to: '/admin/review', label: 'صف بازبینی', icon: BookOpenCheck },
+  ] },
+  { title: 'محتوا', items: [
+    { to: '/admin/publishers', label: 'برگزارکنندگان', icon: Building2 },
+    { to: '/admin/courses', label: 'دوره‌ها', icon: BookOpen },
+    { to: '/admin/paths', label: 'مسیرها', icon: Route },
+    { to: '/admin/tools', label: 'جعبه‌ابزار', icon: Wrench },
+    { to: '/admin/certificates', label: 'گواهی‌ها', icon: Award },
+  ] },
+  { title: 'مردم', items: [
+    { to: '/admin/users', label: 'کاربران و نقش‌ها', icon: Users },
+    { to: '/admin/mosques', label: 'مساجد', icon: Landmark },
+    { to: '/admin/rahyar', label: 'ساختار راهیاری', icon: Compass },
+  ] },
+  { title: 'ارتباط', items: [
+    { to: '/admin/support', label: 'پشتیبانی', icon: LifeBuoy },
+    { to: '/admin/feedback', label: 'بازخوردها', icon: MessageSquarePlus },
+    { to: '/admin/broadcasts', label: 'پیام گروهی', icon: Megaphone },
+    { to: '/admin/events', label: 'برنامه‌ها', icon: CalendarDays },
+    { to: '/admin/campaigns', label: 'پویش‌ها', icon: Flag },
+  ] },
+  { title: 'بیشتر', more: true, items: [
+    { to: '/admin/samples', label: 'گزارش‌های نمونه', icon: BookOpenCheck },
+    { to: '/admin/business', label: 'اشتراک سازمان‌ها', icon: BadgeDollarSign },
+    { to: '/admin/grants', label: 'دسترسی ویژه', icon: KeyRound },
+    { to: '/admin/audit', label: 'گزارش تغییرات', icon: ScrollText, admin: true },
+    { to: '/admin/security', label: 'گزارش دسترسی', icon: ShieldCheck, admin: true },
+  ] },
 ];
 
 export default function AdminShell() {
   const loc = useLocation();
   const { me, has } = useAuth();
-  const secs = SECS.filter((s) => !s.admin || has('HQ_ADMIN'));
+  const groups = GROUPS.map((g) => ({ ...g, items: g.items.filter((s) => !s.admin || has('HQ_ADMIN')) }));
+  const link = (s: Sec) => (
+    <NavLink key={s.to} to={s.to} end={s.end} className={({ isActive }) => `flex shrink-0 items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-semibold no-underline ${isActive ? 'bg-leaf-soft text-leaf-ink' : 'text-body hover:bg-sunken'}`}>
+      <s.icon className="size-[18px]" />{s.label}
+    </NavLink>
+  );
+  const moreOpen = groups.some((g) => g.more && g.items.some((s) => loc.pathname.startsWith(s.to)));
   return (
     <div className="min-h-dvh md:grid md:grid-cols-[240px_minmax(0,1fr)]">
       <aside className="sticky top-0 z-20 border-b border-line bg-card md:flex md:h-dvh md:flex-col md:overflow-y-auto md:border-b-0 md:border-e" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
         <div className="flex items-center justify-between gap-3 p-4 md:block"><Brand /><span className="text-xs font-bold text-muted md:mt-2 md:block">پنل ستاد</span></div>
         <nav className="flex gap-1 overflow-x-auto px-3 pb-3 md:grid md:gap-0.5 md:overflow-visible md:pb-2" aria-label="بخش‌های پنل">
-          {secs.map((s) => (
-            <NavLink key={s.to} to={s.to} end={s.end} className={({ isActive }) => `flex shrink-0 items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-semibold no-underline ${isActive ? 'bg-leaf-soft text-leaf-ink' : 'text-body hover:bg-sunken'}`}>
-              <s.icon className="size-[18px]" />{s.label}
-            </NavLink>
+          {groups.map((g, i) => g.more ? (
+            <details key={i} open={moreOpen} className="flex shrink-0 gap-1 md:block md:pt-3">
+              <summary className="shrink-0 cursor-pointer list-none rounded-xl px-3 py-2 text-sm font-semibold text-muted hover:bg-sunken md:px-3 md:py-1 md:text-xs md:font-bold">{g.title}</summary>
+              <div className="flex gap-1 md:grid md:gap-0.5">{g.items.map(link)}</div>
+            </details>
+          ) : (
+            <div key={i} className="contents md:grid md:gap-0.5 md:pt-3 md:first:pt-0">
+              {g.title && <span className="hidden px-3 pb-1 text-xs font-bold text-muted md:block">{g.title}</span>}
+              {g.items.map(link)}
+            </div>
           ))}
         </nav>
         <div className="hidden p-4 md:mt-auto md:block">

@@ -61,7 +61,7 @@ export class CohortsService {
     if (!cs.length) throw new BadRequestException(err('empty_path', 'این مسیر هنوز دورهٔ منتشرشده‌ای ندارد'));
     const startsAt = new Date(d.startsAt);
     const today = Date.now() - DAY;
-    if (startsAt.getTime() < today) throw new BadRequestException(err('past_start', 'تاریخ شروع گذشته است؛ امروز یا روزی در آینده را انتخاب کنید'));
+    if (startsAt.getTime() < today) throw new BadRequestException(err('past_start', 'تاریخ شروع گذشته است؛ امروز یا روزی در آینده را انتخاب کن'));
     if (startsAt.getTime() > Date.now() + 90 * DAY) throw new BadRequestException(err('far_start', 'تاریخ شروع حداکثر تا سه ماه دیگر می‌تواند باشد'));
     let row: typeof cohorts.$inferSelect;
     try {
@@ -75,7 +75,7 @@ export class CohortsService {
     const weeks = row.weeksPerStation === 1 ? 'هر هفته یک ایستگاه' : `هر ${row.weeksPerStation} هفته یک ایستگاه`;
     await this.notify.send(people.filter((x) => x !== u.id), {
       kind: 'COHORT', title: `هستهٔ «${c.name}» مسیر «${p.title}» را با هم شروع می‌کند`,
-      body: `از ${faDate(startsAt)}، ${weeks}. اگر همراه می‌شوید، در صفحهٔ دوره «همراه می‌شوم» را بزنید.`, link: `/cohorts/${row.id}`,
+      body: `از ${faDate(startsAt)}، ${weeks}. اگر همراه می‌شوی، در صفحهٔ دوره «همراه می‌شوم» را بزن.`, link: `/cohorts/${row.id}`,
     });
     return this.detail(u, row.id);
   }
@@ -97,7 +97,7 @@ export class CohortsService {
 
   async forCore(u: AuthUser, coreId: string) {
     const { member, canManage } = await this.coreAccess(u, coreId);
-    if (!member && !canManage) throw new ForbiddenException(err('forbidden', 'به این هسته دسترسی ندارید'));
+    if (!member && !canManage) throw new ForbiddenException(err('forbidden', 'به این هسته دسترسی نداری'));
     const rows = await this.db.select({ id: cohorts.id }).from(cohorts).where(and(eq(cohorts.coreId, coreId), isNull(cohorts.cancelledAt)));
     const out = [];
     for (const r of rows) out.push(await this.detail(u, r.id));
@@ -179,7 +179,7 @@ export class CohortsService {
     await this.db.update(cohorts).set({ cancelledAt: new Date() }).where(eq(cohorts.id, id));
     const p = (await this.db.query.paths.findFirst({ where: eq(paths.id, h.pathId) }))!;
     const memberIds = (await this.db.select({ id: cohortMembers.userId }).from(cohortMembers).where(eq(cohortMembers.cohortId, id))).map((r) => r.id).filter((x) => x !== u.id);
-    await this.notify.send(memberIds, { kind: 'COHORT', title: `دورهٔ گروهی «${p.title}» در هستهٔ «${c.name}» لغو شد`, body: 'پیشرفت خودتان در دوره‌ها سر جایش می‌ماند و می‌توانید مسیر را تنها ادامه دهید.', link: `/paths/${p.slug}` });
+    await this.notify.send(memberIds, { kind: 'COHORT', title: `دورهٔ گروهی «${p.title}» در هستهٔ «${c.name}» لغو شد`, body: 'پیشرفت خودت در دوره‌ها سر جایش می‌ماند و می‌توانی مسیر را تنها ادامه بدهی.', link: `/paths/${p.slug}` });
     return { ok: true };
   }
 }

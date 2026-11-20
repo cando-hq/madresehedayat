@@ -27,7 +27,7 @@ const SCRIPT: [number, string, string][] = [
   [29, 'محمد جعفری', 'ممنون، این بخش خیلی کاربردی بود'],
   [37, 'زهرا نوری', 'ضبط کلاس را بعداً می‌شود دید؟'],
 ];
-const POLL = { q: 'نوجوان‌های محلهٔ شما بیشتر کجا وقت می‌گذرانند؟', o: ['بازی‌های آنلاین', 'شبکه‌های اجتماعی', 'ویدیو و استریم', 'کمتر در فضای مجازی‌اند'], base: [9, 6, 4, 1] };
+const POLL = { q: 'نوجوان‌های محلهٔ تو بیشتر کجا وقت می‌گذرانند؟', o: ['بازی‌های آنلاین', 'شبکه‌های اجتماعی', 'ویدیو و استریم', 'کمتر در فضای مجازی‌اند'], base: [9, 6, 4, 1] };
 const mmss = (s: number) => `${fa(Math.floor(s / 60))}:${fa(String(Math.floor(s % 60)).padStart(2, '0'))}`;
 const initials = (n: string) => n.split(' ').map((x) => x[0]).join('‌');
 
@@ -72,14 +72,14 @@ function RoomView({ r, replay, hostView }: { r: Room; replay: string | null; hos
     mutationFn: () => api<Att>(`/events/${r.id}/live/demo-tick`, { body: { seconds: 60 * 6 } }),
     onSuccess: (a) => {
       setAtt(a);
-      if (a.attended && !told.current) { told.current = true; toast('حضور شما ثبت شد؛ درس «جلسهٔ زنده» هم تمام شد'); qc.invalidateQueries(); }
+      if (a.attended && !told.current) { told.current = true; toast('حضور تو ثبت شد؛ درس «جلسهٔ زنده» هم تمام شد'); qc.invalidateQueries(); }
     },
   });
   useEffect(() => { if (replay || hostView) return; tick.mutate(); const h = setInterval(() => tick.mutate(), 3000); return () => clearInterval(h); }, [replay, hostView]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const react = (k: 'like' | 'heart') => { const i = ++fid.current; setFloats((f) => [...f, { id: i, k }]); setTimeout(() => setFloats((f) => f.filter((x) => x.id !== i)), 2200); };
   const send = () => { if (!draft.trim()) return; setMsgs((m) => [...m, { who: r.me || 'من', text: draft.trim(), me: true }]); setDraft(''); };
-  const leave = (end = false) => { qc.invalidateQueries(); toast(end ? 'کلاس برای همه پایان یافت' : replay ? 'از ضبط بیرون آمدید' : 'از کلاس بیرون آمدید؛ هر وقت بخواهید دوباره وارد شوید'); nav(-1); };
+  const leave = (end = false) => { qc.invalidateQueries(); toast(end ? 'کلاس برای همه پایان یافت' : replay ? 'از ضبط بیرون آمدید' : 'از کلاس بیرون آمدید؛ هر وقت بخواه دوباره وارد شو'); nav(-1); };
   const people = [r.hostName, ...PEOPLE.slice(0, Math.max(6, Math.min(PEOPLE.length, r.registered + 12)))];
   const votes = POLL.base.map((v, i) => v + (vote === i ? 1 : 0)); const vsum = votes.reduce((a, b) => a + b, 0);
   const clock = replay ? t : elapsed0 + t;
@@ -138,15 +138,15 @@ function RoomView({ r, replay, hostView }: { r: Room; replay: string | null; hos
             </div>
           ) : hostView ? (
             <div className="grid gap-1.5 rounded-2xl bg-white/5 p-4 text-sm">
-              <b className="text-white">شما برگزارکنندهٔ این کلاس هستید</b>
-              <p className="text-xs leading-6 text-white/60">اسلاید را با دکمه‌های بالای صفحه جلو ببرید، ضبط را روشن یا خاموش کنید و در پایان «پایان کلاس» را بزنید. دقیقه‌های حضور هر نفر بعد از کلاس در «مدیریت این برنامه» می‌آید و حاضران خودکار ثبت می‌شوند.</p>
+              <b className="text-white">تو برگزارکنندهٔ این کلاس هستی</b>
+              <p className="text-xs leading-6 text-white/60">اسلاید را با دکمه‌های بالای صفحه جلو ببر، ضبط را روشن یا خاموش کن و در پایان «پایان کلاس» را بزن. دقیقه‌های حضور هر نفر بعد از کلاس در «مدیریت این برنامه» می‌آید و حاضران خودکار ثبت می‌شوند.</p>
             </div>
           ) : (
             <div className="grid gap-1.5 rounded-2xl bg-white/5 p-4">
-              <div className="flex items-center justify-between gap-2 text-sm"><b className="text-white">حضور شما</b>
+              <div className="flex items-center justify-between gap-2 text-sm"><b className="text-white">حضور تو</b>
                 <span className="tnum text-white/70">{att ? `${fa(att.minutes)} از ${fa(att.needed)} دقیقهٔ لازم` : '…'}</span></div>
               <div className="h-1.5 overflow-hidden rounded-full bg-white/15"><span className="block h-full rounded-full bg-[#34c47f] transition-all" style={{ width: `${att ? Math.min(100, (att.minutes / Math.max(1, att.needed)) * 100) : 0}%` }} /></div>
-              <p className="text-xs text-white/60">{att?.attended ? 'حضور شما ثبت شد. اگر این کلاس درس «جلسهٔ زنده» یک دوره است، آن درس هم تمام شد.' : 'هر کس دست‌کم نیمی از زمان کلاس را باشد، «حاضر» ثبت می‌شود. در نسخهٔ نمایشی زمان تندتر می‌گذرد.'}</p>
+              <p className="text-xs text-white/60">{att?.attended ? 'حضور تو ثبت شد. اگر این کلاس درس «جلسهٔ زنده» یک دوره است، آن درس هم تمام شد.' : 'هر کس دست‌کم نیمی از زمان کلاس را باشد، «حاضر» ثبت می‌شود. در نسخهٔ نمایشی زمان تندتر می‌گذرد.'}</p>
             </div>
           )}
         </section>
@@ -175,7 +175,7 @@ function RoomView({ r, replay, hostView }: { r: Room; replay: string | null; hos
           )}
           {tab === 'people' && (
             <ul className="flex-1 divide-y divide-white/5 overflow-y-auto">
-              {[{ n: r.hostName, role: 'مدرس' }, { n: `${r.me || 'شما'} (شما)`, role: hostView ? 'برگزارکننده' : '', me: true }, ...people.slice(1).map((n) => ({ n, role: '' }))].map((p, i) => (
+              {[{ n: r.hostName, role: 'مدرس' }, { n: `${r.me || 'تو'} (تو)`, role: hostView ? 'برگزارکننده' : '', me: true }, ...people.slice(1).map((n) => ({ n, role: '' }))].map((p, i) => (
                 <li key={i} className="flex items-center gap-3 px-3 py-2 text-sm">
                   <span className="grid size-8 shrink-0 place-items-center rounded-full bg-white/10 text-xs">{initials(p.n)}</span>
                   <span className="min-w-0 flex-1 truncate">{p.n}{p.role && <span className="ms-2 text-xs text-[#7fe0ae]">{p.role}</span>}</span>
@@ -194,7 +194,7 @@ function RoomView({ r, replay, hostView }: { r: Room; replay: string | null; hos
                   <span className="relative flex justify-between gap-2"><span>{o}</span>{vote !== null && <span className="tnum text-white/70">٪{fa(Math.round((votes[i] / vsum) * 100))}</span>}</span>
                 </button>
               ))}
-              <p className="text-xs text-white/50">{vote === null ? 'نظر شما بی‌نام شمرده می‌شود.' : `${fa(vsum)} نفر رأی دادند.`}</p>
+              <p className="text-xs text-white/50">{vote === null ? 'نظر تو بی‌نام شمرده می‌شود.' : `${fa(vsum)} نفر رأی دادند.`}</p>
             </div>
           )}
         </aside>
@@ -209,7 +209,7 @@ function RoomView({ r, replay, hostView }: { r: Room; replay: string | null; hos
           <Ctl label="پسندیدم" onClick={() => react('like')}><ThumbsUp className="size-5" /></Ctl>
           <Ctl label="دوست داشتم" onClick={() => react('heart')}><Heart className="size-5" /></Ctl>
           {hostView && <>
-            <Ctl label="اشتراک صفحه" onClick={() => toast('در کلاس واقعی صفحهٔ رایانه‌تان برای همه نمایش داده می‌شود')}><MonitorUp className="size-5" /></Ctl>
+            <Ctl label="اشتراک صفحه" onClick={() => toast('در کلاس واقعی صفحهٔ رایانه‌ات برای همه نمایش داده می‌شود')}><MonitorUp className="size-5" /></Ctl>
             <Ctl on={rec} label={rec ? 'توقف ضبط' : 'شروع ضبط'} onClick={() => { setRec(!rec); toast(rec ? 'ضبط متوقف شد' : 'ضبط شروع شد؛ به همه اعلام می‌شود'); }}><CircleDot className="size-5" /></Ctl>
           </>}
         </>}

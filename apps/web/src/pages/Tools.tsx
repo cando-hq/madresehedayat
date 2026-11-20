@@ -37,7 +37,7 @@ export default function Toolbox() {
   return (
     <div className="rise grid gap-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <div><h1 className="text-[clamp(22px,3vw,30px)] font-extrabold">جعبه‌ابزار</h1><p className="mt-1 max-w-2xl text-muted">ابزارهای فکر کردن و برنامه‌ریزی جمعی، با نمونهٔ پرشدهٔ مسجدی. هر بار که ابزاری را پر می‌کنید، یک «کار» تازه در «کارهای من» می‌ماند.</p></div>
+        <div><h1 className="text-[clamp(22px,3vw,30px)] font-extrabold">جعبه‌ابزار</h1><p className="mt-1 max-w-2xl text-muted">ابزارهای فکر کردن و برنامه‌ریزی جمعی، با نمونهٔ پرشدهٔ مسجدی. هر بار که ابزاری را پر می‌کنی، یک «کار» تازه در «کارهای من» می‌ماند.</p></div>
         <div className="seg">{([['tools', 'ابزارها'], ['mine', `کارهای من${mine.data ? ` (${fa(mine.data.own.length + mine.data.shared.length)})` : ''}`]] as const).map(([k, t]) => <button key={k} aria-pressed={tab === k} onClick={() => setTab(k)}>{t}</button>)}</div>
       </div>
       {tab === 'tools' ? <>
@@ -58,7 +58,7 @@ export default function Toolbox() {
         {list.length < 35 && <p className="hint">ابزارهای دیگر پس از بازبینی متنشان اضافه می‌شوند.</p>}
       </> : mine.isLoading ? <Spinner /> : (
         <div className="grid gap-6">
-          {mine.data!.own.length ? <BoardList rows={mine.data!.own.map((b) => ({ ...b, sub: `${name(b.toolId)}${b.lessonId ? ' · از درس' : ''}${b.isPublic ? ' · پیوند عمومی' : ''}` }))} /> : <Empty icon={Wrench} title="هنوز کاری نساخته‌اید">یک ابزار را باز کنید و «کار تازه» بزنید.</Empty>}
+          {mine.data!.own.length ? <BoardList rows={mine.data!.own.map((b) => ({ ...b, sub: `${name(b.toolId)}${b.lessonId ? ' · از درس' : ''}${b.isPublic ? ' · پیوند عمومی' : ''}` }))} /> : <Empty icon={Wrench} title="هنوز کاری نساخته‌ای">یک ابزار را باز کن و «کار تازه» بزن.</Empty>}
           {mine.data!.shared.length > 0 && <section><h2 className="mb-3 font-extrabold">به اشتراک گذاشته با من</h2><BoardList rows={mine.data!.shared.map((b) => ({ ...b, sub: `${name(b.toolId)} · ${b.owner} · ${b.role === 'EDITOR' ? 'هم‌کار' : 'دیدن و نظر'}` }))} /></section>}
         </div>
       )}
@@ -170,7 +170,7 @@ export function BoardEditor({ id, embedded }: { id: string; embedded?: boolean }
             : <input className="w-full border-0 bg-transparent text-[clamp(20px,2.6vw,26px)] font-extrabold text-ink outline-none focus:border-b focus:border-leaf" value={title} aria-label="عنوان کار"
               onChange={(e) => setTitle(e.target.value)} onBlur={() => title.trim() && title !== b.title && save(null, title.trim())} />}
           <p className="flex flex-wrap items-center gap-2 text-sm text-muted">
-            {b.role !== 'OWNER' && <span>کار {b.owner} · {b.role === 'EDITOR' ? 'شما هم‌کارید' : 'فقط دیدن و نظر'}</span>}
+            {b.role !== 'OWNER' && <span>کار {b.owner} · {b.role === 'EDITOR' ? 'تو هم‌کاری' : 'فقط دیدن و نظر'}</span>}
             {!ro && <span className="flex items-center gap-1">{state === 'saving' ? <><LoaderCircle className="size-3.5 animate-spin" />در حال ذخیره…</> : state === 'error' ? <span className="text-rose">ذخیره نشد؛ دوباره تلاش می‌کنیم</span> : <><CloudCheck className="size-3.5" />خودکار ذخیره می‌شود{state === 'saved' ? ' · ذخیره شد' : ''}</>}</span>}
           </p>
         </div>
@@ -183,7 +183,7 @@ export function BoardEditor({ id, embedded }: { id: string; embedded?: boolean }
       </div>
       {!embedded && <details className="card p-4"><summary className="cursor-pointer font-bold text-ink">روش کار با {t.t}</summary><p className="mt-2 text-body">{t.d}</p><ol className="mt-2 grid gap-1">{t.how.map((h, i) => <li key={i} className="text-sm text-body"><b className="tnum text-leaf-ink">{fa(i + 1)}.</b> {h}</li>)}</ol></details>}
       <div ref={node} className="bg-bg"><Board tool={t} data={data} onChange={change} readOnly={ro} /></div>
-      {boardCount(data) === 0 && !ro && <p className="hint">از هر خانه شروع کنید؛ هر تغییر خودکار ذخیره می‌شود.</p>}
+      {boardCount(data) === 0 && !ro && <p className="hint">از هر خانه شروع کن؛ هر تغییر خودکار ذخیره می‌شود.</p>}
       {(b.members.length > 0 || b.comments.length > 0 || b.role !== 'OWNER') && <Comments b={b} onDone={() => qc.invalidateQueries({ queryKey: ['board', id] })} />}
       {b.role === 'OWNER' && !embedded && <button className="btn btn-ghost btn-sm w-fit text-rose" onClick={async () => { if (window.confirm('این کار پاک شود؟')) { await api(`/boards/${id}`, { method: 'DELETE' }); qc.invalidateQueries({ queryKey: ['boards'] }); nav('/tools'); } }}><Trash2 className="size-4" />پاک کردن کار</button>}
       {dlg === 'share' && <ShareDialog b={b} onClose={() => { setDlg(null); qc.invalidateQueries({ queryKey: ['board', id] }); }} />}
@@ -236,9 +236,9 @@ function ShareDialog({ b, onClose }: { b: BoardView; onClose: () => void }) {
             <div className="flex flex-wrap items-center gap-2"><code dir="ltr" className="max-w-full truncate rounded-lg bg-sunken px-3 py-2 text-sm">{url}</code>
               <button className="btn btn-secondary btn-sm" onClick={async () => { try { await navigator.clipboard.writeText(url); toast('کپی شد'); } catch { toast('کپی نشد', 'err'); } }}><Link2 className="size-4" />کپی</button>
               <button className="btn btn-ghost btn-sm text-rose" onClick={() => togglePublic(false)}>قطع پیوند</button></div>
-            <p className="hint">هر کس این پیوند را داشته باشد، بدون ورود متن کار را می‌بیند (نه نام شما و نه نظرها).</p>
+            <p className="hint">هر کس این پیوند را داشته باشد، بدون ورود متن کار را می‌بیند (نه نام تو و نه نظرها).</p>
           </> : warn ? (
-            <div className="grid gap-2 rounded-xl bg-flame-soft p-3 text-sm"><b className="text-flame-ink">مطمئنید؟</b><p className="text-ink">با پیوند عمومی، هر کس پیوند را داشته باشد متن این کار را می‌بیند. اگر نام افراد یا نکتهٔ خصوصی در آن است، اول پاکش کنید. هر وقت بخواهید پیوند را قطع می‌کنید.</p>
+            <div className="grid gap-2 rounded-xl bg-flame-soft p-3 text-sm"><b className="text-flame-ink">مطمئنی؟</b><p className="text-ink">با پیوند عمومی، هر کس پیوند را داشته باشد متن این کار را می‌بیند. اگر نام افراد یا نکتهٔ خصوصی در آن است، اول پاکش کن. هر وقت بخواه پیوند را قطع می‌کنی.</p>
               <div className="flex gap-2"><button className="btn btn-primary btn-sm" onClick={() => togglePublic(true)}>بله، پیوند بساز</button><button className="btn btn-ghost btn-sm" onClick={() => setWarn(false)}>نه</button></div></div>
           ) : <button className="btn btn-ghost btn-sm w-fit" onClick={() => setWarn(true)}>ساختن پیوند عمومی</button>}
         </div>
@@ -276,7 +276,7 @@ function ExportDialog({ title, tool, node, onClose }: { title: string; tool: Too
       const blob = await toBlob(wrap, { pixelRatio: 2, backgroundColor: getComputedStyle(document.body).backgroundColor, width: 1100, height: wrap.scrollHeight, style: { position: 'static', left: '0', top: '0' } });
       wrap.remove();
       if (blob) save(blob, `${fname}.png`);
-    } catch { toast('ساخت تصویر نشد؛ خروجی HTML را امتحان کنید', 'err'); } finally { setBusy(false); }
+    } catch { toast('ساخت تصویر نشد؛ خروجی HTML را امتحان کن', 'err'); } finally { setBusy(false); }
   };
   const html = () => {
     if (!node.current) return;
@@ -345,7 +345,7 @@ export function ToolLesson({ lessonId }: { lessonId: string }) {
   if (q.error) return <ErrorBox error={q.error} />;
   return (
     <div className="grid gap-3">
-      <p className="hint">کار شما خودکار ذخیره می‌شود و در «جعبه‌ابزار ← کارهای من» هم می‌ماند. با پر کردن ابزار، این درس تمام می‌شود.</p>
+      <p className="hint">کار تو خودکار ذخیره می‌شود و در «جعبه‌ابزار ← کارهای من» هم می‌ماند. با پر کردن ابزار، این درس تمام می‌شود.</p>
       <BoardEditor id={q.data!.id} embedded />
     </div>
   );

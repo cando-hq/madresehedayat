@@ -24,10 +24,10 @@ async def main():
         await a.screenshot(path=OUT+'404.png')
         # ۳) نوار بی‌اینترنت
         await ctx.set_offline(True); await a.wait_for_timeout(300)
-        ok(await a.get_by_text('به اینترنت وصل نیستید').count() > 0, 'نوار بی‌اینترنت')
+        ok(await a.get_by_text('اینترنت وصل نیست').count() > 0, 'نوار بی‌اینترنت')
         await a.screenshot(path=OUT+'offline.png')
         await ctx.set_offline(False); await a.wait_for_timeout(300)
-        ok(await a.get_by_text('به اینترنت وصل نیستید').count() == 0, 'نوار بعد از وصل شدن رفت')
+        ok(await a.get_by_text('اینترنت وصل نیست').count() == 0, 'نوار بعد از وصل شدن رفت')
         # ۴) toast پیش‌فرض برای کاری که onError ندارد: پاسخ ۵۰۰ ساختگی
         await a.goto(BASE+'/events'); await a.wait_for_load_state('networkidle')
         await a.route('**/api/notifications/read*', lambda r: r.fulfill(status=500, content_type='application/json', body='{"code":"server_error","ref":"AB12CD34","message":"خطایی در سرور پیش آمد و ثبت شد. کد: AB12CD34"}'))

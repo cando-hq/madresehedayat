@@ -176,8 +176,8 @@ export class RahyarService {
       const exists = await this.db.query.rahyarPositions.findFirst({ where: and(eq(rahyarPositions.layer, 'DEPUTY'), eq(rahyarPositions.gender, d.gender)) });
       if (exists) throw new BadRequestException({ code: 'deputy_exists', message: 'هر درخت فقط یک معاون دارد' });
     }
-    if (d.layer === 'PROVINCIAL' && !d.provinceId) throw new BadRequestException({ code: 'need_province', message: 'استان را انتخاب کنید' });
-    if (d.layer === 'COUNTY' && !d.countyId) throw new BadRequestException({ code: 'need_county', message: 'شهرستان را انتخاب کنید' });
+    if (d.layer === 'PROVINCIAL' && !d.provinceId) throw new BadRequestException({ code: 'need_province', message: 'استان را انتخاب کن' });
+    if (d.layer === 'COUNTY' && !d.countyId) throw new BadRequestException({ code: 'need_county', message: 'شهرستان را انتخاب کن' });
     let title = d.title?.trim();
     if (!title) {
       const place = d.layer === 'PROVINCIAL' ? (await this.db.query.provinces.findFirst({ where: eq(provinces.id, d.provinceId!) }))?.name
@@ -215,7 +215,7 @@ export class RahyarService {
 
   async deletePosition(id: string) {
     const child = await this.db.query.rahyarPositions.findFirst({ where: eq(rahyarPositions.parentId, id) });
-    if (child) throw new BadRequestException({ code: 'has_children', message: 'اول جایگاه‌های زیرمجموعه را جابه‌جا یا حذف کنید' });
+    if (child) throw new BadRequestException({ code: 'has_children', message: 'اول جایگاه‌های زیرمجموعه را جابه‌جا یا حذف کن' });
     await this.db.delete(rahyarPositions).where(eq(rahyarPositions.id, id));
     return { ok: true };
   }
@@ -227,7 +227,7 @@ export class RahyarService {
     const others = await this.db.select({ regionId: regionProvinces.regionId, provinceId: regionProvinces.provinceId }).from(regionProvinces)
       .innerJoin(rahyarPositions, eq(rahyarPositions.id, regionProvinces.regionId)).where(eq(rahyarPositions.gender, p.gender));
     const taken = others.filter((o) => o.regionId !== id && provinceIds.includes(o.provinceId));
-    if (taken.length) throw new BadRequestException({ code: 'province_taken', message: 'بعضی استان‌ها در منطقهٔ دیگری‌اند؛ اول از آنجا بردارید' });
+    if (taken.length) throw new BadRequestException({ code: 'province_taken', message: 'بعضی استان‌ها در منطقهٔ دیگری‌اند؛ اول از آنجا بردار' });
     await this.db.transaction(async (tx) => {
       await tx.delete(regionProvinces).where(eq(regionProvinces.regionId, id));
       if (provinceIds.length) await tx.insert(regionProvinces).values(provinceIds.map((provinceId) => ({ regionId: id, provinceId })));

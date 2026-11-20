@@ -26,7 +26,7 @@ export class AuthGuard implements CanActivate {
         const pending = config.staffMfa && !p.mfa && roles.some((r) => STAFF.includes(r));
         req.user = { id: p.sub, roles: pending ? roles.filter((r) => !STAFF.includes(r)) : roles, mfaPending: pending };
       } catch {
-        if (!isPublic) throw new UnauthorizedException({ code: 'token_expired', message: 'نشست شما تمام شده است' });
+        if (!isPublic) throw new UnauthorizedException({ code: 'token_expired', message: 'نشست تو تمام شده است' });
       }
     }
     if (isPublic) return true;

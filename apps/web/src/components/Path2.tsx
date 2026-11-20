@@ -98,11 +98,12 @@ export function Steps({ p, unit }: { p: PathV2; unit?: string }) {
         const locked = gated && state === 'todo';
         return (
           <li key={s.id} className={`card grid gap-2 p-4 ${state === 'now' ? 'border-line-strong' : ''}`} style={state === 'now' ? { borderColor: p.color } : undefined}>
-            <div className="flex items-center gap-3">
+            <div className="flex items-start gap-3">
               <Toranj state={state} color={p.color} size={22} />
-              <h3 className="flex-1 text-base font-extrabold">{u && <span className="text-muted">{u} </span>}{s.title}</h3>
-              {s.rule && <span className="text-[13px] text-muted">رفتن به بعدی: {s.rule}</span>}
-              {locked && <span className="text-[13px] text-muted">بعد از {u}قبلی</span>}
+              <div className="min-w-0 flex-1">
+                <h3 className="text-base font-extrabold">{u && <span className="text-muted">{u} </span>}{s.title}</h3>
+                {(s.rule || locked) && <p className="mt-0.5 text-[13px] text-muted">{locked ? (u ? `بعد از ${u}قبلی باز می‌شود` : 'بعد از قبلی باز می‌شود') : u ? `برای رفتن به ${u}بعد: ${s.rule}` : `برای ادامه: ${s.rule}`}</p>}
+              </div>
             </div>
             <div className="grid gap-1">{s.items.map((it) => <ItemRow key={it.kind + it.id} it={it} locked={locked} />)}</div>
           </li>

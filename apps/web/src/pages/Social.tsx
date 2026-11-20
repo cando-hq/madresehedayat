@@ -57,7 +57,7 @@ export function Notifications() {
 export interface Dm { id: string; body: string; createdAt: string; authorId: string; firstName: string; lastName: string }
 export function Thread({ messages, meId, empty }: { messages: Dm[]; meId: string; empty: string }) {
   const end = useRef<HTMLDivElement>(null);
-  useEffect(() => end.current?.scrollIntoView({ block: 'end' }), [messages.length]);
+  useEffect(() => { end.current?.scrollIntoView({ block: 'end' }); }, [messages.length]); // در کروم تازه scrollIntoView وعده برمی‌گرداند؛ نباید برگردانده شود
   if (!messages.length) return <p className="py-10 text-center text-sm text-muted">{empty}</p>;
   return (
     <div className="grid gap-2.5">

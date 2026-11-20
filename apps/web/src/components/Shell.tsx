@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { ScrollManager } from './ScrollManager';
 import { MessageSquarePlus, Award, Bell, LifeBuoy, BookOpen, ClipboardCheck, Compass, House, Landmark, LayoutDashboard, LogOut, MessageCircle, Settings, Building2, UsersRound, CalendarCog } from 'lucide-react';
 import { useEffect, useRef, useState, Suspense } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router';
@@ -86,7 +87,7 @@ export function Shell() {
     <FeedbackProvider>
     <div className="shell-root min-h-dvh pb-[calc(76px+env(safe-area-inset-bottom,0px))] md:pb-0">
       <a href="#main" className="skip-link">رفتن به محتوا</a>
-      <TopLoader />
+      <TopLoader /><ScrollManager />
       <header className="shell-header sticky top-0 z-30 border-b border-line bg-bg/85 backdrop-blur" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
         <div className="wrap flex h-16 items-center gap-6">
           <Brand />

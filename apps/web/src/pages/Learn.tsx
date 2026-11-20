@@ -101,9 +101,9 @@ function Explore({ role }: { role: ActorRole | null }) {
     <div className="grid gap-8">
       <div className="grid gap-3">
         <div className="relative max-w-md"><Search className="pointer-events-none absolute end-3 top-1/2 size-4 -translate-y-1/2 text-muted" /><input className="input pe-9" type="search" placeholder="نوجوان، حل مسئله، حلقه…" value={q} onChange={(e) => setQ(e.target.value)} aria-label="جست‌وجو" /></div>
-        <div className="flex flex-wrap items-center gap-2"><span className="w-16 text-[13px] font-bold text-muted">برای کی</span>{WHO.map(([k, t]) => <Chip key={k} on={who === k} onClick={() => setWho(k)}>{t}</Chip>)}</div>
-        <div className="flex flex-wrap items-center gap-2"><span className="w-16 text-[13px] font-bold text-muted">نوع</span>{SIZES.map(([k, t]) => <Chip key={k} on={kind === k} onClick={() => setKind(k)}>{t}</Chip>)}<Chip on={kind === 'course'} onClick={() => setKind('course')}>دوره</Chip><Chip on={kind === 'live'} onClick={() => setKind('live')}>پخش زنده</Chip></div>
-        <div className="flex flex-wrap items-center gap-2"><span className="w-16 text-[13px] font-bold text-muted">برگزارکننده</span><Chip on={pubId === 'all'} onClick={() => setPub('all')}>همه</Chip>{(pubs.data ?? []).map((p) => <Chip key={p.id} on={pubId === p.id} onClick={() => setPub(p.id)}><span className="me-1.5 inline-block size-2 rounded-full align-middle" style={{ background: p.color }} />{p.name}</Chip>)}</div>
+        <div className="hscroll flex items-center gap-2 sm:flex-wrap"><span className="w-20 shrink-0 text-[13px] font-bold text-muted">برای کی</span>{WHO.map(([k, t]) => <Chip key={k} on={who === k} onClick={() => setWho(k)}>{t}</Chip>)}</div>
+        <div className="hscroll flex items-center gap-2 sm:flex-wrap"><span className="w-20 shrink-0 text-[13px] font-bold text-muted">نوع</span>{SIZES.map(([k, t]) => <Chip key={k} on={kind === k} onClick={() => setKind(k)}>{t}</Chip>)}<Chip on={kind === 'course'} onClick={() => setKind('course')}>دوره</Chip><Chip on={kind === 'live'} onClick={() => setKind('live')}>پخش زنده</Chip></div>
+        <div className="hscroll flex items-center gap-2 sm:flex-wrap"><span className="w-20 shrink-0 text-[13px] font-bold text-muted">برگزارکننده</span><Chip on={pubId === 'all'} onClick={() => setPub('all')}>همه</Chip>{(pubs.data ?? []).map((p) => <Chip key={p.id} on={pubId === p.id} onClick={() => setPub(p.id)}><span className="me-1.5 inline-block size-2 rounded-full align-middle" style={{ background: p.color }} />{p.name}</Chip>)}</div>
       </div>
       {kind !== 'course' && kind !== 'live' && (list.length ? <div className="stagger grid gap-4 md:grid-cols-2 xl:grid-cols-3">{list.map((p, i) => <PathCard key={p.id} p={p} i={i} />)}</div>
         : <Empty icon={Route} title="مسیری با این فیلتر نیست">فیلتر را بردار یا «همه» را ببین.</Empty>)}
@@ -170,10 +170,7 @@ function PathBody({ p }: { p: PathV2 }) {
       </section>
       <Section title={p.size === 'micro' ? `${fa(p.stepCount)} هفته` : p.size === 'macro' ? 'پله‌ها' : 'دوره‌های این مسیر'}><Steps p={p} /></Section>
       {p.id === 'pt-taayon' && p.me.enrolled && <ImamatCard />}
-      <section className="grid gap-4 md:grid-cols-2">
-        <div className="card grid gap-2 p-5"><b className="text-ink">چه چیزی گام رشد می‌شود</b><p className="text-sm text-body leading-7">{p.hasRahyar ? 'هر تکلیف یک کار واقعی در مسجد است. روایتش را می‌نویسی؛ راهیار می‌خواند و یا تأیید می‌کند یا یک نکته برمی‌گرداند. ' : 'تمام کردن هر دوره و آزمونش. '}{p.steps.some((s) => s.rule) ? `برای رفتن به ${p.size === 'micro' ? 'هفتهٔ' : 'پلهٔ'} بعد: ${cur?.rule ?? p.steps[0].rule}.` : ''}</p></div>
-        <div className="card grid gap-2 p-5"><b className="text-ink">در این مسیر از دیگران هم هست</b>{(() => { const others = p.steps.flatMap((s) => s.items).filter((it) => it.publisher && it.publisher.id !== p.publisher?.id); return others.length ? <ul className="grid gap-1 text-sm text-body">{others.map((it) => <li key={it.kind + it.id}>{it.title} <span className="text-muted">از {it.publisher!.name}</span></li>)}</ul> : <p className="text-sm text-muted">همهٔ محتوا از {p.publisher?.name} است.</p>; })()}</div>
-      </section>
+        <div className="card grid gap-2 p-5" role="note"><b className="text-ink">چه چیزی گام رشد می‌شود</b><p className="text-sm text-body leading-7">{p.hasRahyar ? 'هر تکلیف یک کار واقعی در مسجد است. روایتش را می‌نویسی؛ راهیار می‌خواند و یا تأیید می‌کند یا یک نکته برمی‌گرداند. ' : 'تمام کردن هر دوره و آزمونش. '}{p.steps.some((s) => s.rule) ? `برای رفتن به ${p.size === 'micro' ? 'هفتهٔ' : 'پلهٔ'} بعد: ${cur?.rule ?? p.steps[0].rule}.` : ''}</p></div>
       {p.me.enrolled && p.percent < 100 && <button className="btn btn-ghost btn-sm w-fit text-rose" onClick={() => { if (confirm('مسیر را کنار بگذاری؟ پیشرفتت می‌ماند.')) leave.mutate(); }}>کنار گذاشتن مسیر</button>}
     </div>
   );

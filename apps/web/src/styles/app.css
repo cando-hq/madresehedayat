@@ -490,3 +490,9 @@ dialog.drawer[open] { animation: drawer-in var(--dur-base, 260ms) var(--ease-out
 .lesson-card.is-drag { opacity: .4; }
 .gap-add { opacity: .45; }
 .gap-row:hover .gap-add, .gap-add:focus-visible, .gap-add[aria-expanded="true"] { opacity: 1; }
+
+/* ردیف افقی در گوشی: تا لبهٔ صفحه می‌رود و بی‌نوار پیمایش است */
+.hscroll { overflow-x: auto; scrollbar-width: none; margin-inline: calc(var(--space-4) * -1); padding-inline: var(--space-4); }
+.hscroll::-webkit-scrollbar { display: none; }
+.hscroll > * { flex-shrink: 0; white-space: nowrap; }
+@media (min-width: 640px) { .hscroll { overflow: visible; margin-inline: 0; padding-inline: 0; } }

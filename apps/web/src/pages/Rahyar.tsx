@@ -41,7 +41,7 @@ export function RahyarHome() {
   if (me.isLoading) return <Spinner />;
   if (me.error) return <ErrorBox error={me.error} />;
   const m = me.data!;
-  // داشبورد برای تصمیم: اول کاری که منتظر شماست، بعد عددها
+  // داشبورد برای تصمیم: اول کاری که منتظر توست، بعد عددها
   const oldest = [...(q.data ?? [])].sort((a, b) => b.waitingDays - a.waitingDays)[0];
   return (
     <div className="rise">
@@ -50,11 +50,11 @@ export function RahyarHome() {
       {oldest ? (
         <section className={`card mb-6 flex flex-wrap items-center gap-4 p-5 md:p-6 ${m.overdue ? 'border-rose/40' : ''}`} aria-labelledby="wait-h">
           <Inbox className={`size-8 shrink-0 ${m.overdue ? 'text-rose' : 'text-dome-ink'}`} />
-          <div className="min-w-0 flex-1">
-            <h2 id="wait-h" className="text-lg font-extrabold">{fa(m.openReports)} گزارش منتظر بازخورد شماست</h2>
+          <div className="min-w-[200px] flex-1">
+            <h2 id="wait-h" className="text-lg font-extrabold">{fa(m.openReports)} گزارش منتظر بازخورد توست</h2>
             <p className="text-sm text-muted">{m.overdue ? `${fa(m.overdue)} گزارش بیش از یک هفته منتظر مانده؛ از قدیمی‌ترین شروع کن.` : 'کنشگر با بازخورد تو قدم بعدی را برمی‌دارد. از قدیمی‌ترین شروع کن.'}</p>
           </div>
-          <Link className="btn btn-primary" to={`/rahyar/reports/${oldest.learnerId}/${oldest.lessonId}`}>خواندن گزارش {oldest.learner}</Link>
+          <Link className="btn btn-primary w-full sm:w-auto" to={`/rahyar/reports/${oldest.learnerId}/${oldest.lessonId}`}>خواندن گزارش {oldest.learner}</Link>
         </section>
       ) : !q.isLoading && (
         <p className="mb-6 flex items-center gap-3 rounded-2xl bg-leaf-soft p-4 text-leaf-ink"><CheckCircle2 className="size-5 shrink-0" />گزارش بی‌پاسخی نداری. گزارش تازهٔ کنشگران این‌جا و در اعلان‌ها می‌آید.</p>
@@ -180,7 +180,15 @@ export function RahyarLearners() {
         <div className="seg">{([['all', 'همه'], ['direct', 'مسئولیت مستقیم'], ['idle', 'دو هفته بی‌فعالیت']] as const).map(([k, t]) => <button key={k} aria-pressed={only === k} onClick={() => setOnly(k)}>{t}</button>)}</div>
       </div>
       {q.isLoading ? <Spinner /> : rows.length ? (
-        <div className="card overflow-x-auto">
+        <>
+        <ul className="card divide-y divide-line sm:hidden">{rows.map((r) => (
+          <li key={r.id}><Link to={`/rahyar/learners/${r.id}`} className="flex items-center gap-3 px-4 py-3 no-underline">
+            <span className="min-w-0 flex-1"><b className="block truncate text-ink">{r.name}</b>
+              <span className="block truncate text-xs text-muted">{[r.county, r.mosque].filter(Boolean).join('، ')}{!r.direct ? ` · ${r.responsible}` : ''}</span>
+              <span className="block text-xs text-body">{fa(r.activeCourses)} در حال گذراندن · {fa(r.completedCourses)} تمام‌شده · {r.lastActivity ? ago(r.lastActivity) : 'هنوز شروع نکرده'}</span></span>
+            <ChevronLeft className="size-4 shrink-0 text-muted" /></Link></li>
+        ))}</ul>
+        <div className="card hidden overflow-x-auto sm:block">
           <table className="w-full min-w-[640px] text-sm">
             <thead><tr className="border-b border-line text-muted"><th className="px-4 py-3 text-start font-semibold">نام</th><th className="text-start font-semibold">شهرستان / مسجد</th><th className="font-semibold">در حال گذراندن</th><th className="font-semibold">تمام‌شده</th><th className="font-semibold">آخرین فعالیت</th><th /></tr></thead>
             <tbody>{rows.map((r) => (
@@ -194,6 +202,7 @@ export function RahyarLearners() {
             ))}</tbody>
           </table>
         </div>
+        </>
       ) : <Empty icon={UsersRound} title="کسی پیدا نشد" />}
     </div>
   );

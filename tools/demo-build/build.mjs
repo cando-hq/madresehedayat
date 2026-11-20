@@ -1,10 +1,12 @@
 import { createRequire } from 'node:module';
+import { fileURLToPath as __f } from 'node:url';
+const HERE = __f(new URL('.', import.meta.url)); const ROOT = HERE + '../../';
 const require_ = createRequire(import.meta.url);
 import * as esbuild from '/opt/npm-tools/node_modules/esbuild/lib/main.js';
-const S = '/home/claude/demobuild/shims/';
+const S = HERE + 'shims/';
 const alias = { 'react-router': S + 'router.tsx', '@tanstack/react-query': S + 'query.tsx', qrcode: S + 'qrcode.ts' };
 await esbuild.build({
-  entryPoints: ['/home/claude/full/r/apps/web/src/main.tsx'], bundle: true, outfile: 'out/app.js', format: 'iife', minify: true, target: 'es2020',
+  entryPoints: [ROOT + 'apps/web/src/main.tsx'], bundle: true, outfile: 'out/app.js', format: 'iife', minify: true, target: 'es2020',
   jsx: 'automatic', loader: { '.json': 'json' }, logLevel: 'warning',
   define: { 'import.meta.env.VITE_DEMO': '"1"', 'import.meta.env': '{"VITE_DEMO":"1","BASE_URL":"","MODE":"production","PROD":true,"DEV":false}', 'process.env.NODE_ENV': '"production"' },
   nodePaths: ['/opt/npm-tools/node_modules'],

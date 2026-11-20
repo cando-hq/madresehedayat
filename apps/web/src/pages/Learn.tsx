@@ -2,6 +2,7 @@
  * یادگیری: سه زبانه. «مسیرهای من» (برداشته‌ها)، «مسیر اصلی من» (پیش‌فرض بر پایهٔ نقش، نه اجبار)، «کاوش» (همهٔ برگزارکنندگان).
  * صفحهٔ مسیر برای هر سه اندازه یکی است؛ فقط واحد پله (هفته/پله) و قفل‌شدن فرق می‌کند.
  */
+import { ask } from '../components/Confirm';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Award, Compass, MessageCircle, Radio, Route, Search, Users } from 'lucide-react';
 import { useMemo, useState } from 'react';
@@ -170,8 +171,8 @@ function PathBody({ p }: { p: PathV2 }) {
       </section>
       <Section title={p.size === 'micro' ? `${fa(p.stepCount)} هفته` : p.size === 'macro' ? 'پله‌ها' : 'دوره‌های این مسیر'}><Steps p={p} /></Section>
       {p.id === 'pt-taayon' && p.me.enrolled && <ImamatCard />}
-        <div className="card grid gap-2 p-5" role="note"><b className="text-ink">چه چیزی گام رشد می‌شود</b><p className="text-sm text-body leading-7">{p.hasRahyar ? 'هر تکلیف یک کار واقعی در مسجد است. روایتش را می‌نویسی؛ راهیار می‌خواند و یا تأیید می‌کند یا یک نکته برمی‌گرداند. ' : 'تمام کردن هر دوره و آزمونش. '}{p.steps.some((s) => s.rule) ? `برای رفتن به ${p.size === 'micro' ? 'هفتهٔ' : 'پلهٔ'} بعد: ${cur?.rule ?? p.steps[0].rule}.` : ''}</p></div>
-      {p.me.enrolled && p.percent < 100 && <button className="btn btn-ghost btn-sm w-fit text-rose" onClick={() => { if (confirm('مسیر را کنار بگذاری؟ پیشرفتت می‌ماند.')) leave.mutate(); }}>کنار گذاشتن مسیر</button>}
+        <div className="card grid gap-2 p-5" role="note"><b className="text-ink">چه چیزی گام رشد می‌شود</b><p className="text-sm text-body leading-7">{p.hasRahyar ? 'هر تکلیف یک کار واقعی در مسجد است. روایتش را می‌نویسی؛ راهیار می‌خواند و یا تأیید می‌کند یا یک نکته برمی‌گرداند. ' : 'تمام کردن هر دوره و آزمونش. '}{(() => { const r = cur?.rule ?? p.steps.find((s) => s.rule)?.rule; return r ? `برای رفتن به ${p.size === 'micro' ? 'هفتهٔ' : 'پلهٔ'} بعد: ${r}.` : ''; })()}</p></div>
+      {p.me.enrolled && p.percent < 100 && <button className="btn btn-ghost btn-sm w-fit text-rose" onClick={async () => { if (await ask({ title: 'مسیر را کنار می‌گذاری؟', body: 'پیشرفتت سر جایش می‌ماند و هر وقت خواستی می‌توانی دوباره برداری.', ok: 'کنار بگذار', danger: true })) leave.mutate(); }}>کنار گذاشتن مسیر</button>}
     </div>
   );
 }

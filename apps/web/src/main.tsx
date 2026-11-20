@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client';
 import { createBrowserRouter, createHashRouter, Navigate, RouterProvider, useLocation } from 'react-router';
 import { Shell } from './components/Shell';
 import { OfflineBar, Spinner, ToastProvider } from './components/ui';
+import { ConfirmProvider } from './components/Confirm';
 import { ApiError, errorText } from './lib/api';
 import { AuthProvider, useAuth } from './lib/auth';
 import Login from './pages/Login';
@@ -271,11 +272,11 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={qc}>
       <AuthProvider>
-        <ToastProvider>
+        <ToastProvider><ConfirmProvider>
           <OfflineBar />
           <Suspense fallback={<Spinner />}><RouterProvider router={router} /></Suspense>
           {DemoBar && <Suspense fallback={null}><DemoBar /></Suspense>}
-        </ToastProvider>
+        </ConfirmProvider></ToastProvider>
       </AuthProvider>
     </QueryClientProvider>
   </StrictMode>,

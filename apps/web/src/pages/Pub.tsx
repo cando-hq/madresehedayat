@@ -2,6 +2,7 @@
  * پنل برگزارکننده: محتوای ما (سه دکمه: مسیر، دوره، پخش زنده)، مسیرساز، کتابخانهٔ مشترک، راهیاران، گزارش اثر.
  * برگزارکننده می‌سازد و برای بازبینی می‌فرستد؛ ستاد منتشر می‌کند.
  */
+import { ask } from '../components/Confirm';
 import { ScrollManager } from '../components/ScrollManager';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { BookOpen, ChevronLeft, Compass, Library, Plus, Radio, Route, Trash2, TrendingUp } from 'lucide-react';
@@ -80,7 +81,7 @@ export function PubHome() {
       )}
       {!!d.courses.length && (
         <section className="grid gap-3"><h2 className="text-lg font-extrabold">دوره‌ها</h2>
-          <div className="card divide-y divide-line">{d.courses.map((c) => <div key={c.id} className="flex flex-wrap items-center gap-3 px-4 py-3"><span className="min-w-0 flex-1"><b className="block text-ink">{c.title}</b><span className="text-sm text-muted">{fa(c.lessonCount)} درس، {fa(c.learners)} کنشگر، نسخهٔ {fa(c.version)}{c.instructor ? `، استاد: ${c.instructor}` : ''}{c.usedIn.length ? `، در مسیر دیگران: ${c.usedIn.join('، ')}` : ''}</span></span><button className="btn btn-ghost btn-sm" onClick={() => { const m = prompt('شمارهٔ موبایل استاد:'); if (m?.trim()) assign.mutate({ id: c.id, mobile: m.trim() }); }}>{c.instructor ? 'تغییر استاد' : 'سپردن به استاد'}</button><span className={`chip ${STATUS_CHIP[c.status]}`}>{c.statusFa}</span><Link to={`/pub/courses/${c.id}`} className="btn btn-secondary btn-sm">ویرایش</Link>{(c.status === 'DRAFT' || c.status === 'RETURNED') && <button className="btn btn-primary btn-sm" onClick={() => submitCourse.mutate(c.id)}>بفرست برای بازبینی</button>}</div>)}</div></section>
+          <div className="card divide-y divide-line">{d.courses.map((c) => <div key={c.id} className="flex flex-wrap items-center gap-2 px-4 py-3 sm:gap-3"><span className="min-w-0 basis-full sm:flex-1 sm:basis-0"><b className="block text-ink">{c.title}</b><span className="text-sm text-muted">{fa(c.lessonCount)} درس، {fa(c.learners)} کنشگر، نسخهٔ {fa(c.version)}{c.instructor ? `، استاد: ${c.instructor}` : ''}{c.usedIn.length ? `، در مسیر دیگران: ${c.usedIn.join('، ')}` : ''}</span></span><button className="btn btn-ghost btn-sm" onClick={async () => { const m = await ask({ title: c.instructor ? 'تغییر استاد دوره' : 'سپردن دوره به استاد', body: 'استاد با همین شماره وارد می‌شود و دوره را در «دوره‌های من» می‌بیند.', input: true, required: true, label: 'شمارهٔ موبایل استاد', placeholder: '0912…', ok: 'بسپار' }); if (m) assign.mutate({ id: c.id, mobile: m }); }}>{c.instructor ? 'تغییر استاد' : 'سپردن به استاد'}</button><span className={`chip ${STATUS_CHIP[c.status]}`}>{c.statusFa}</span><Link to={`/pub/courses/${c.id}`} className="btn btn-secondary btn-sm">ویرایش</Link>{(c.status === 'DRAFT' || c.status === 'RETURNED') && <button className="btn btn-primary btn-sm" onClick={() => submitCourse.mutate(c.id)}>بفرست برای بازبینی</button>}</div>)}</div></section>
       )}
       {!!d.lives.length && (
         <section className="grid gap-3"><h2 className="text-lg font-extrabold">پخش‌های زنده</h2>
@@ -174,7 +175,7 @@ export function PubLibrary() {
   const lib = useQuery({ queryKey: ['v2', 'pub', 'library'], queryFn: () => api<{ courses: LibItem[]; paths: LibItem[]; lives: LibItem[] }>('/v2/pub/library') });
   if (lib.isLoading) return <Spinner />;
   const d = lib.data!;
-  const Row = ({ it }: { it: LibItem }) => <div className="flex items-center gap-3 px-4 py-3"><span className="min-w-0 flex-1"><b className="block text-ink">{it.title}</b><span className="text-sm text-muted">{it.mine ? 'ساختهٔ خودمان' : `از ${it.publisher?.name}`}{it.needsApproval ? '، استفاده با تأیید سازنده' : ''}</span></span></div>;
+  const Row = ({ it }: { it: LibItem }) => <div className="flex items-center gap-3 px-4 py-3"><span className="min-w-0 flex-1"><b className="block text-ink">{it.title}</b><span className="text-sm text-muted">{it.mine ? 'ساختهٔ خودمان' : `از ${it.publisher?.name ?? 'بنیاد هدایت'}`}{it.needsApproval ? '، استفاده با تأیید سازنده' : ''}</span></span></div>;
   return (
     <div className="grid gap-8">
       <header><h1 className="text-[clamp(24px,3vw,32px)] font-extrabold">کتابخانهٔ مشترک</h1><p className="mt-1 max-w-2xl text-muted">دوره‌ها و مسیرهای کوتاهی که برگزارکنندگان برای استفادهٔ دیگران باز گذاشته‌اند. در مسیرساز با «+ دوره» اضافه می‌شوند؛ نام سازنده همیشه کنار دوره می‌ماند و مسیر تو به نسخهٔ ثابت وصل است.</p></header>

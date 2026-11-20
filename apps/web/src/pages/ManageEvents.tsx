@@ -31,7 +31,7 @@ export function ManageEventList() {
         <ul className="grid gap-2">{q.data.map((e) => (
           <li key={e.id}><Link to={`${base}/${e.id}`} className="card flex flex-wrap items-center gap-4 p-4 no-underline hover:border-line-strong">
             <DateBadge d={e.startsAt} />
-            <div className="min-w-0 flex-1"><b className="block text-ink">{e.title}</b><span className="text-sm text-muted">{jDateTime(e.startsAt)} · {e.kind === 'ONLINE' ? 'آنلاین' : 'حضوری'}</span></div>
+            <div className="min-w-[55%] flex-1"><b className="block text-ink">{e.title}</b><span className="text-sm text-muted">{jDateTime(e.startsAt)} · {e.kind === 'ONLINE' ? 'آنلاین' : 'حضوری'}</span></div>
             <div className="flex flex-wrap gap-2 text-sm">
               <span className={`chip ${ST[e.status][0]}`}>{ST[e.status][1]}</span>
               <span className="chip">{fa(e.registered)}{e.capacity ? `/${fa(e.capacity)}` : ''} ثبت‌نام</span>

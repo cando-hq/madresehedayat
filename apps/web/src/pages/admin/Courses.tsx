@@ -38,7 +38,7 @@ export default function Courses() {
             <li key={c.id} className="border-b border-line last:border-0">
               <Link to={`/admin/courses/${c.id}`} className={`tint-${c.color} flex flex-wrap items-center gap-4 px-4 py-3 no-underline hover:bg-sunken`}>
                 <span className="cover grid size-11 shrink-0 place-items-center rounded-xl"><CourseIcon name={c.icon} className="size-5" /></span>
-                <span className="min-w-0 flex-1"><b className="block text-ink">{c.title}</b><span className="text-xs text-muted">{fa(c.lessonCount)} درس · ویرایش {ago(c.updatedAt)}{c.version > 1 ? ` · نسخهٔ ${fa(c.version)}` : ''}</span></span>
+                <span className="min-w-[55%] flex-1"><b className="block text-ink">{c.title}</b><span className="text-xs text-muted">{fa(c.lessonCount)} درس · ویرایش {ago(c.updatedAt)}{c.version > 1 ? ` · نسخهٔ ${fa(c.version)}` : ''}</span></span>
                 {c.isRestricted && <span className="chip chip-dome"><Lock className="size-3.5" />ویژهٔ مشترکان</span>}
                 <span className="tnum text-sm text-muted">{fa(c.learnerCount)} یادگیرنده · {fa(c.completedCount)} تکمیل</span>
                 <span className={STATUS_CHIP[c.status]}>{STATUS_LABEL[c.status]}</span>

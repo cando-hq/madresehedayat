@@ -128,6 +128,8 @@ export class LearningService {
   async courseDetail(key: string, userId?: string) {
     const c = await this.courseBySlugOrId(key);
     const granted = await this.grantedCourseIds(userId);
+    // ستاد دورهٔ ویژهٔ سازمان‌ها را هم می‌بیند (پیوند «دیدن در مدرسه» در ویرایشگر)
+    if (c.status === 'PUBLISHED' && c.isRestricted && userId && (await this.db.select({ r: roleGrants.role }).from(roleGrants).where(and(eq(roleGrants.userId, userId), inArray(roleGrants.role, ['HQ_ADMIN', 'HQ_OPERATOR']))).limit(1)).length) granted.add(c.id);
     if (!this.canSee(c, granted)) {
       if (c.status === 'PUBLISHED' && c.isRestricted) {
         const enr = userId ? await this.db.query.enrollments.findFirst({ where: and(eq(enrollments.userId, userId), eq(enrollments.courseId, c.id)) }) : undefined;

@@ -102,11 +102,11 @@ export function AdminBusiness() {
   return (
     <div className="rise">
       <PageHead title="اشتراک سازمان‌ها" desc="کنشگر هرگز پول نمی‌دهد. سازمان‌ها اشتراک سالانه به ازای هر نفر دارند؛ حامیان هزینهٔ دوره‌ها را می‌دهند و خدمات سفارشی جدا قیمت می‌خورد. قرارداد و پرداخت فعلاً بیرون از سامانه است و این‌جا ثبت می‌شود." />
-      <div className="mb-8"><BusinessKpi /></div>
       <nav className="seg mb-5" aria-label="بخش‌های مدل کسب‌وکار">
         {TABS.map((x) => <Link key={x.k} to={`/admin/business/${x.k}`} aria-current={tab === x.k ? 'page' : undefined}
           className={`flex h-[34px] shrink-0 items-center gap-1.5 rounded-[9px] px-3.5 text-sm font-semibold no-underline ${tab === x.k ? 'bg-card text-ink shadow-sm' : 'text-body'}`}><x.i className="size-4" />{x.t}</Link>)}
       </nav>
+      {tab === 'pricing' && <div className="mb-6"><BusinessKpi /></div>}
       {tab === 'subscriptions' && <Subscriptions />}
       {tab === 'invoices' && <Invoices />}
       {tab === 'sponsors' && <Sponsors />}

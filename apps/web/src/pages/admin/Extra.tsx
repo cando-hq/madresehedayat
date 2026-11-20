@@ -75,7 +75,7 @@ export function ToolsAdmin() {
           <thead className="bg-sunken text-xs text-muted"><tr>{['ابزار', 'کارها', 'پرشده', 'به اشتراک گذاشته', 'وضعیت', ''].map((h) => <th key={h} className="px-4 py-2.5 text-start font-bold">{h}</th>)}</tr></thead>
           <tbody>{rows.map((t) => (
             <tr key={t.id} className="border-t border-line">
-              <td className="px-4 py-2.5"><Link to={`/tools/t/${t.id}`} className="font-semibold text-ink">{t.title}</Link></td>
+              <td className="px-4 py-2.5">{t.published ? <Link to={`/tools/t/${t.id}`} className="font-semibold text-ink">{t.title}</Link> : <b className="font-semibold text-ink">{t.title}</b>}</td>
               <td className="tnum px-4 py-2.5">{fa(t.boards)}</td><td className="tnum px-4 py-2.5">{t.boards ? `٪${fa(Math.round((t.filled / t.boards) * 100))}` : '—'}</td><td className="tnum px-4 py-2.5">{fa(t.shared)}</td>
               <td className="px-4 py-2.5">{t.published ? <span className="chip chip-leaf">منتشرشده</span> : <span className="chip">منتظر بازبینی</span>}</td>
               <td className="px-4 py-2.5"><button className="btn btn-ghost btn-sm" onClick={() => toggle.mutate(t)}>{t.published ? 'برداشتن' : 'انتشار'}</button></td>

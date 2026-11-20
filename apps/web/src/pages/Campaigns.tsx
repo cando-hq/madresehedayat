@@ -214,7 +214,7 @@ export function ManageCampaigns() {
       {q.isLoading ? <Spinner /> : q.error ? <ErrorBox error={q.error} /> : q.data?.length ? (
         <ul className="grid gap-2">{q.data.map((c) => (
           <li key={c.id}><Link to={`${base}/${c.id}`} className="card flex flex-wrap items-center gap-3 p-4 no-underline hover:border-line-strong">
-            <div className="min-w-0 flex-1"><b className="block text-ink">{c.title}</b><span className="text-sm text-muted">{SCOPE(c)} · {jDate(c.startsAt)} تا {jDate(c.endsAt)}</span></div>
+            <div className="min-w-[60%] flex-1"><b className="block text-ink">{c.title}</b><span className="text-sm text-muted">{SCOPE(c)} · {jDate(c.startsAt)} تا {jDate(c.endsAt)}</span></div>
             <span className={`chip ${PHASE[c.phase][0]}`}>{PHASE[c.phase][1]}</span><span className="chip">{fa(c.members)} نفر</span><span className="chip chip-leaf">{fa(c.done)} کار{c.goal ? ` از ${fa(c.goal)}` : ''}</span>
           </Link></li>))}</ul>
       ) : <Empty icon={Flag} title="هنوز پویشی نساخته‌ای" />}

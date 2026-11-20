@@ -37,10 +37,12 @@ type MenuLink = { to: string; label: string; icon: typeof House; sub?: string };
 export function useManage() {
   const { me, has, isStaff } = useAuth();
   const leads = !!(me?.imamOf?.length || me?.cores?.some((c) => c.isLeader) || me?.orgs?.length);
+  // پویش را فقط راهیار استانی می‌سازد (نه راهیار شهرستان)؛ سرور می‌گوید برای کدام استان‌ها
+  const camp = useQuery({ queryKey: ['manage-campaign-options'], queryFn: () => api<{ provinces: unknown[] }>('/manage/campaigns/options'), enabled: has('RAHYAR') && !isStaff && !me?.orgs?.length, staleTime: 3600_000, retry: false });
   return {
     events: isStaff || has('RAHYAR', 'INSTRUCTOR') || leads,
     broadcast: isStaff || has('RAHYAR') || leads,
-    campaigns: isStaff || has('RAHYAR') || !!me?.orgs?.length,
+    campaigns: isStaff || !!me?.orgs?.length || !!camp.data?.provinces.length,
   };
 }
 

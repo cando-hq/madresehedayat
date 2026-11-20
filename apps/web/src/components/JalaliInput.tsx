@@ -33,7 +33,7 @@ export function JalaliInput({ id, value, onChange, withTime = true, optional, la
       </button>
     );
   }
-  const sel = 'input w-auto min-w-0 px-2';
+  const sel = 'input min-w-0 flex-1 basis-20 px-2';
   return (
     <div className="flex flex-wrap items-center gap-2" role="group" aria-label={label ?? 'تاریخ'}>
       <select id={id} className={sel} aria-label="روز" value={s.jd} onChange={(e) => emit({ ...s, jd: +e.target.value })}>
@@ -47,10 +47,10 @@ export function JalaliInput({ id, value, onChange, withTime = true, optional, la
       </select>
       {withTime && (
         <span className="flex items-center gap-1" dir="ltr">
-          <input className="input w-16 text-center" inputMode="numeric" aria-label="ساعت" value={fa(String(s.hh).padStart(2, '0'))}
+          <input className="input !w-16 text-center" inputMode="numeric" aria-label="ساعت" value={fa(String(s.hh).padStart(2, '0'))}
             onChange={(e) => { const h = Math.min(23, Math.max(0, +toEn(e.target.value).replace(/\D/g, '').slice(-2) || 0)); emit({ ...s, hh: h }); }} />
           <b>:</b>
-          <input className="input w-16 text-center" inputMode="numeric" aria-label="دقیقه" value={fa(String(s.mm).padStart(2, '0'))}
+          <input className="input !w-16 text-center" inputMode="numeric" aria-label="دقیقه" value={fa(String(s.mm).padStart(2, '0'))}
             onChange={(e) => { const m = Math.min(59, Math.max(0, +toEn(e.target.value).replace(/\D/g, '').slice(-2) || 0)); emit({ ...s, mm: m }); }} />
         </span>
       )}

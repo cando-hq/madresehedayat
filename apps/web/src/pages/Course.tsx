@@ -85,7 +85,7 @@ export default function Course() {
           {coreq.length > 0 && <p className="text-sm text-muted">هم‌نیاز: {coreq.map((d) => d.course.title).join('، ')} — هم‌زمان با این دوره ثبت‌نام می‌شود و گواهی پس از تمام شدن هر دو صادر می‌شود.</p>}
         </div>
         <aside className={`tint-${c.color} grid content-start gap-4`}>
-          <div className="cover grid h-44 place-items-center rounded-3xl"><CourseIcon name={c.icon} className="size-16" /></div>
+          <div className="cover hidden h-44 place-items-center rounded-3xl md:grid"><CourseIcon name={c.icon} className="size-16" /></div>
           {c.outcomes.length > 0 && (
             <div className="card p-5"><h2 className="text-base font-extrabold">پس از این دوره</h2>
               <ul className="mt-2 grid gap-2">{c.outcomes.map((o) => <li key={o} className="flex gap-2"><Check className="mt-1 size-4 shrink-0 text-leaf" /><span>{o}</span></li>)}</ul></div>

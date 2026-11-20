@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { ask } from '../../components/Confirm';
 import { ArrowDown, ArrowUp, Award, Check, KeyRound, Landmark, Plus, Route, ScrollText, Search, ShieldOff, Trash2, Users, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Dialog, Empty, ErrorBox, Spinner, useToast } from '../../components/ui';
@@ -68,7 +69,7 @@ function PathEditor({ p }: { p: APath }) {
       <div className="flex flex-wrap items-center gap-3">
         <input className="input h-10 min-w-0 flex-1 font-bold" value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} aria-label="نام مسیر" />
         <button className={`btn btn-sm ${p.published ? 'btn-secondary' : 'btn-primary'}`} onClick={() => api(`/admin/paths/${p.id}`, { method: 'PATCH', body: { published: !p.published } }).then(() => { inval(); toast(p.published ? 'از دید کنشگران برداشته شد' : 'مسیر منتشر شد'); })}>{p.published ? 'برداشتن از انتشار' : 'انتشار'}</button>
-        <button className="btn btn-ghost btn-icon btn-sm text-rose" aria-label="حذف مسیر" onClick={() => { if (window.confirm('این مسیر حذف شود؟ دوره‌ها حذف نمی‌شوند.')) api(`/admin/paths/${p.id}`, { method: 'DELETE' }).then(inval); }}><Trash2 className="size-4" /></button>
+        <button className="btn btn-ghost btn-icon btn-sm text-rose" aria-label="حذف مسیر" onClick={async () => { if (await ask({ title: 'این مسیر حذف شود؟', body: 'دوره‌های داخلش حذف نمی‌شوند.', ok: 'حذف کن', danger: true })) api(`/admin/paths/${p.id}`, { method: 'DELETE' }).then(inval); }}><Trash2 className="size-4" /></button>
       </div>
       <textarea className="input min-h-16" placeholder="توضیح کوتاه مسیر" value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} />
       <ol className="grid gap-2">{ids.map((id, i) => (
@@ -268,7 +269,7 @@ export function Certificates() {
             <tr key={c.id} className={`border-t border-line ${c.revokedAt ? 'opacity-55' : ''}`}>
               <td className="tnum px-4 py-2.5" dir="ltr">{c.code}</td><td className="px-4 py-2.5 font-semibold text-ink">{c.holderName}</td><td className="px-4 py-2.5">{c.courseTitle}</td>
               <td className="tnum px-4 py-2.5">{c.score != null ? fa(c.score) : '—'}</td><td className="px-4 py-2.5 text-muted">{jDate(c.issuedAt)}</td>
-              <td className="px-4 py-2.5">{has('HQ_ADMIN') && <button className="btn btn-ghost btn-sm" onClick={() => { if (c.revokedAt || window.confirm('این گواهی باطل شود؟')) api(`/admin/certificates/${c.code}/revoke`, { body: { revoke: !c.revokedAt } }).then(() => qc.invalidateQueries({ queryKey: ['admin-certs'] })); }}>{c.revokedAt ? 'بازگرداندن' : 'ابطال'}</button>}</td>
+              <td className="px-4 py-2.5">{has('HQ_ADMIN') && <button className="btn btn-ghost btn-sm" onClick={async () => { if (c.revokedAt || await ask({ title: 'این گواهی باطل شود؟', body: 'استعلام این شناسه از این پس «باطل‌شده» نشان می‌دهد. بعداً می‌شود برگرداند.', ok: 'باطل کن', danger: true })) api(`/admin/certificates/${c.code}/revoke`, { body: { revoke: !c.revokedAt } }).then(() => qc.invalidateQueries({ queryKey: ['admin-certs'] })); }}>{c.revokedAt ? 'بازگرداندن' : 'ابطال'}</button>}</td>
             </tr>
           ))}</tbody></table></div>
       ) : <Empty icon={Award} title="این شناسه با هیچ گواهی‌ای جور نیست" />}

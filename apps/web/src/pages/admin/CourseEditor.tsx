@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { ask } from '../../components/Confirm';
 import { ArrowDown, ArrowUp, Check, CircleAlert, Copy, Eye, GripVertical, Music, Pencil, Plus, Settings2, Trash2, Upload, Video, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router';
@@ -182,7 +183,7 @@ export default function CourseEditor() {
           <MetaForm c={c} save={(b) => patch.mutate(b)} saving={patch.isPending} />
           <SkillsEditor c={c} save={(skills) => patch.mutate({ skills })} saving={patch.isPending} />
           <Dependencies c={c} inval={inval} />
-          {!creator && <button className="btn btn-ghost btn-sm w-fit text-rose" onClick={() => { if (window.confirm('این دوره حذف شود؟')) del.mutate(); }}><Trash2 className="size-4" />حذف دوره</button>}
+          {!creator && <button className="btn btn-ghost btn-sm w-fit text-rose" onClick={async () => { if (await ask({ title: 'این دوره حذف شود؟', body: 'درس‌هایش هم پاک می‌شوند. دوره‌ای که یادگیرنده دارد پاک نمی‌شود؛ بایگانی‌اش کن.', ok: 'حذف کن', danger: true })) del.mutate(); }}><Trash2 className="size-4" />حذف دوره</button>}
         </div>}
       </Drawer>
 
@@ -215,8 +216,8 @@ function Cover({ c, lessons, totalSec, save }: { c: FullCourse; lessons: number;
   useEffect(() => { setTitle(c.title); setSub(c.subtitle ?? ''); }, [c.title, c.subtitle]);
   return (
     <section className="card flex flex-wrap items-stretch gap-5 p-5">
-      <div className={`tint-${c.color} cover grid h-36 w-28 shrink-0 place-items-end justify-center rounded-t-full rounded-b-2xl pb-5`} aria-hidden="true"><CourseIcon name={c.icon} className="size-10" /></div>
-      <div className="grid min-w-0 flex-1 content-center gap-2">
+      <div className={`tint-${c.color} cover hidden h-36 w-28 shrink-0 sm:grid place-items-end justify-center rounded-t-full rounded-b-2xl pb-5`} aria-hidden="true"><CourseIcon name={c.icon} className="size-10" /></div>
+      <div className="grid min-w-[220px] flex-1 content-center gap-2">
         <input className="-ms-2 rounded-xl border border-transparent bg-transparent px-2 text-[clamp(20px,2.4vw,26px)] font-extrabold text-ink hover:border-line focus:border-leaf-ink" aria-label="اسم دوره" value={title} maxLength={120}
           onChange={(e) => setTitle(e.target.value)} onBlur={() => { const t = title.trim(); if (t.length >= 3 && t !== c.title) save({ title: t }); else setTitle(c.title); }} />
         <span className="text-sm text-muted">{fa(lessons)} درس{totalSec ? ` · ${minutes(totalSec)}` : ''}{c.instructor ? ` · ${c.instructor}` : ''}</span>

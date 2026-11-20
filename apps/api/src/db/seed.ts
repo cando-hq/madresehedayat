@@ -5,7 +5,7 @@
  * اجرای دوباره بی‌خطر است (چیزی تکراری ساخته نمی‌شود).
  */
 import { drizzle } from 'drizzle-orm/node-postgres';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 import { Pool } from 'pg';
 import { config } from '../config';
 import * as s from './schema';
@@ -167,6 +167,12 @@ async function demo(db: ReturnType<typeof drizzle<typeof s>>) {
     const [p] = await db.insert(s.paths).values({ slug: 'nojavanan', title: 'همراهی نوجوانان مسجد', description: 'از اولین گفت‌وگو تا برنامه‌ای که خود نوجوان‌ها می‌سازند.', published: true, icon: 'users', color: 'green' }).returning();
     await db.insert(s.pathItems).values([{ pathId: p.id, courseId: nj1.id, order: 0 }, { pathId: p.id, courseId: nj2.id, order: 1 }]);
   }
+  // مسیر قدیمی در نصب تازه هم مثل مهاجرت 0012 مسیر میانه می‌شود؛ وگرنه پیوندهای /paths/nojavanan به «پیدا نشد» می‌رسند
+  await db.execute(sql`INSERT INTO "paths2" ("id","slug","title","size","publisher_id","audience","description","color","has_rahyar","status","steps")
+    SELECT p."id", p."slug", p."title", 'mid', 'pub-hedayat', '{}'::text[], p."description", CASE p."color" WHEN 'green' THEN '#0E9F5A' WHEN 'blue' THEN '#1E3A9E' ELSE '#F08C1A' END, true, CASE WHEN p."published" THEN 'PUBLISHED' ELSE 'DRAFT' END,
+      jsonb_build_array(jsonb_build_object('id','s1','title','دوره‌ها','rule',NULL,'items', COALESCE((SELECT jsonb_agg(jsonb_build_object('kind','course','refId',i."course_id") ORDER BY i."order") FROM "path_items" i WHERE i."path_id" = p."id"), '[]'::jsonb)))
+    FROM "paths" p ON CONFLICT DO NOTHING`);
+  await db.execute(sql`UPDATE "courses" SET "publisher_id" = 'pub-hedayat' WHERE "publisher_id" IS NULL`); // مثل مهاجرت 0012
   console.log('دادهٔ نمونه آماده است');
 }
 

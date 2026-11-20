@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { ask } from '../components/Confirm';
 import {
   CalendarCheck, Check, CloudCheck, Download, Eye, Globe, Handshake, History, ImageDown, Lightbulb, Link2, LoaderCircle, MessageSquare,
   Pencil, Plus, RotateCcw, Scale, Search, SearchCheck, Share2, Sparkles, Trash2, UserPlus, Users, Wrench, X, type LucideIcon,
@@ -185,7 +186,7 @@ export function BoardEditor({ id, embedded }: { id: string; embedded?: boolean }
       <div ref={node} className="bg-bg"><Board tool={t} data={data} onChange={change} readOnly={ro} /></div>
       {boardCount(data) === 0 && !ro && <p className="hint">از هر خانه شروع کن؛ هر تغییر خودکار ذخیره می‌شود.</p>}
       {(b.members.length > 0 || b.comments.length > 0 || b.role !== 'OWNER') && <Comments b={b} onDone={() => qc.invalidateQueries({ queryKey: ['board', id] })} />}
-      {b.role === 'OWNER' && !embedded && <button className="btn btn-ghost btn-sm w-fit text-rose" onClick={async () => { if (window.confirm('این کار پاک شود؟')) { await api(`/boards/${id}`, { method: 'DELETE' }); qc.invalidateQueries({ queryKey: ['boards'] }); nav('/tools'); } }}><Trash2 className="size-4" />پاک کردن کار</button>}
+      {b.role === 'OWNER' && !embedded && <button className="btn btn-ghost btn-sm w-fit text-rose" onClick={async () => { if (await ask({ title: 'این کار پاک شود؟', body: 'هم‌کاران و پیوند عمومی‌اش هم دیگر به آن دسترسی ندارند.', ok: 'پاک کن', danger: true })) { await api(`/boards/${id}`, { method: 'DELETE' }); qc.invalidateQueries({ queryKey: ['boards'] }); nav('/tools'); } }}><Trash2 className="size-4" />پاک کردن کار</button>}
       {dlg === 'share' && <ShareDialog b={b} onClose={() => { setDlg(null); qc.invalidateQueries({ queryKey: ['board', id] }); }} />}
       {dlg === 'versions' && <VersionsDialog id={id} onClose={() => { setDlg(null); qc.invalidateQueries({ queryKey: ['board', id] }); }} />}
       {dlg === 'export' && <ExportDialog title={title || b.title} tool={t} node={node} onClose={() => setDlg(null)} />}

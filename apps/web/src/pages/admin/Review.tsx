@@ -2,6 +2,7 @@
  * ستاد: صف بازبینی (مسیر، دوره، پخش زنده، برگزارکنندهٔ تازه) و فهرست برگزارکنندگان.
  * ستاد بازبین است، نه سازنده: هر چیزی یک بار پیش از انتشار این‌جا دیده می‌شود.
  */
+import { ask } from '../../components/Confirm';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Building2, CheckCircle2, Eye, MessageSquare, Trash2 } from 'lucide-react';
 import { useState } from 'react';
@@ -33,7 +34,7 @@ export function ReviewQueue() {
   return (
     <div className="grid gap-6">
       <header><h1 className="text-2xl font-extrabold">صف بازبینی</h1><p className="mt-1 text-muted">هر مسیر، دوره و پخش زنده پیش از انتشار یک بار این‌جا دیده می‌شود. ستاد بازبین است، نه سازنده.</p></header>
-      <div className="grid gap-3 sm:grid-cols-3">{[['در صف بازبینی', d.stats.queue], ['برگزارکنندهٔ فعال', d.stats.publishers], ['گام رشد تأییدشده، این فصل', d.stats.growthThisSeason]].map(([t, v]) => <div key={t as string} className="stat card p-4"><span className="text-sm text-muted">{t}</span><b className="n block">{fa(v as number)}</b></div>)}</div>
+      <div className="grid grid-cols-3 gap-2 sm:gap-3">{[['در صف', d.stats.queue], ['برگزارکنندهٔ فعال', d.stats.publishers], ['گام رشد این فصل', d.stats.growthThisSeason]].map(([t, v]) => <div key={t as string} className="stat card p-3 sm:p-4"><span className="text-sm text-muted">{t}</span><b className="n block">{fa(v as number)}</b></div>)}</div>
       {!d.items.length ? <Empty icon={CheckCircle2} title="هیچ موردی منتظر نیست">هر چه برسد، همین‌جا می‌آید.</Empty> : (
         <div className="grid gap-4 lg:grid-cols-[340px_1fr]">
           <div className="card grid gap-1 p-2">{d.items.map((it, i) => <button key={it.kind + it.id} type="button" aria-pressed={i === sel} onClick={() => { setSel(i); setTicks({}); setNote(''); setNotes({}); }} className={`grid gap-1 rounded-xl px-3 py-2.5 text-start ${i === sel ? 'bg-deep-soft' : 'hover:bg-sunken'}`}><span className="flex items-center gap-2"><span className={`chip ${KC[it.kind]}`}>{it.kindFa}</span><span className="text-xs text-muted">{it.publisher?.name ?? ''}</span><span className="ms-auto text-xs text-muted">{jShort(it.submittedAt)}</span></span><b className="text-sm text-ink">{it.title}</b></button>)}</div>
@@ -106,7 +107,7 @@ export function Publishers() {
           <div className="flex items-center gap-3"><span className="grid size-10 place-items-center rounded-xl text-white" style={{ background: p.color }}><Building2 className="size-5" /></span><span className="min-w-0"><b className="block text-ink">{p.name}</b><span className="text-sm text-muted">{p.kind}، معرف: {p.referrer}، {fa(p.paths)} مسیر، {fa(p.courses)} دوره، {fa(p.learners)} کنشگر{p.admins.length ? `، مدیر: ${p.admins.join('، ')}` : '، بی مدیر'}</span></span></div>
           <div className="flex flex-wrap items-center gap-2"><span className={`chip ${c}`}>{t}</span>
             {p.status === 'PENDING' && <button className="btn btn-primary btn-sm" onClick={() => patch.mutate({ id: p.id, status: 'ACTIVE' })}>بپذیر</button>}
-            {p.status === 'ACTIVE' && <button className="btn btn-ghost btn-sm text-rose" onClick={() => { const note = prompt('دلیل مسدود کردن (اجباری):'); if (note?.trim()) patch.mutate({ id: p.id, status: 'BLOCKED', note }); }}>مسدود کن</button>}
+            {p.status === 'ACTIVE' && <button className="btn btn-ghost btn-sm text-rose" onClick={async () => { const note = await ask({ title: `مسدود کردن «${p.name}»`, body: 'محتوای منتشرشده‌اش می‌ماند و کنشگرانِ در حرکت ادامه می‌دهند؛ چیز تازه‌ای منتشر نمی‌کند. دلیل را برگزارکننده می‌بیند.', input: true, required: true, label: 'دلیل', ok: 'مسدود کن', danger: true }); if (note) patch.mutate({ id: p.id, status: 'BLOCKED', note }); }}>مسدود کن</button>}
             {p.status === 'BLOCKED' && <button className="btn btn-ghost btn-sm" onClick={() => patch.mutate({ id: p.id, status: 'ACTIVE' })}>باز کن</button>}
             <button className="btn btn-secondary btn-sm" onClick={() => setAdmin({ id: p.id, mobile: '' })}>مدیر با شماره</button></div>
           {admin?.id === p.id && <form className="flex gap-2 md:col-span-2" onSubmit={(e) => { e.preventDefault(); patch.mutate({ id: p.id, adminMobile: admin.mobile }); }}><input className="input h-10 max-w-xs" dir="ltr" placeholder="0912…" value={admin.mobile} onChange={(e) => setAdmin({ ...admin, mobile: e.target.value })} /><button className="btn btn-primary btn-sm">افزودن مدیر</button><button type="button" className="btn btn-ghost btn-sm" onClick={() => setAdmin(null)}>برگرد</button></form>}

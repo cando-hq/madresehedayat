@@ -174,6 +174,7 @@ function Picker({ all, onPick }: { all: LibItem[]; onPick: (it: LibItem) => void
 export function PubLibrary() {
   const lib = useQuery({ queryKey: ['v2', 'pub', 'library'], queryFn: () => api<{ courses: LibItem[]; paths: LibItem[]; lives: LibItem[] }>('/v2/pub/library') });
   if (lib.isLoading) return <Spinner />;
+  if (lib.error || !lib.data) return <ErrorBox error={lib.error} onRetry={() => lib.refetch()} />;
   const d = lib.data!;
   const Row = ({ it }: { it: LibItem }) => <div className="flex items-center gap-3 px-4 py-3"><span className="min-w-0 flex-1"><b className="block text-ink">{it.title}</b><span className="text-sm text-muted">{it.mine ? 'ساختهٔ خودمان' : `از ${it.publisher?.name ?? 'بنیاد هدایت'}`}{it.needsApproval ? '، استفاده با تأیید سازنده' : ''}</span></span></div>;
   return (
@@ -194,6 +195,7 @@ export function PubRahyars() {
   const [mobile, setMobile] = useState(''); const [pathId, setPathId] = useState('');
   const invite = useMutation({ mutationFn: () => api('/v2/pub/rahyars', { body: { mobile, pathId } }), onSuccess: () => { qc.invalidateQueries({ queryKey: ['v2', 'pub', 'rahyars'] }); setMobile(''); toast('دعوت رفت؛ با همین شماره وارد می‌شود'); } });
   if (q.isLoading) return <Spinner />;
+  if (q.error || !q.data) return <ErrorBox error={q.error} onRetry={() => q.refetch()} />;
   const d = q.data!;
   return (
     <div className="grid gap-8">
@@ -213,6 +215,7 @@ export function PubRahyars() {
 export function PubImpact() {
   const q = useQuery({ queryKey: ['v2', 'pub', 'impact'], queryFn: () => api<{ rows: { id: string; title: string; sizeFa: string; enrolled: number; active: number; growth: number; dropped: number; rahyar: string | null }[]; others: { title: string; paths: { title: string; publisher: string }[] }[]; totals: { enrolled: number; active: number; growth: number } }>('/v2/pub/impact') });
   if (q.isLoading) return <Spinner />;
+  if (q.error || !q.data) return <ErrorBox error={q.error} onRetry={() => q.refetch()} />;
   const d = q.data!;
   return (
     <div className="grid gap-8">

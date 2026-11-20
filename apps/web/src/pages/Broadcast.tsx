@@ -3,7 +3,7 @@ import { ManageTabs } from '../components/ManageTabs';
 import { Check, Megaphone, Send, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
-import { Empty, Spinner, useToast } from '../components/ui';
+import { Empty, Spinner, useToast, ErrorBox } from '../components/ui';
 import { api } from '../lib/api';
 import { ago, fa } from '../lib/fa';
 
@@ -36,6 +36,7 @@ export function BroadcastPage() {
     onError: (e) => toast((e as Error).message, 'err'),
   });
   if (o.isLoading) return <Spinner />;
+  if (o.error || !o.data) return <ErrorBox error={o.error} onRetry={() => o.refetch()} />;
   const opts = o.data!;
   const hqKinds: [string, string][] = opts.hq ? [['PROVINCE', 'استان'], ['COUNTY', 'شهرستان'], ['NETWORK', 'شبکه یا سازمان'], ['ROLE', 'نقش'], ['COURSE', 'یادگیرندگان یک دوره']] : [];
   if (!opts.options.length && !opts.hq) return <Empty icon={Megaphone} title="هنوز گروهی نداری">پیام گروهی برای راهیار، امام محله و مسئول هسته است.</Empty>;

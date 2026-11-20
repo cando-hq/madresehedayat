@@ -8,7 +8,7 @@ import { useState } from 'react';
 import { Link } from 'react-router';
 import { CourseCard } from '../components/CourseCard';
 import { PathCard, PubName, ROLE_FA, Section, Toranj, pathStateText } from '../components/Path2';
-import { Empty, Spinner, useToast } from '../components/ui';
+import { Empty, Spinner, useToast, ErrorBox } from '../components/ui';
 import { api } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import { fa, jDate } from '../lib/fa';
@@ -30,6 +30,7 @@ export default function Me() {
     onSuccess: (_r, v) => { qc.invalidateQueries({ queryKey: ['my-courses'] }); toast(v.archived ? 'دوره کنار گذاشته شد؛ پیشرفتش می‌ماند' : 'دوره برگشت'); },
   });
   if (k.isLoading || mine.isLoading) return <Spinner />;
+  if (k.error || !k.data) return <ErrorBox error={k.error} onRetry={() => k.refetch()} />;
   const d = k.data!;
   const all = mine.data ?? [];
   const lists: Record<Tab, C[]> = { active: all.filter((c) => !c.me?.completedAt && !c.me?.archived), done: all.filter((c) => c.me?.completedAt), archived: all.filter((c) => !c.me?.completedAt && c.me?.archived) };

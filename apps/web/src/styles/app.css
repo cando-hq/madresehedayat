@@ -312,7 +312,7 @@ a.card:hover, .card.is-link:hover { border-color: var(--line-strong); transform:
 .page { animation: page-in 360ms var(--ease-out) both; }
 .pop { animation: pop-in var(--dur-base) var(--ease-out) both; transform-origin: top left; }
 .skip-link { position: fixed; inset-inline-start: 12px; top: -60px; z-index: 60; padding: 10px 16px; border-radius: var(--radius-lg); background: var(--ink); color: var(--bg); font-weight: 700; text-decoration: none; transition: top var(--dur-base) var(--ease-out); }
-.skip-link:focus { top: 12px; }
+.skip-link:focus-visible { top: 12px; }
 
 /* نوار بارگذاری بالای صفحه */
 .top-loader { position: fixed; inset-inline: 0; top: 0; z-index: 70; height: 2px; background: var(--leaf); transform: scaleX(0); transform-origin: right center; opacity: 0; pointer-events: none; }

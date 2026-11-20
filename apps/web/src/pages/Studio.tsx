@@ -79,6 +79,7 @@ export function StudioCourses() {
 export function StudioQuestions() {
   const d = useStudio();
   if (d.isLoading) return <Spinner />;
+  if (d.error || !d.data) return <ErrorBox error={d.error} onRetry={() => d.refetch()} />;
   const qs = d.data!.questions;
   return (
     <div className="grid gap-6">
@@ -92,6 +93,7 @@ export function StudioQuestions() {
 export function StudioLives() {
   const d = useStudio();
   if (d.isLoading) return <Spinner />;
+  if (d.error || !d.data) return <ErrorBox error={d.error} onRetry={() => d.refetch()} />;
   const ls = d.data!.lives;
   return (
     <div className="grid gap-6">
@@ -105,6 +107,7 @@ export function StudioLives() {
 export function StudioAnalytics() {
   const d = useStudio();
   if (d.isLoading) return <Spinner />;
+  if (d.error || !d.data) return <ErrorBox error={d.error} onRetry={() => d.refetch()} />;
   const rows = d.data!.analytics;
   return (
     <div className="grid gap-6">

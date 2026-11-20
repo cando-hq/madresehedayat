@@ -244,8 +244,8 @@ export function CampaignEditor() {
     onError: (e) => toast((e as Error).message, 'err'),
   });
   if (opts.error) return <ErrorBox error={opts.error} />;
-  if (!f) return <Spinner />;
-  const o = opts.data!;
+  if (!f || !opts.data) return <Spinner />; // در ویرایش، پویش ممکن است زودتر از گزینه‌ها برسد
+  const o = opts.data;
   const set = (k: string) => (e: { target: { value: string } }) => setF({ ...f, [k]: e.target.value });
   const mvTask = (i: number, d: number) => { const ts = [...f.tasks]; const j = i + d; if (j < 0 || j >= ts.length) return; [ts[i], ts[j]] = [ts[j], ts[i]]; setF({ ...f, tasks: ts }); };
   const scopes = [...(o.national ? [['NATIONAL', 'کشوری']] : []), ...(o.provinces.length ? [['PROVINCE', 'استانی']] : []), ...(o.orgs.length ? [['ORG', 'ویژهٔ اعضای سازمان']] : [])];

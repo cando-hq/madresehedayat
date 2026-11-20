@@ -7,7 +7,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Building2, CheckCircle2, Eye, MessageSquare, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router';
-import { Empty, LESSON_ICON, Spinner, useToast } from '../../components/ui';
+import { Empty, LESSON_ICON, Spinner, useToast, ErrorBox } from '../../components/ui';
 import { CoursePreview, type PCourse } from '../../components/CoursePreview';
 import { LESSON_LABEL, minutes } from '../../lib/fa';
 import { api } from '../../lib/api';
@@ -29,6 +29,7 @@ export function ReviewQueue() {
     onSuccess: (_r, v) => { qc.invalidateQueries({ queryKey: ['v2'] }); setNote(''); setTicks({}); setNotes({}); setSel(0); toast(v.action === 'publish' ? 'منتشر شد' : 'برگشت با دلیل'); },
   });
   if (q.isLoading) return <Spinner />;
+  if (q.error || !q.data) return <ErrorBox error={q.error} onRetry={() => q.refetch()} />;
   const d = q.data!;
   const cur = d.items[Math.min(sel, d.items.length - 1)];
   return (

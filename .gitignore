@@ -10,3 +10,4 @@ tests/ui/out/
 __pycache__/
 .web-out/
 tests/audit/out/
+.auto-update/

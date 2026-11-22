@@ -883,6 +883,7 @@ export const publishers = pgTable('publishers', {
   status: text('status').notNull().default('PENDING'), // PENDING | ACTIVE | BLOCKED | REJECTED
   kind: text('kind'),
   referrer: text('referrer'),
+  about: text('about'), // معرفی کوتاه برگزارکننده (۱.۷)
   note: text('note'),
   createdAt: createdAt(),
 });
@@ -891,7 +892,7 @@ export const pendingInvites = pgTable('pending_invites', {
   id: id(),
   mobile: text('mobile').notNull(), // نمایهٔ کور شماره
   mobileEnc: text('mobile_enc').notNull(),
-  kind: text('kind').notNull(), // PUBLISHER_ADMIN
+  kind: text('kind').notNull(), // PUBLISHER_ADMIN | COURSE_INSTRUCTOR
   targetId: text('target_id').notNull(),
   createdBy: text('created_by'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),

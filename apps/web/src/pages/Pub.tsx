@@ -5,7 +5,8 @@
 import { ask } from '../components/Confirm';
 import { ScrollManager } from '../components/ScrollManager';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { BookOpen, ChevronLeft, Compass, Library, Plus, Radio, Route, Trash2, TrendingUp } from 'lucide-react';
+import { BookOpen, ChevronLeft, Compass, Library, Plus, Radio, Route, Trash2, TrendingUp, Users } from 'lucide-react';
+import { ColorPick, PubBadge, TeamCard, type Invite, type TeamMember } from './admin/Publishers';
 import { useEffect, useState, Suspense } from 'react';
 import { Link, NavLink, Outlet, useNavigate, useParams } from 'react-router';
 import { Brand } from '../components/Shell';
@@ -22,6 +23,7 @@ const NAV = [
   { to: '/pub/library', label: 'کتابخانهٔ مشترک', icon: Library },
   { to: '/pub/rahyars', label: 'راهیاران', icon: Compass },
   { to: '/pub/impact', label: 'گزارش اثر', icon: TrendingUp },
+  { to: '/pub/team', label: 'تیم و معرفی', icon: Users },
 ];
 const STATUS_CHIP: Record<string, string> = { DRAFT: '', IN_REVIEW: 'chip-flame', PUBLISHED: 'chip-leaf', RETURNED: 'chip-rose', ARCHIVED: '' };
 
@@ -45,7 +47,7 @@ export function PubShell() {
 interface PubData {
   publisher: { id: string; name: string; color: string; status: string };
   paths: { id: string; slug: string; title: string; size: PathSize; sizeFa: string; status: string; statusFa: string; returnNote: string | null; enrolled: number; steps: number; hasRahyar: boolean; rahyar: { name: string } | null; submittedAt: string | null }[];
-  courses: { id: string; slug: string; title: string; status: string; statusFa: string; lessonCount: number; learners: number; libraryShare: string; version: number; usedIn: string[]; instructor?: string | null }[];
+  courses: { id: string; slug: string; title: string; status: string; statusFa: string; lessonCount: number; learners: number; libraryShare: string; version: number; usedIn: string[]; instructor?: string | null; instructorPending?: string | null }[];
   lives: { id: string; title: string; startsAt: string; status: string; statusFa: string; registered: number }[];
   stats: { enrolled: number; growth: number; inReview: number };
 }
@@ -58,7 +60,7 @@ export function PubHome() {
   const [newCourse, setNewCourse] = useState<string | null>(null);
   const create = useMutation({ mutationFn: (title: string) => api<{ id: string }>('/v2/pub/courses', { body: { title } }), onSuccess: (c) => { qc.invalidateQueries({ queryKey: ['v2', 'pub'] }); nav(`/pub/courses/${c.id}`); } });
   const submitCourse = useMutation({ mutationFn: (id: string) => api(`/v2/pub/courses/${id}/submit`, { method: 'POST', body: {} }), onSuccess: () => { qc.invalidateQueries({ queryKey: ['v2', 'pub'] }); toast('رفت برای بازبینی؛ ستاد تا دو روز کاری پاسخ می‌دهد'); } });
-  const assign = useMutation({ mutationFn: ({ id, mobile }: { id: string; mobile: string }) => api(`/v2/pub/courses/${id}/instructor`, { body: { mobile } }), onSuccess: () => { qc.invalidateQueries({ queryKey: ['v2', 'pub'] }); toast('دوره به استودیوی استاد سپرده شد'); } });
+  const assign = useMutation({ mutationFn: ({ id, mobile }: { id: string; mobile: string }) => api<{ pending?: boolean }>(`/v2/pub/courses/${id}/instructor`, { body: { mobile } }), onSuccess: (r) => { qc.invalidateQueries({ queryKey: ['v2', 'pub'] }); toast(r?.pending ? 'این شماره هنوز در مدرسه حساب ندارد. همین که با آن وارد شود، دوره در استودیوی او است.' : 'دوره به استودیوی استاد سپرده شد'); }, onError: (e) => toast(errorText(e)) });
   if (q.isLoading) return <Spinner />;
   if (q.error) return <ErrorBox error={q.error} onRetry={() => q.refetch()} />;
   const d = q.data!;
@@ -81,7 +83,7 @@ export function PubHome() {
       )}
       {!!d.courses.length && (
         <section className="grid gap-3"><h2 className="text-lg font-extrabold">دوره‌ها</h2>
-          <div className="card divide-y divide-line">{d.courses.map((c) => <div key={c.id} className="flex flex-wrap items-center gap-2 px-4 py-3 sm:gap-3"><span className="min-w-0 basis-full sm:flex-1 sm:basis-0"><b className="block text-ink">{c.title}</b><span className="text-sm text-muted">{fa(c.lessonCount)} درس، {fa(c.learners)} کنشگر، نسخهٔ {fa(c.version)}{c.instructor ? `، استاد: ${c.instructor}` : ''}{c.usedIn.length ? `، در مسیر دیگران: ${c.usedIn.join('، ')}` : ''}</span></span><button className="btn btn-ghost btn-sm" onClick={async () => { const m = await ask({ title: c.instructor ? 'تغییر استاد دوره' : 'سپردن دوره به استاد', body: 'استاد با همین شماره وارد می‌شود و دوره را در «دوره‌های من» می‌بیند.', input: true, required: true, label: 'شمارهٔ موبایل استاد', placeholder: '0912…', ok: 'بسپار' }); if (m) assign.mutate({ id: c.id, mobile: m }); }}>{c.instructor ? 'تغییر استاد' : 'سپردن به استاد'}</button><span className={`chip ${STATUS_CHIP[c.status]}`}>{c.statusFa}</span><Link to={`/pub/courses/${c.id}`} className="btn btn-secondary btn-sm">ویرایش</Link>{(c.status === 'DRAFT' || c.status === 'RETURNED') && <button className="btn btn-primary btn-sm" onClick={() => submitCourse.mutate(c.id)}>بفرست برای بازبینی</button>}</div>)}</div></section>
+          <div className="card divide-y divide-line">{d.courses.map((c) => <div key={c.id} className="flex flex-wrap items-center gap-2 px-4 py-3 sm:gap-3"><span className="min-w-0 basis-full sm:flex-1 sm:basis-0"><b className="block text-ink">{c.title}</b><span className="text-sm text-muted">{fa(c.lessonCount)} درس، {fa(c.learners)} کنشگر، نسخهٔ {fa(c.version)}{c.instructor ? `، استاد: ${c.instructor}` : c.instructorPending ? `، استاد: ${c.instructorPending} (منتظر اولین ورود)` : ''}{c.usedIn.length ? `، در مسیر دیگران: ${c.usedIn.join('، ')}` : ''}</span></span><button className="btn btn-ghost btn-sm" onClick={async () => { const m = await ask({ title: c.instructor ? 'تغییر استاد دوره' : 'سپردن دوره به استاد', body: 'استاد با همین شماره وارد می‌شود و فقط همین دوره را در «استودیو» می‌بیند و بارگذاری می‌کند. اگر هنوز حساب ندارد، با اولین ورود دوره به او می‌رسد.', input: true, required: true, label: 'شمارهٔ موبایل استاد', placeholder: '0912…', ok: 'بسپار' }); if (m) assign.mutate({ id: c.id, mobile: m }); }}>{c.instructor ? 'تغییر استاد' : 'سپردن به استاد'}</button><span className={`chip ${STATUS_CHIP[c.status]}`}>{c.statusFa}</span><Link to={`/pub/courses/${c.id}`} className="btn btn-secondary btn-sm">ویرایش</Link>{(c.status === 'DRAFT' || c.status === 'RETURNED') && <button className="btn btn-primary btn-sm" onClick={() => submitCourse.mutate(c.id)}>بفرست برای بازبینی</button>}</div>)}</div></section>
       )}
       {!!d.lives.length && (
         <section className="grid gap-3"><h2 className="text-lg font-extrabold">پخش‌های زنده</h2>
@@ -227,3 +229,44 @@ export function PubImpact() {
   );
 }
 
+
+/* ───────── تیم و معرفی ───────── */
+interface TeamData { publisher: { id: string; name: string; color: string; kind: string | null; about: string | null; status: string; statusFa: string }; me: string; admins: TeamMember[]; pending: Invite[] }
+export function PubTeam() {
+  const qc = useQueryClient();
+  const toast = useToast();
+  const q = useQuery({ queryKey: ['v2', 'pub', 'team'], queryFn: () => api<TeamData>('/v2/pub/team') });
+  const refresh = () => qc.invalidateQueries({ queryKey: ['v2', 'pub', 'team'] });
+  const remove = useMutation({ mutationFn: (uid: string) => api(`/v2/pub/team/${uid}`, { method: 'DELETE' }), onSuccess: () => { refresh(); toast('از تیم برداشته شد'); }, onError: (e) => toast(errorText(e)) });
+  const cancel = useMutation({ mutationFn: (id: string) => api(`/v2/pub/invites/${id}`, { method: 'DELETE' }), onSuccess: () => { refresh(); toast('دعوت برداشته شد'); } });
+  const [prof, setProf] = useState<{ about: string; color: string } | null>(null);
+  const save = useMutation({ mutationFn: (b: { about: string; color: string }) => api('/v2/pub/profile', { method: 'PATCH', body: b }), onSuccess: () => { refresh(); qc.invalidateQueries({ queryKey: ['me'] }); setProf(null); toast('ذخیره شد'); }, onError: (e) => toast(errorText(e)) });
+  if (q.isLoading) return <Spinner />;
+  if (q.error) return <ErrorBox error={q.error} onRetry={() => q.refetch()} />;
+  const d = q.data!; const p = d.publisher;
+  const add = async (mobile: string) => { const r = await api<{ pending: boolean }>('/v2/pub/team', { body: { mobile } }); refresh(); toast(r.pending ? 'این شماره هنوز حساب ندارد؛ با اولین ورود به تیم اضافه می‌شود' : 'به تیم اضافه شد'); };
+  return (
+    <div className="grid gap-6">
+      <header><h1 className="text-[clamp(24px,3vw,32px)] font-extrabold">تیم و معرفی</h1><p className="mt-1 max-w-2xl text-muted">اعضای تیمی که پنل {p.name} را اداره می‌کنند، و معرفی کوتاه شما.</p></header>
+      <section className="card flex flex-wrap items-start gap-4 p-5" aria-label="معرفی">
+        <PubBadge name={p.name} color={p.color} size="lg" />
+        <div className="min-w-0 flex-1"><b className="text-lg text-ink">{p.name}</b><p className="text-sm text-muted">{p.kind ?? 'برگزارکننده'}، {p.statusFa}</p>
+          {prof ? (
+            <form className="mt-3 grid gap-3" onSubmit={(e) => { e.preventDefault(); save.mutate(prof); }}>
+              <label className="field"><span>معرفی کوتاه</span><textarea className="input min-h-24 py-2" maxLength={600} value={prof.about} onChange={(e) => setProf({ ...prof, about: e.target.value })} placeholder="چه کسانی هستید و در مدرسه چه می‌سازید." autoFocus /></label>
+              <ColorPick value={prof.color} onChange={(color) => setProf({ ...prof, color })} />
+              <div className="flex gap-2"><button className="btn btn-primary btn-sm" disabled={save.isPending}>ذخیره</button><button type="button" className="btn btn-ghost btn-sm" onClick={() => setProf(null)}>برگرد</button></div>
+            </form>
+          ) : (
+            <><p className={`mt-2 max-w-2xl ${p.about ? 'text-body' : 'text-muted'}`}>{p.about || 'هنوز معرفی ننوشته‌اید.'}</p><button className="btn btn-secondary btn-sm mt-3" onClick={() => setProf({ about: p.about ?? '', color: p.color })}>{p.about ? 'ویرایش معرفی' : 'نوشتن معرفی'}</button></>
+          )}
+          <p className="mt-3 text-sm text-muted">نام و نوع را ستاد عوض می‌کند؛ اگر لازم است از <Link to="/help" className="font-bold text-leaf-ink">پشتیبانی</Link> بخواهید.</p>
+        </div>
+      </section>
+      <TeamCard admins={d.admins} pending={d.pending} me={d.me} busy={remove.isPending || cancel.isPending} onAdd={add}
+        intro="هر عضو تیم همهٔ پنل را دارد: ساختن مسیر و دوره، بارگذاری و فرستادن برای بازبینی. برای کسی که فقط روی یک دوره کار می‌کند، در «محتوای ما» آن دوره را به او بسپار."
+        onRemove={async (m) => { const self = m.id === d.me; if (await ask({ title: self ? 'خروج از تیم' : `برداشتن ${m.name}`, body: self ? 'دیگر به این پنل دسترسی نداری. برای برگشتن، یکی از اعضای تیم باید دوباره اضافه‌ات کند.' : 'دیگر به این پنل دسترسی ندارد. کارهایی که ساخته سر جایش می‌ماند.', ok: self ? 'خارج می‌شوم' : 'بردار', danger: true })) remove.mutate(m.id, { onSuccess: () => { if (self) { qc.invalidateQueries({ queryKey: ['me'] }); } } }); }}
+        onCancel={(i) => cancel.mutate(i.id)} />
+    </div>
+  );
+}

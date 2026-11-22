@@ -1,6 +1,6 @@
 import { eq, inArray } from 'drizzle-orm';
 import type { Db } from '../db/db.module';
-import { pendingInvites, publisherAdmins, roleGrants, userMobiles, users } from '../db/schema';
+import { courses, pendingInvites, publisherAdmins, roleGrants, userMobiles, users } from '../db/schema';
 import { mobileKey } from '../common/crypto';
 
 /**
@@ -36,6 +36,10 @@ export async function applyPendingInvites(db: Db, userId: string, mobile: string
     if (r.kind === 'PUBLISHER_ADMIN') {
       await db.insert(publisherAdmins).values({ publisherId: r.targetId, userId }).onConflictDoNothing();
       await db.insert(roleGrants).values({ userId, role: 'ORG_ADMIN', networkId: null } as any).onConflictDoNothing();
+    } else if (r.kind === 'COURSE_INSTRUCTOR') {
+      const [u] = await db.select({ f: users.firstName, l: users.lastName }).from(users).where(eq(users.id, userId)).limit(1);
+      await db.insert(roleGrants).values({ userId, role: 'INSTRUCTOR' } as any).onConflictDoNothing();
+      await db.update(courses).set({ instructorId: userId, instructor: u ? `${u.f} ${u.l}` : null } as any).where(eq(courses.id, r.targetId));
     }
     await db.delete(pendingInvites).where(eq(pendingInvites.id, r.id));
   }

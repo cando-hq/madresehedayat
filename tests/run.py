@@ -12,7 +12,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 args = [a for a in sys.argv[1:] if not a.startswith('--')]
 ui = '--ui' in sys.argv
 files = sorted(glob.glob(os.path.join(HERE, 'api', '*.py')))
-if ui: files += [os.path.join(HERE, 'ui', f) for f in ('business.py', 'feedback.py', 'campaigns.py', 'live.py', 'flows.py', 'errors.py')]
+if ui: files += [os.path.join(HERE, 'ui', f) for f in ('business.py', 'feedback.py', 'campaigns.py', 'live.py', 'flows.py', 'publishers.py', 'errors.py')]
 if args: files = [f for f in files if any(a in os.path.basename(f) for a in args)]
 
 # سرور ساختگی BigBlueButton برای آزمون کلاس زنده

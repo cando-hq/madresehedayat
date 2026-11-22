@@ -1,10 +1,9 @@
 /*
- * ستاد: صف بازبینی (مسیر، دوره، پخش زنده، برگزارکنندهٔ تازه) و فهرست برگزارکنندگان.
+ * ستاد: صف بازبینی (مسیر، دوره، پخش زنده، برگزارکنندهٔ تازه). فهرست و پروفایل برگزارکنندگان در Publishers.tsx است.
  * ستاد بازبین است، نه سازنده: هر چیزی یک بار پیش از انتشار این‌جا دیده می‌شود.
  */
-import { ask } from '../../components/Confirm';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Building2, CheckCircle2, Eye, MessageSquare, Trash2 } from 'lucide-react';
+import { CheckCircle2, Eye, MessageSquare, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router';
 import { Empty, LESSON_ICON, Spinner, useToast, ErrorBox } from '../../components/ui';
@@ -85,35 +84,6 @@ function CourseLessons({ id, notes, setNotes }: { id: string; notes: Record<stri
         </div>
       ))}
       {pv && <CoursePreview course={c} startId={pv.start} onClose={() => setPv(null)} />}
-    </div>
-  );
-}
-
-interface PubRow { id: string; name: string; color: string; status: string; kind: string; referrer: string; createdAt: string; paths: number; courses: number; learners: number; admins: string[]; pending?: { id: string; mobile: string }[]; note?: string | null }
-const PST: Record<string, [string, string]> = { ACTIVE: ['فعال', 'chip-leaf'], PENDING: ['در انتظار پذیرش', 'chip-flame'], BLOCKED: ['مسدود', 'chip-rose'], REJECTED: ['رد شده', 'chip-rose'] };
-
-export function Publishers() {
-  const qc = useQueryClient();
-  const toast = useToast();
-  const q = useQuery({ queryKey: ['v2', 'admin', 'publishers'], queryFn: () => api<PubRow[]>('/v2/admin/publishers') });
-  const [name, setName] = useState(''); const [admin, setAdmin] = useState<{ id: string; mobile: string } | null>(null);
-  const create = useMutation({ mutationFn: () => api('/v2/admin/publishers', { body: { name } }), onSuccess: () => { qc.invalidateQueries({ queryKey: ['v2', 'admin', 'publishers'] }); setName(''); toast('برگزارکننده اضافه شد؛ حالا مدیرش را با شماره تعیین کن'); } });
-  const patch = useMutation({ mutationFn: (b: { id: string; status?: string; note?: string; adminMobile?: string; cancelPending?: string }) => api<{ ok: boolean; pending?: boolean }>(`/v2/admin/publishers/${b.id}`, { method: 'PATCH', body: b }), onSuccess: (r, b) => { qc.invalidateQueries({ queryKey: ['v2', 'admin', 'publishers'] }); setAdmin(null); toast(r?.pending ? 'این شماره هنوز در مدرسه حساب ندارد. همین که با آن وارد شود، خودش مدیر این برگزارکننده می‌شود.' : b.cancelPending ? 'دعوت برداشته شد' : b.adminMobile ? 'مدیر اضافه شد' : 'ذخیره شد'); } });
-  if (q.isLoading) return <Spinner />;
-  return (
-    <div className="grid gap-6">
-      <header><h1 className="text-2xl font-extrabold">برگزارکنندگان</h1><p className="mt-1 text-muted">برگزارکننده می‌سازد؛ ستاد می‌پذیرد، بازبینی می‌کند و در صورت لزوم با دلیل مسدود می‌کند. محتوای منتشرشدهٔ برگزارکنندهٔ مسدود برای کنشگرانِ در حرکت می‌ماند.</p></header>
-      <div className="card divide-y divide-line">{(q.data ?? []).map((p) => { const [t, c] = PST[p.status] ?? [p.status, '']; return (
-        <div key={p.id} className="grid gap-2 px-4 py-3 md:grid-cols-[1fr_auto] md:items-center">
-          <div className="flex items-center gap-3"><span className="grid size-10 place-items-center rounded-xl text-white" style={{ background: p.color }}><Building2 className="size-5" /></span><span className="min-w-0"><b className="block text-ink">{p.name}</b><span className="text-sm text-muted">{p.kind}، معرف: {p.referrer}، {fa(p.paths)} مسیر، {fa(p.courses)} دوره، {fa(p.learners)} کنشگر{p.admins.length ? `، مدیر: ${p.admins.join('، ')}` : p.pending?.length ? '' : '، بی مدیر'}</span>{!!p.pending?.length && <span className="mt-1 flex flex-wrap gap-1.5">{p.pending.map((x) => <span key={x.id} className="chip chip-flame gap-1">منتظر اولین ورود: <bdi dir="ltr">{x.mobile}</bdi><button type="button" className="ms-1 text-xs underline" aria-label={`برداشتن دعوت ${x.mobile}`} onClick={() => patch.mutate({ id: p.id, cancelPending: x.id })}>بردار</button></span>)}</span>}</span></div>
-          <div className="flex flex-wrap items-center gap-2"><span className={`chip ${c}`}>{t}</span>
-            {p.status === 'PENDING' && <button className="btn btn-primary btn-sm" onClick={() => patch.mutate({ id: p.id, status: 'ACTIVE' })}>بپذیر</button>}
-            {p.status === 'ACTIVE' && <button className="btn btn-ghost btn-sm text-rose" onClick={async () => { const note = await ask({ title: `مسدود کردن «${p.name}»`, body: 'محتوای منتشرشده‌اش می‌ماند و کنشگرانِ در حرکت ادامه می‌دهند؛ چیز تازه‌ای منتشر نمی‌کند. دلیل را برگزارکننده می‌بیند.', input: true, required: true, label: 'دلیل', ok: 'مسدود کن', danger: true }); if (note) patch.mutate({ id: p.id, status: 'BLOCKED', note }); }}>مسدود کن</button>}
-            {p.status === 'BLOCKED' && <button className="btn btn-ghost btn-sm" onClick={() => patch.mutate({ id: p.id, status: 'ACTIVE' })}>باز کن</button>}
-            <button className="btn btn-secondary btn-sm" onClick={() => setAdmin({ id: p.id, mobile: '' })}>مدیر با شماره</button></div>
-          {admin?.id === p.id && <form className="flex gap-2 md:col-span-2" onSubmit={(e) => { e.preventDefault(); patch.mutate({ id: p.id, adminMobile: admin.mobile }); }}><input className="input h-10 max-w-xs" dir="ltr" placeholder="0912…" value={admin.mobile} onChange={(e) => setAdmin({ ...admin, mobile: e.target.value })} /><button className="btn btn-primary btn-sm">افزودن مدیر</button><button type="button" className="btn btn-ghost btn-sm" onClick={() => setAdmin(null)}>برگرد</button></form>}
-        </div>); })}</div>
-      <form className="card flex flex-wrap items-end gap-3 p-4" onSubmit={(e) => { e.preventDefault(); create.mutate(); }}><label className="field flex-1"><span>برگزارکنندهٔ تازه (نام)</span><input className="input" value={name} onChange={(e) => setName(e.target.value)} /></label><button className="btn btn-primary" disabled={!name.trim() || create.isPending}>اضافه کن</button></form>
     </div>
   );
 }

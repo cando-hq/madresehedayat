@@ -55,8 +55,6 @@ class InviteDto { @IsString() mobile: string; @IsString() pathId: string }
 class InviteMobileDto { @IsString() mobile: string }
 class CourseDto { @IsString() @Length(2, 80) title: string; @IsOptional() @IsIn(['all', 'approve', 'none']) libraryShare?: string }
 class CoursePatchDto { @IsOptional() @IsIn(['all', 'approve', 'none']) libraryShare?: string }
-class PublisherDto { @IsString() @Length(2, 80) name: string; @IsOptional() @IsString() color?: string; @IsOptional() @IsString() kind?: string; @IsOptional() @IsString() referrer?: string }
-class PublisherPatchDto { @IsOptional() @IsIn(['ACTIVE', 'BLOCKED', 'PENDING']) status?: string; @IsOptional() @IsString() note?: string; @IsOptional() @IsString() adminMobile?: string; @IsOptional() @IsString() cancelPending?: string }
 class AssessDto { @IsString() pathId: string; @IsString() stepId: string; @IsOptional() @IsString() @Length(0, 400) note?: string }
 
 type Path2 = typeof paths2.$inferSelect;
@@ -326,8 +324,9 @@ export class Paths2Service {
     const cs = await this.db.select().from(courses).where(eq(courses.publisherId, pub.id)).orderBy(desc(courses.updatedAt));
     const others = await this.db.select().from(paths2).where(sql`${paths2.publisherId} <> ${pub.id}`);
     const otherCourseIds = new Map<string, string[]>(); for (const o of others) otherCourseIds.set(o.title, await this.pathCourseIds(o));
+    const insPend = new Map((cs.length ? await this.db.select({ t: pendingInvites.targetId, m: pendingInvites.mobileEnc }).from(pendingInvites).where(and(eq(pendingInvites.kind, 'COURSE_INSTRUCTOR'), inArray(pendingInvites.targetId, cs.map((c) => c.id)))) : []).map((r) => [r.t, dec(r.m)]));
     const cl = [] as any[];
-    for (const c of cs) { const st = c.reviewStatus ?? (c.status === 'PUBLISHED' ? 'PUBLISHED' : 'DRAFT'); cl.push({ id: c.id, slug: c.slug, title: c.title, status: st, statusFa: STATUS_FA[st], lessonCount: (await this.courseLessons(c.id)).length, learners: await this.db.select({ n: sql<number>`count(*)::int` }).from(enrollments).where(eq(enrollments.courseId, c.id)).then((r) => r[0]?.n ?? 0), libraryShare: c.libraryShare, version: c.version, instructor: c.instructorId ? await this.name(c.instructorId) : null, usedIn: [...otherCourseIds.entries()].filter(([, ids]) => ids.includes(c.id)).map(([t]) => t) }); }
+    for (const c of cs) { const st = c.reviewStatus ?? (c.status === 'PUBLISHED' ? 'PUBLISHED' : 'DRAFT'); cl.push({ id: c.id, slug: c.slug, title: c.title, status: st, statusFa: STATUS_FA[st], lessonCount: (await this.courseLessons(c.id)).length, learners: await this.db.select({ n: sql<number>`count(*)::int` }).from(enrollments).where(eq(enrollments.courseId, c.id)).then((r) => r[0]?.n ?? 0), libraryShare: c.libraryShare, version: c.version, instructor: c.instructorId ? await this.name(c.instructorId) : null, instructorPending: insPend.get(c.id) ?? null, usedIn: [...otherCourseIds.entries()].filter(([, ids]) => ids.includes(c.id)).map(([t]) => t) }); }
     const ev = await this.db.select().from(events).where(and(eq(events.publisherId, pub.id), eq(events.isLive, true))).orderBy(desc(events.startsAt));
     const lives = [] as any[];
     for (const e of ev) { const st = e.reviewStatus ?? (e.status === 'PUBLISHED' ? 'PUBLISHED' : 'DRAFT'); lives.push({ id: e.id, title: e.title, startsAt: e.startsAt, status: st, statusFa: STATUS_FA[st], registered: await this.db.select({ n: sql<number>`count(*)::int` }).from(registrations).where(eq(registrations.eventId, e.id)).then((r) => r[0]?.n ?? 0) }); }
@@ -496,7 +495,13 @@ export class Paths2Service {
     const pub = await this.needPub(u); const c = await this.db.query.courses.findFirst({ where: eq(courses.id, id) }); if (!c || c.publisherId !== pub.id) throw new ForbiddenException(err('forbidden', 'این دوره مال تو نیست'));
     const mob = normalizeMobile(mobile); if (!mob) throw new BadRequestException(err('bad_mobile', 'شماره باید ۱۱ رقم باشد و با ۰۹ شروع شود'));
     const tId = await userIdByMobile(this.db, mob); const t = tId ? { id: tId } : undefined;
-    if (!t) throw new NotFoundException(err('no_user', 'کسی با این شماره هنوز وارد مدرسه نشده؛ بگو یک بار با همین شماره وارد شود، بعد دوره را بسپار'));
+    if (!t) {
+      // هنوز حساب ندارد: دوره منتظر می‌ماند و با اولین ورود همین شماره به استودیوی او می‌رود
+      await this.db.delete(pendingInvites).where(and(eq(pendingInvites.kind, 'COURSE_INSTRUCTOR'), eq(pendingInvites.targetId, c.id)));
+      await this.db.insert(pendingInvites).values({ mobile: mobileKey(mob), mobileEnc: enc(mob)!, kind: 'COURSE_INSTRUCTOR', targetId: c.id, createdBy: u.id }).onConflictDoNothing();
+      return { ok: true, pending: true, instructor: null };
+    }
+    await this.db.delete(pendingInvites).where(and(eq(pendingInvites.kind, 'COURSE_INSTRUCTOR'), eq(pendingInvites.targetId, c.id)));
     await this.db.insert(roleGrants).values({ userId: t.id, role: 'INSTRUCTOR' } as any).onConflictDoNothing();
     await this.db.update(courses).set({ instructorId: t.id, instructor: await this.name(t.id) }).where(eq(courses.id, c.id));
     await this.notify.send(t.id, { kind: 'STUDIO', title: `دورهٔ «${c.title}» به استودیوی تو سپرده شد`, link: '/studio' });
@@ -542,30 +547,6 @@ export class Paths2Service {
     await this.db.insert(auditLogs).values({ actorId: u.id, action: ok ? 'review.publish' : 'review.return', target: id } as any);
     return { ok: true };
   }
-  async publishersAdmin() {
-    const ps = await this.db.select().from(publishers).orderBy(asc(publishers.createdAt));
-    const out = [] as any[];
-    for (const p of ps) out.push({ ...p, paths: await this.db.select({ n: sql<number>`count(*)::int` }).from(paths2).where(and(eq(paths2.publisherId, p.id), eq(paths2.status, 'PUBLISHED'))).then((r) => r[0]?.n ?? 0), courses: await this.db.select({ n: sql<number>`count(*)::int` }).from(courses).where(eq(courses.publisherId, p.id)).then((r) => r[0]?.n ?? 0), learners: await this.db.select({ n: sql<number>`count(distinct ${pathEnrollments.userId})::int` }).from(pathEnrollments).innerJoin(paths2, eq(paths2.id, pathEnrollments.pathId)).where(eq(paths2.publisherId, p.id)).then((r) => r[0]?.n ?? 0), admins: await Promise.all((await this.adminsOf(p.id)).map((id) => this.name(id))), pending: (await this.db.select({ id: pendingInvites.id, enc: pendingInvites.mobileEnc }).from(pendingInvites).where(and(eq(pendingInvites.kind, 'PUBLISHER_ADMIN'), eq(pendingInvites.targetId, p.id)))).map((r) => ({ id: r.id, mobile: dec(r.enc) ?? '' })) });
-    return out;
-  }
-  async createPublisher(d: PublisherDto) { const [p] = await this.db.insert(publishers).values({ name: d.name.trim(), color: d.color || '#8C93B5', status: 'ACTIVE', kind: d.kind ?? 'مؤسسه', referrer: d.referrer ?? 'ستاد' }).returning(); return p; }
-  async patchPublisher(id: string, d: PublisherPatchDto, by?: string) {
-    const p = await this.pubById(id); if (!p) throw new NotFoundException(err('no_pub', 'برگزارکننده پیدا نشد'));
-    if (d.status) { if (d.status === 'BLOCKED' && !d.note?.trim()) throw new BadRequestException(err('need_note', 'دلیل مسدود کردن را بنویس')); await this.db.update(publishers).set({ status: d.status, note: d.note ?? p.note }).where(eq(publishers.id, id)); }
-    if (d.adminMobile) {
-      const mob = normalizeMobile(d.adminMobile); if (!mob) throw new BadRequestException(err('bad_mobile', 'شماره درست نیست'));
-      const tId = await userIdByMobile(this.db, mob);
-      if (!tId) {
-        // هنوز حساب ندارد: نقش منتظر می‌ماند و با اولین ورود همین شماره خودکار داده می‌شود
-        await this.db.insert(pendingInvites).values({ mobile: mobileKey(mob), mobileEnc: enc(mob)!, kind: 'PUBLISHER_ADMIN', targetId: id, createdBy: by ?? null }).onConflictDoNothing();
-        return { ok: true, pending: true };
-      }
-      await this.db.insert(publisherAdmins).values({ publisherId: id, userId: tId }).onConflictDoNothing();
-      await this.db.insert(roleGrants).values({ userId: tId, role: 'ORG_ADMIN', networkId: null } as any).onConflictDoNothing();
-    }
-    if (d.cancelPending) await this.db.delete(pendingInvites).where(and(eq(pendingInvites.id, d.cancelPending), eq(pendingInvites.targetId, id)));
-    return { ok: true };
-  }
 }
 
 @Controller('v2')
@@ -607,7 +588,4 @@ export class Paths2Controller {
   // ستاد
   @Get('admin/review') @Roles('HQ_ADMIN', 'HQ_OPERATOR') reviewQueue() { return this.s.reviewQueue(); }
   @Post('admin/review/:kind/:id') @HttpCode(200) @Roles('HQ_ADMIN', 'HQ_OPERATOR') review(@CurrentUser() u: AuthUser, @Param('kind') kind: string, @Param('id') id: string, @Body() d: ReviewDto) { return this.s.review(u, kind, id, d); }
-  @Get('admin/publishers') @Roles('HQ_ADMIN', 'HQ_OPERATOR') publishersAdmin() { return this.s.publishersAdmin(); }
-  @Post('admin/publishers') @Roles('HQ_ADMIN') createPublisher(@Body() d: PublisherDto) { return this.s.createPublisher(d); }
-  @Patch('admin/publishers/:id') @Roles('HQ_ADMIN') patchPublisher(@CurrentUser() u: AuthUser, @Param('id') id: string, @Body() d: PublisherPatchDto) { return this.s.patchPublisher(id, d, u.id); }
 }

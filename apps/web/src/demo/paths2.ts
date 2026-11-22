@@ -406,9 +406,39 @@ export function registerPaths2(X: Any) {
     return { ok: true };
   });
   const adminsOf = (pid: string) => DB().roles.filter((r: Any) => r.role === 'ORG_ADMIN' && r.networkId === pid).map((r: Any) => r.userId);
-  on('GET', '/v2/admin/publishers', () => { staff(); return DB().publishers.map((p: Any) => ({ ...p, paths: DB().paths2.filter((x: Any) => x.publisherId === p.id && x.status === 'PUBLISHED').length, courses: DB().courses.filter((c: Any) => c.publisherId === p.id).length, learners: DB().pathEnr.filter((e: Any) => DB().paths2.find((x: Any) => x.id === e.pathId)?.publisherId === p.id).length, admins: adminsOf(p.id).map(nm) })); });
-  on('POST', '/v2/admin/publishers', (_m: Any, b: Any) => { staff(); if (!b.name?.trim()) throw E(400, 'no_name', 'نام برگزارکننده را بنویس'); const p = { id: rid(), name: b.name.trim(), color: b.color || '#8C93B5', status: 'ACTIVE', kind: b.kind ?? 'مؤسسه', referrer: b.referrer ?? 'ستاد', createdAt: now() }; DB().publishers.push(p); if (!DB().networks.some((n: Any) => n.id === p.id)) DB().networks.push({ id: p.id, kind: 'ORGANIZATION', name: p.name, underRahyar: false }); return p; });
-  on('PATCH', '/v2/admin/publishers/([^/]+)', (m: Any, b: Any) => { staff(); const p = pub(m[1]); if (!p) throw E(404, 'no_pub', ''); if (b.status) { if (b.status === 'BLOCKED' && !b.note?.trim()) throw E(400, 'need_note', 'دلیل مسدود کردن را بنویس'); p.status = b.status; p.note = b.note ?? p.note; } if (b.adminMobile) { const mob = X.normMobile(b.adminMobile); const u = DB().users.find((x: Any) => x.mobile === mob); if (!u) { (p.pending ??= []).push({ id: rid(), mobile: mob }); return { ok: true, pending: true }; } DB().roles.push({ userId: u.id, role: 'ORG_ADMIN', networkId: p.id }); } if (b.cancelPending) p.pending = (p.pending ?? []).filter((x: Any) => x.id !== b.cancelPending); return { ok: true }; });
+  const PST: Record<string, string> = { ACTIVE: 'فعال', PENDING: 'در انتظار پذیرش', BLOCKED: 'مسدود', REJECTED: 'رد شده' };
+  const SFA: Record<string, string> = { DRAFT: 'پیش‌نویس', IN_REVIEW: 'در بازبینی', PUBLISHED: 'منتشرشده', RETURNED: 'نیاز به اصلاح', ARCHIVED: 'بایگانی' };
+  const teamOf = (pid: string) => ({
+    admins: adminsOf(pid).map((id: string) => { const u = DB().users.find((x: Any) => x.id === id); return { id, name: nm(id), mobile: u?.mobile ?? '', active: true, lastSeenAt: now() }; }),
+    pending: (pub(pid)?.pending ?? []).map((x: Any) => ({ createdAt: now(), ...x })),
+  });
+  const pubCounts = (pid: string) => ({ paths: DB().paths2.filter((x: Any) => x.publisherId === pid).length, published: DB().paths2.filter((x: Any) => x.publisherId === pid && x.status === 'PUBLISHED').length, courses: DB().courses.filter((c: Any) => c.publisherId === pid).length, learners: DB().pathEnr.filter((e: Any) => DB().paths2.find((x: Any) => x.id === e.pathId)?.publisherId === pid).length, inReview: DB().paths2.filter((x: Any) => x.publisherId === pid && x.status === 'IN_REVIEW').length });
+  const addToTeam = (pid: string, mobile: string) => {
+    const p = pub(pid); if (!p) throw E(404, 'no_pub', 'برگزارکننده پیدا نشد');
+    const mob = X.normMobile(mobile); if (!mob) throw E(400, 'bad_mobile', 'شماره ۱۱ رقم است و با ۰۹ شروع می‌شود');
+    const u = DB().users.find((x: Any) => x.mobile === mob);
+    if (!u) { if (!(p.pending ?? []).some((x: Any) => x.mobile === mob)) (p.pending ??= []).push({ id: rid(), mobile: mob, createdAt: now() }); return { ok: true, pending: true }; }
+    if (adminsOf(pid).includes(u.id)) throw E(400, 'already', 'این شماره همین الان در تیم است');
+    DB().roles.push({ userId: u.id, role: 'ORG_ADMIN', networkId: pid }); return { ok: true, pending: false };
+  };
+  const dropFromTeam = (pid: string, uid: string, panel = false) => {
+    if (!adminsOf(pid).includes(uid)) throw E(404, 'not_member', 'این نفر در تیم نیست');
+    if (panel && adminsOf(pid).length === 1) throw E(400, 'last_admin', 'آخرین نفر تیم نمی‌تواند خودش را بردارد؛ اول یک نفر دیگر اضافه کن یا از ستاد بخواه');
+    DB().roles = DB().roles.filter((r: Any) => !(r.role === 'ORG_ADMIN' && r.networkId === pid && r.userId === uid)); return { ok: true };
+  };
+  const myPubId = () => { const u = me(); const r = DB().roles.find((x: Any) => x.userId === u.id && x.role === 'ORG_ADMIN' && pub(x.networkId)?.status === 'ACTIVE'); if (!r) throw E(403, 'forbidden', 'این بخش برای برگزارکنندگان است'); return r.networkId as string; };
+  on('GET', '/v2/admin/publishers', () => { staff(); return DB().publishers.map((p: Any) => { const t = teamOf(p.id); return { ...p, statusFa: PST[p.status], ...pubCounts(p.id), admins: t.admins.map((a: Any) => a.name), team: t.admins.length, pending: t.pending }; }); });
+  on('GET', '/v2/admin/publishers/([^/]+)', (m: Any) => { staff(); const p = pub(m[1]); if (!p) throw E(404, 'no_pub', 'برگزارکننده پیدا نشد'); return { publisher: { about: null, note: null, ...p, statusFa: PST[p.status] }, stats: pubCounts(p.id), ...teamOf(p.id), paths: DB().paths2.filter((x: Any) => x.publisherId === p.id).map((x: Any) => ({ id: x.id, slug: x.slug, title: x.title, status: x.status, statusFa: SFA[x.status], updatedAt: x.updatedAt ?? now() })), courses: DB().courses.filter((c: Any) => c.publisherId === p.id).map((c: Any) => { const st = c.reviewStatus ?? (c.status === 'PUBLISHED' ? 'PUBLISHED' : 'DRAFT'); return { id: c.id, title: c.title, status: st, statusFa: SFA[st], instructor: c.instructor ?? null, instructorPending: null, updatedAt: now() }; }), history: [] }; });
+  on('POST', '/v2/admin/publishers', (_m: Any, b: Any) => { staff(); if (!b.name?.trim()) throw E(400, 'no_name', 'نام برگزارکننده را بنویس'); const p = { id: rid(), name: b.name.trim(), color: b.color || '#8C93B5', status: 'ACTIVE', kind: b.kind ?? 'مؤسسه', referrer: b.referrer || 'ستاد', about: b.about ?? null, createdAt: now() }; DB().publishers.push(p); if (!DB().networks.some((n: Any) => n.id === p.id)) DB().networks.push({ id: p.id, kind: 'ORGANIZATION', name: p.name, underRahyar: false }); const r = b.adminMobile ? addToTeam(p.id, b.adminMobile) : null; return { ...p, pending: !!r?.pending }; });
+  on('PATCH', '/v2/admin/publishers/([^/]+)', (m: Any, b: Any) => { staff(); const p = pub(m[1]); if (!p) throw E(404, 'no_pub', ''); for (const k of ['name', 'color', 'kind', 'referrer', 'about']) if (b[k] !== undefined) p[k] = typeof b[k] === 'string' ? b[k].trim() || null : b[k]; if (b.status) { if (b.status === 'BLOCKED' && !b.note?.trim()) throw E(400, 'need_note', 'دلیل مسدود کردن را بنویس'); p.status = b.status; p.note = b.note ?? p.note; } let pending = false; if (b.adminMobile) pending = addToTeam(p.id, b.adminMobile).pending; if (b.cancelPending) p.pending = (p.pending ?? []).filter((x: Any) => x.id !== b.cancelPending); return { ok: true, pending }; });
+  on('POST', '/v2/admin/publishers/([^/]+)/team', (m: Any, b: Any) => { staff(); return addToTeam(m[1], b.mobile); });
+  on('DELETE', '/v2/admin/publishers/([^/]+)/team/([^/]+)', (m: Any) => { staff(); return dropFromTeam(m[1], m[2]); });
+  on('DELETE', '/v2/admin/publishers/([^/]+)/invites/([^/]+)', (m: Any) => { staff(); const p = pub(m[1]); if (p) p.pending = (p.pending ?? []).filter((x: Any) => x.id !== m[2]); return { ok: true }; });
+  on('GET', '/v2/pub/team', () => { const pid = myPubId(); const p = pub(pid); return { publisher: { id: p.id, name: p.name, color: p.color, kind: p.kind, about: p.about ?? null, status: p.status, statusFa: PST[p.status] }, me: me().id, ...teamOf(pid) }; });
+  on('POST', '/v2/pub/team', (_m: Any, b: Any) => addToTeam(myPubId(), b.mobile));
+  on('DELETE', '/v2/pub/team/([^/]+)', (m: Any) => dropFromTeam(myPubId(), m[1], true));
+  on('DELETE', '/v2/pub/invites/([^/]+)', (m: Any) => { const p = pub(myPubId()); p.pending = (p.pending ?? []).filter((x: Any) => x.id !== m[1]); return { ok: true }; });
+  on('PATCH', '/v2/pub/profile', (_m: Any, b: Any) => { const p = pub(myPubId()); if (b.about !== undefined) p.about = b.about.trim() || null; if (b.color) p.color = b.color; return { ok: true }; });
 
   // ── نمایهٔ کاربر: نقش و مسیر اصلی در /auth/me
   X.wrap('GET', '/auth/me', (orig: Any) => (m: Any, b: Any, q: Any) => { const r = orig(m, b, q); const u = me(); const pid = pubOf(u.id); return { ...r, actorRole: u.actorRole ?? null, mainPathId: u.mainPathId ?? null, onboarded: !!(u.onboardedAt || u.actorRole), publisher: pid ? pubCard(pid) : null, location: u.lat != null ? { lat: u.lat, lng: u.lng } : null }; });

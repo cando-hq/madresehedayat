@@ -85,7 +85,9 @@ const PubLibrary = lazy(() => import('./pages/Pub').then((m) => ({ default: m.Pu
 const PubPathBuilder = lazy(() => import('./pages/Pub').then((m) => ({ default: m.PubPathBuilder })));
 const PubRahyars = lazy(() => import('./pages/Pub').then((m) => ({ default: m.PubRahyars })));
 const PubShell = lazy(() => import('./pages/Pub').then((m) => ({ default: m.PubShell })));
-const Publishers = lazy(() => import('./pages/admin/Review').then((m) => ({ default: m.Publishers })));
+const Publishers = lazy(() => import('./pages/admin/Publishers').then((m) => ({ default: m.Publishers })));
+const PublisherProfile = lazy(() => import('./pages/admin/Publishers').then((m) => ({ default: m.PublisherProfile })));
+const PubTeam = lazy(() => import('./pages/Pub').then((m) => ({ default: m.PubTeam })));
 const ReviewQueue = lazy(() => import('./pages/admin/Review').then((m) => ({ default: m.ReviewQueue })));
 const StudioAnalytics = lazy(() => import('./pages/Studio').then((m) => ({ default: m.StudioAnalytics })));
 const StudioCourses = lazy(() => import('./pages/Studio').then((m) => ({ default: m.StudioCourses })));
@@ -175,6 +177,7 @@ const router = (import.meta.env.VITE_DEMO ? createHashRouter : createBrowserRout
       { path: 'library', element: <PubLibrary /> },
       { path: 'rahyars', element: <PubRahyars /> },
       { path: 'impact', element: <PubImpact /> },
+      { path: 'team', element: <PubTeam /> },
       { path: 'courses/:id', element: <CourseEditor /> },
       { path: '*', element: <NotFound /> },
     ],
@@ -247,6 +250,7 @@ const router = (import.meta.env.VITE_DEMO ? createHashRouter : createBrowserRout
       { index: true, element: <Dashboard /> },
       { path: 'review', element: <ReviewQueue /> },
       { path: 'publishers', element: <Publishers /> },
+      { path: 'publishers/:id', element: <PublisherProfile /> },
       { path: 'courses', element: <Courses /> },
       { path: 'business', element: <AdminBusiness /> },
       { path: 'feedback', element: <FeedbackAdmin /> },

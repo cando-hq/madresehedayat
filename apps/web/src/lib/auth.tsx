@@ -45,7 +45,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const has = (...r: Role[]) => !!me && r.some((x) => me.roles.includes(x));
   const value: AuthState = {
     me, loading: q.isLoading, has, isStaff: has('HQ_ADMIN', 'HQ_OPERATOR'),
-    logout: async () => { await api('/auth/logout', { method: 'POST' }).catch(() => {}); qc.clear(); qc.setQueryData(['me'], null); },
+    // اول از صفحه‌ها بیرون برو (تا درخواست‌های بازشان «نشست تمام شده» ندهند)، بعد نشست را ببند و حافظه را پاک کن
+    logout: async () => { await qc.cancelQueries(); qc.setQueryData(['me'], null); await api('/auth/logout', { method: 'POST' }).catch(() => {}); qc.removeQueries({ predicate: (q) => q.queryKey[0] !== 'me' }); },
     setMe: (m) => qc.setQueryData(['me'], m),
   };
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

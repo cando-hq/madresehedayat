@@ -130,8 +130,20 @@ function RequireOnboard({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 function RequireStaff({ children }: { children: ReactNode }) {
-  const { isStaff } = useAuth();
-  return isStaff ? <>{children}</> : <NotFound />;
+  const { me, loading, isStaff } = useAuth();
+  if (loading) return <div className="grid min-h-dvh place-items-center"><Spinner /></div>;
+  if (!me) return <Navigate to="/login?next=/admin" replace />;
+  if (isStaff) return <>{children}</>;
+  // وارد شده ولی نقش ستاد ندارد: به‌جای «پیدا نشد» بگو چرا
+  return (
+    <main className="wrap grid min-h-dvh place-items-center py-10">
+      <div className="card grid max-w-md justify-items-center gap-3 p-8 text-center">
+        <h1 className="text-xl font-extrabold">پنل ستاد برای مدیران ستاد است</h1>
+        <p className="text-muted">با شمارهٔ <b dir="ltr" className="tnum text-ink">{me.mobile}</b> وارد شده‌ای و این حساب نقش ستاد ندارد. اگر باید داشته باشد، مدیر ستاد آن را از «کاربران و نقش‌ها» می‌دهد؛ یا شماره در فهرست مدیران سرور (<span dir="ltr">BOOTSTRAP_ADMIN_MOBILES</span>) نیست.</p>
+        <a href="/" className="btn btn-primary">برگشت به خانه</a>
+      </div>
+    </main>
+  );
 }
 
 const router = (import.meta.env.VITE_DEMO ? createHashRouter : createBrowserRouter)([

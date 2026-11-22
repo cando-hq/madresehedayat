@@ -22,6 +22,9 @@ async function bootstrap() {
   app.useGlobalFilters(new AllErrorsFilter());
   app.enableShutdownHooks();
   await app.listen(config.port);
+  // برای عیب‌یابی نصب: چند شمارهٔ مدیر ستاد از .env خوانده شد (خود شماره‌ها چاپ نمی‌شود)
+  const raw = (process.env.BOOTSTRAP_ADMIN_MOBILES ?? '').split(/[,،\s]+/).filter(Boolean).length;
+  console.log(`[bootstrap] مدیران ستاد از .env: ${config.bootstrapAdmins.length} شمارهٔ درست${raw > config.bootstrapAdmins.length ? `، ${raw - config.bootstrapAdmins.length} شمارهٔ نادرست نادیده گرفته شد` : ''}`);
   new Logger('Bootstrap').log(`API روی پورت ${config.port}`);
 }
 bootstrap();

@@ -1,3 +1,4 @@
+import { normalizeMobile } from './common/mobile';
 /** همهٔ تنظیمات از متغیرهای محیطی خوانده می‌شود؛ نمونه در .env.example ریشهٔ مخزن. */
 const env = (k: string, d?: string) => {
   const v = process.env[k] ?? d;
@@ -25,7 +26,7 @@ export const config = {
   kavenegarApiKey: process.env.KAVENEGAR_API_KEY ?? '',
   kavenegarTemplate: process.env.KAVENEGAR_OTP_TEMPLATE ?? 'madrese-otp',
   /** شماره‌هایی که هنگام راه‌اندازی نقش مدیر ستاد می‌گیرند (با ویرگول جدا) */
-  bootstrapAdmins: (process.env.BOOTSTRAP_ADMIN_MOBILES ?? '').split(',').map((s) => s.trim()).filter(Boolean),
+  bootstrapAdmins: (process.env.BOOTSTRAP_ADMIN_MOBILES ?? '').split(/[,،\s]+/).map((s) => normalizeMobile(s)).filter((s): s is string => !!s),
   publicUrl: env('PUBLIC_URL', 'http://localhost:8080'),
   /** کلید ۳۲ بایتی (base64) رمزگذاری دادهٔ قرمز در پایگاه داده. گم شدنش یعنی از دست رفتن داده‌ها؛ جدا پشتیبان بگیر */
   dataKey: env('DATA_KEY', 'ZGV2LW9ubHktZGF0YS1rZXktY2hhbmdlLW1lLTMyYiE='),

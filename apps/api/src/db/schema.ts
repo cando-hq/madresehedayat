@@ -886,6 +886,17 @@ export const publishers = pgTable('publishers', {
   note: text('note'),
   createdAt: createdAt(),
 });
+/** نقشی که برای شماره‌ای بی‌حساب گذاشته شده؛ با اولین ورود همان شماره (یا افزودنش به‌عنوان شمارهٔ دوم) خودکار داده می‌شود (۱.۶.۲) */
+export const pendingInvites = pgTable('pending_invites', {
+  id: id(),
+  mobile: text('mobile').notNull(), // نمایهٔ کور شماره
+  mobileEnc: text('mobile_enc').notNull(),
+  kind: text('kind').notNull(), // PUBLISHER_ADMIN
+  targetId: text('target_id').notNull(),
+  createdBy: text('created_by'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [unique('pending_invites_uq').on(t.mobile, t.kind, t.targetId), index('pending_invites_mobile_idx').on(t.mobile)]);
+
 export const publisherAdmins = pgTable('publisher_admins', {
   publisherId: text('publisher_id').notNull().references(() => publishers.id, { onDelete: 'cascade' }),
   userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),

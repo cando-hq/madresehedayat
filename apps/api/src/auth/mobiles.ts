@@ -1,6 +1,6 @@
 import { eq, inArray } from 'drizzle-orm';
 import type { Db } from '../db/db.module';
-import { userMobiles, users } from '../db/schema';
+import { pendingInvites, publisherAdmins, roleGrants, userMobiles, users } from '../db/schema';
 import { mobileKey } from '../common/crypto';
 
 /**
@@ -24,4 +24,20 @@ export async function userIdsByMobiles(db: Db, mobiles: string[]): Promise<Map<s
   for (const r of await db.select({ id: users.id, k: users.mobile }).from(users).where(inArray(users.mobile, keys))) out.set(byKey.get(r.k)!, r.id);
   for (const r of await db.select({ id: userMobiles.userId, k: userMobiles.mobile }).from(userMobiles).where(inArray(userMobiles.mobile, keys))) if (!out.has(byKey.get(r.k)!)) out.set(byKey.get(r.k)!, r.id);
   return out;
+}
+
+/**
+ * نقش‌هایی که پیش از ساخت حساب برای این شماره گذاشته شده بود را به حساب می‌دهد و از صف برمی‌دارد.
+ * پس از ثبت‌نام و پس از افزودن شمارهٔ دوم صدا زده می‌شود.
+ */
+export async function applyPendingInvites(db: Db, userId: string, mobile: string): Promise<number> {
+  const rows = await db.select().from(pendingInvites).where(eq(pendingInvites.mobile, mobileKey(mobile)));
+  for (const r of rows) {
+    if (r.kind === 'PUBLISHER_ADMIN') {
+      await db.insert(publisherAdmins).values({ publisherId: r.targetId, userId }).onConflictDoNothing();
+      await db.insert(roleGrants).values({ userId, role: 'ORG_ADMIN', networkId: null } as any).onConflictDoNothing();
+    }
+    await db.delete(pendingInvites).where(eq(pendingInvites.id, r.id));
+  }
+  return rows.length;
 }

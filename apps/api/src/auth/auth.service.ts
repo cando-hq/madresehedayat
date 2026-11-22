@@ -1,5 +1,5 @@
 import { BadRequestException, HttpException, HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
-import { userIdByMobile } from './mobiles';
+import { userIdByMobile, applyPendingInvites } from './mobiles';
 import { JwtService } from '@nestjs/jwt';
 import { and, desc, eq, gt, isNull } from 'drizzle-orm';
 import { createHash, createHmac, randomBytes, randomInt, timingSafeEqual } from 'node:crypto';
@@ -184,6 +184,7 @@ export class AuthService {
     const e = enc(mobile)!;
     await this.db.insert(userMobiles).values({ userId, mobile: mobileKey(mobile), mobileEnc: e })
       .onConflictDoUpdate({ target: userMobiles.userId, set: { mobile: mobileKey(mobile), mobileEnc: e, createdAt: new Date() } });
+    await applyPendingInvites(this.db, userId, mobile).catch(() => {});
     return { mobile2: mobile };
   }
 
@@ -212,6 +213,7 @@ export class AuthService {
       mosqueId: input.mosqueId || null,
       nearMosque: input.mosqueId ? null : input.nearMosque?.trim() || null,
     }).returning();
+    await applyPendingInvites(this.db, u.id, mobile).catch(() => {});
     const pb = this.pendingBale.get(mobileKey(mobile));
     if (pb) { this.pendingBale.delete(mobileKey(mobile)); if (pb.until > Date.now()) await this.linkBale(u.id, pb.chatId).catch(() => {}); }
     let notice: string | null = null;

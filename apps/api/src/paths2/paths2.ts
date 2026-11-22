@@ -11,11 +11,11 @@ import { AdminService } from '../admin/admin.service';
 import { ArrayMaxSize, IsArray, IsBoolean, IsIn, IsNumber, IsObject, IsOptional, IsString, Length } from 'class-validator';
 import { and, asc, desc, eq, inArray, isNotNull, sql } from 'drizzle-orm';
 import { AuthUser, CurrentUser, MaybeUser, Public, Roles } from '../common/auth.decorators';
-import { decJson } from '../common/crypto';
+import { dec, decJson, enc, mobileKey } from '../common/crypto';
 import { normalizeMobile } from '../common/mobile';
 import { Db, InjectDb } from '../db/db.module';
 import { createId } from '../db/id';
-import { answers, auditLogs, counties, courses, enrollments, events, lessonProgress, lessons, modules, mosques, pathAssessments, pathEnrollments, pathRahyars, paths2, publisherAdmins, publishers, questions, registrations, roleGrants, users, type PathStep } from '../db/schema';
+import { answers, auditLogs, counties, courses, enrollments, events, lessonProgress, lessons, modules, mosques, pathAssessments, pathEnrollments, pathRahyars, paths2, pendingInvites, publisherAdmins, publishers, questions, registrations, roleGrants, users, type PathStep } from '../db/schema';
 import { Notifier } from '../notifications/notifications';
 
 type ActorRole = 'IMAM' | 'SHARIK' | 'BAZU' | 'HASTEH' | 'OTHER';
@@ -56,7 +56,7 @@ class InviteMobileDto { @IsString() mobile: string }
 class CourseDto { @IsString() @Length(2, 80) title: string; @IsOptional() @IsIn(['all', 'approve', 'none']) libraryShare?: string }
 class CoursePatchDto { @IsOptional() @IsIn(['all', 'approve', 'none']) libraryShare?: string }
 class PublisherDto { @IsString() @Length(2, 80) name: string; @IsOptional() @IsString() color?: string; @IsOptional() @IsString() kind?: string; @IsOptional() @IsString() referrer?: string }
-class PublisherPatchDto { @IsOptional() @IsIn(['ACTIVE', 'BLOCKED', 'PENDING']) status?: string; @IsOptional() @IsString() note?: string; @IsOptional() @IsString() adminMobile?: string }
+class PublisherPatchDto { @IsOptional() @IsIn(['ACTIVE', 'BLOCKED', 'PENDING']) status?: string; @IsOptional() @IsString() note?: string; @IsOptional() @IsString() adminMobile?: string; @IsOptional() @IsString() cancelPending?: string }
 class AssessDto { @IsString() pathId: string; @IsString() stepId: string; @IsOptional() @IsString() @Length(0, 400) note?: string }
 
 type Path2 = typeof paths2.$inferSelect;
@@ -545,14 +545,25 @@ export class Paths2Service {
   async publishersAdmin() {
     const ps = await this.db.select().from(publishers).orderBy(asc(publishers.createdAt));
     const out = [] as any[];
-    for (const p of ps) out.push({ ...p, paths: await this.db.select({ n: sql<number>`count(*)::int` }).from(paths2).where(and(eq(paths2.publisherId, p.id), eq(paths2.status, 'PUBLISHED'))).then((r) => r[0]?.n ?? 0), courses: await this.db.select({ n: sql<number>`count(*)::int` }).from(courses).where(eq(courses.publisherId, p.id)).then((r) => r[0]?.n ?? 0), learners: await this.db.select({ n: sql<number>`count(distinct ${pathEnrollments.userId})::int` }).from(pathEnrollments).innerJoin(paths2, eq(paths2.id, pathEnrollments.pathId)).where(eq(paths2.publisherId, p.id)).then((r) => r[0]?.n ?? 0), admins: await Promise.all((await this.adminsOf(p.id)).map((id) => this.name(id))) });
+    for (const p of ps) out.push({ ...p, paths: await this.db.select({ n: sql<number>`count(*)::int` }).from(paths2).where(and(eq(paths2.publisherId, p.id), eq(paths2.status, 'PUBLISHED'))).then((r) => r[0]?.n ?? 0), courses: await this.db.select({ n: sql<number>`count(*)::int` }).from(courses).where(eq(courses.publisherId, p.id)).then((r) => r[0]?.n ?? 0), learners: await this.db.select({ n: sql<number>`count(distinct ${pathEnrollments.userId})::int` }).from(pathEnrollments).innerJoin(paths2, eq(paths2.id, pathEnrollments.pathId)).where(eq(paths2.publisherId, p.id)).then((r) => r[0]?.n ?? 0), admins: await Promise.all((await this.adminsOf(p.id)).map((id) => this.name(id))), pending: (await this.db.select({ id: pendingInvites.id, enc: pendingInvites.mobileEnc }).from(pendingInvites).where(and(eq(pendingInvites.kind, 'PUBLISHER_ADMIN'), eq(pendingInvites.targetId, p.id)))).map((r) => ({ id: r.id, mobile: dec(r.enc) ?? '' })) });
     return out;
   }
   async createPublisher(d: PublisherDto) { const [p] = await this.db.insert(publishers).values({ name: d.name.trim(), color: d.color || '#8C93B5', status: 'ACTIVE', kind: d.kind ?? 'مؤسسه', referrer: d.referrer ?? 'ستاد' }).returning(); return p; }
-  async patchPublisher(id: string, d: PublisherPatchDto) {
+  async patchPublisher(id: string, d: PublisherPatchDto, by?: string) {
     const p = await this.pubById(id); if (!p) throw new NotFoundException(err('no_pub', 'برگزارکننده پیدا نشد'));
     if (d.status) { if (d.status === 'BLOCKED' && !d.note?.trim()) throw new BadRequestException(err('need_note', 'دلیل مسدود کردن را بنویس')); await this.db.update(publishers).set({ status: d.status, note: d.note ?? p.note }).where(eq(publishers.id, id)); }
-    if (d.adminMobile) { const mob = normalizeMobile(d.adminMobile); if (!mob) throw new BadRequestException(err('bad_mobile', 'شماره درست نیست')); const tId = await userIdByMobile(this.db, mob); const t = tId ? { id: tId } : undefined; if (!t) throw new NotFoundException(err('no_user', 'کاربری با این شماره نیست')); await this.db.insert(publisherAdmins).values({ publisherId: id, userId: t.id }).onConflictDoNothing(); await this.db.insert(roleGrants).values({ userId: t.id, role: 'ORG_ADMIN', networkId: null } as any).onConflictDoNothing(); }
+    if (d.adminMobile) {
+      const mob = normalizeMobile(d.adminMobile); if (!mob) throw new BadRequestException(err('bad_mobile', 'شماره درست نیست'));
+      const tId = await userIdByMobile(this.db, mob);
+      if (!tId) {
+        // هنوز حساب ندارد: نقش منتظر می‌ماند و با اولین ورود همین شماره خودکار داده می‌شود
+        await this.db.insert(pendingInvites).values({ mobile: mobileKey(mob), mobileEnc: enc(mob)!, kind: 'PUBLISHER_ADMIN', targetId: id, createdBy: by ?? null }).onConflictDoNothing();
+        return { ok: true, pending: true };
+      }
+      await this.db.insert(publisherAdmins).values({ publisherId: id, userId: tId }).onConflictDoNothing();
+      await this.db.insert(roleGrants).values({ userId: tId, role: 'ORG_ADMIN', networkId: null } as any).onConflictDoNothing();
+    }
+    if (d.cancelPending) await this.db.delete(pendingInvites).where(and(eq(pendingInvites.id, d.cancelPending), eq(pendingInvites.targetId, id)));
     return { ok: true };
   }
 }
@@ -598,5 +609,5 @@ export class Paths2Controller {
   @Post('admin/review/:kind/:id') @HttpCode(200) @Roles('HQ_ADMIN', 'HQ_OPERATOR') review(@CurrentUser() u: AuthUser, @Param('kind') kind: string, @Param('id') id: string, @Body() d: ReviewDto) { return this.s.review(u, kind, id, d); }
   @Get('admin/publishers') @Roles('HQ_ADMIN', 'HQ_OPERATOR') publishersAdmin() { return this.s.publishersAdmin(); }
   @Post('admin/publishers') @Roles('HQ_ADMIN') createPublisher(@Body() d: PublisherDto) { return this.s.createPublisher(d); }
-  @Patch('admin/publishers/:id') @Roles('HQ_ADMIN') patchPublisher(@Param('id') id: string, @Body() d: PublisherPatchDto) { return this.s.patchPublisher(id, d); }
+  @Patch('admin/publishers/:id') @Roles('HQ_ADMIN') patchPublisher(@CurrentUser() u: AuthUser, @Param('id') id: string, @Body() d: PublisherPatchDto) { return this.s.patchPublisher(id, d, u.id); }
 }

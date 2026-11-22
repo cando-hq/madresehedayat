@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { userIdByMobile, userIdsByMobiles } from '../auth/mobiles';
+import { applyPendingInvites, userIdByMobile, userIdsByMobiles } from '../auth/mobiles';
 import { and, asc, count, desc, eq, gt, ilike, inArray, isNull, or, sql } from 'drizzle-orm';
 import { normalizeMobile } from '../common/mobile';
 import { Db, InjectDb } from '../db/db.module';
@@ -312,6 +312,7 @@ export class AdminService {
     await this.db.insert(userMobiles).values({ userId, mobile: mobileKey(m), mobileEnc: e })
       .onConflictDoUpdate({ target: userMobiles.userId, set: { mobile: mobileKey(m), mobileEnc: e, createdAt: new Date() } });
     await this.audit(actor, 'user.mobile2', userId);
+    await applyPendingInvites(this.db, userId, m).catch(() => {});
     return { mobile2: m };
   }
 

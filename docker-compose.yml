@@ -69,6 +69,8 @@ services:
       STAFF_MFA: ${STAFF_MFA:-on}
       BALE_BOT_TOKEN: ${BALE_BOT_TOKEN:-}
       BALE_BOT_USERNAME: ${BALE_BOT_USERNAME:-}
+      # نشانی API بات بله؛ پیش‌فرض خود بله. وقتی بات با همراه قبس مشترک است، نشانی رلهٔ بله روی سرور قبس
+      BALE_BOT_API: ${BALE_BOT_API:-https://tapi.bale.ai}
       BALE_SAFIR_API_KEY: ${BALE_SAFIR_API_KEY:-}
       BALE_SAFIR_BOT_ID: ${BALE_SAFIR_BOT_ID:-}
       EITAA_APP_TOKEN: ${EITAA_APP_TOKEN:-}

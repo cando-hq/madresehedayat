@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { SecondMobile } from '../components/SecondMobile';
 import { CircleAlert, KeyRound, LogOut, Moon, Sun, SunMoon } from 'lucide-react';
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router';
@@ -98,7 +99,8 @@ export default function Settings() {
 
       <section className="card grid gap-4 p-6">
         <h2 className="text-lg font-extrabold">حساب</h2>
-        <div className="flex flex-wrap items-center justify-between gap-3"><div><b className="block text-ink">شمارهٔ موبایل</b><span dir="ltr" className="tnum text-muted">{maskMobile(me!.mobile)}</span></div></div>
+        <div className="flex flex-wrap items-center justify-between gap-3"><div><b className="block text-ink">شمارهٔ موبایل اصلی</b><span dir="ltr" className="tnum text-muted">{maskMobile(me!.mobile)}</span></div></div>
+        <SecondMobile me={me!} />
         <div className="flex flex-wrap items-center justify-between gap-3"><div><b className="block text-ink">نقش من در مسجد و مسجدم</b><span className="text-sm text-muted">{[me!.actorRole ? { IMAM: 'امام', SHARIK: 'شریکة‌الامام', BAZU: 'بازو', HASTEH: 'عضو هسته', OTHER: 'دیگر' }[me!.actorRole] : null, me!.mosque?.name].filter(Boolean).join('، ') || 'هنوز نگفته‌ای'}</span></div><Link to="/onboard" className="btn btn-secondary btn-sm">عوض کن</Link></div>
         {me!.roles.length > 0 && <div><b className="block text-ink">نقش‌ها</b><div className="mt-1 flex flex-wrap gap-2">{me!.roles.map((r) => <span key={r} className="chip chip-dome">{ROLE_LABEL[r]}</span>)}</div></div>}
         {me!.cores.length > 0 && <div><b className="block text-ink">هسته‌ها</b><div className="mt-1 flex flex-wrap gap-2">{me!.cores.map((c) => <span key={c.id} className="chip">{c.name}{c.isLeader ? ' · مسئول' : ''}</span>)}</div></div>}

@@ -5,12 +5,13 @@
  * و «گام رشد» فقط روایتِ تأییدشده یا دیدار میدانی راهیار است.
  * همان پاسخ‌هایی که نسخهٔ نمایشی (apps/web/src/demo/paths2.ts) می‌دهد.
  */
+import { userIdByMobile } from '../auth/mobiles';
 import { BadRequestException, Body, Controller, ForbiddenException, Get, HttpCode, Injectable, NotFoundException, Param, Patch, Post, Query } from '@nestjs/common';
 import { AdminService } from '../admin/admin.service';
 import { ArrayMaxSize, IsArray, IsBoolean, IsIn, IsNumber, IsObject, IsOptional, IsString, Length } from 'class-validator';
 import { and, asc, desc, eq, inArray, isNotNull, sql } from 'drizzle-orm';
 import { AuthUser, CurrentUser, MaybeUser, Public, Roles } from '../common/auth.decorators';
-import { decJson, mobileKey } from '../common/crypto';
+import { decJson } from '../common/crypto';
 import { normalizeMobile } from '../common/mobile';
 import { Db, InjectDb } from '../db/db.module';
 import { createId } from '../db/id';
@@ -400,7 +401,7 @@ export class Paths2Service {
   async invite(u: AuthUser, d: InviteDto) {
     const pub = await this.needPub(u); const p = await this.path(d.pathId); if (p.publisherId !== pub.id) throw new ForbiddenException(err('forbidden', ''));
     const mob = normalizeMobile(d.mobile); if (!mob) throw new BadRequestException(err('bad_mobile', 'شماره باید ۱۱ رقم باشد و با ۰۹ شروع شود'));
-    const target = await this.db.query.users.findFirst({ where: eq(users.mobile, mobileKey(mob)), columns: { id: true } });
+    const tid = await userIdByMobile(this.db, mob); const target = tid ? { id: tid } : undefined;
     if (!target) throw new NotFoundException(err('no_user', 'کسی با این شماره هنوز وارد مدرسه نشده؛ بگو یک بار با همین شماره وارد شود، بعد دعوتش کن'));
     await this.db.insert(roleGrants).values({ userId: target.id, role: 'RAHYAR', grantedById: u.id } as any).onConflictDoNothing();
     await this.db.delete(pathRahyars).where(eq(pathRahyars.pathId, p.id));
@@ -494,7 +495,7 @@ export class Paths2Service {
   async assignInstructor(u: AuthUser, id: string, mobile: string) {
     const pub = await this.needPub(u); const c = await this.db.query.courses.findFirst({ where: eq(courses.id, id) }); if (!c || c.publisherId !== pub.id) throw new ForbiddenException(err('forbidden', 'این دوره مال تو نیست'));
     const mob = normalizeMobile(mobile); if (!mob) throw new BadRequestException(err('bad_mobile', 'شماره باید ۱۱ رقم باشد و با ۰۹ شروع شود'));
-    const t = await this.db.query.users.findFirst({ where: eq(users.mobile, mobileKey(mob)), columns: { id: true } });
+    const tId = await userIdByMobile(this.db, mob); const t = tId ? { id: tId } : undefined;
     if (!t) throw new NotFoundException(err('no_user', 'کسی با این شماره هنوز وارد مدرسه نشده؛ بگو یک بار با همین شماره وارد شود، بعد دوره را بسپار'));
     await this.db.insert(roleGrants).values({ userId: t.id, role: 'INSTRUCTOR' } as any).onConflictDoNothing();
     await this.db.update(courses).set({ instructorId: t.id, instructor: await this.name(t.id) }).where(eq(courses.id, c.id));
@@ -551,7 +552,7 @@ export class Paths2Service {
   async patchPublisher(id: string, d: PublisherPatchDto) {
     const p = await this.pubById(id); if (!p) throw new NotFoundException(err('no_pub', 'برگزارکننده پیدا نشد'));
     if (d.status) { if (d.status === 'BLOCKED' && !d.note?.trim()) throw new BadRequestException(err('need_note', 'دلیل مسدود کردن را بنویس')); await this.db.update(publishers).set({ status: d.status, note: d.note ?? p.note }).where(eq(publishers.id, id)); }
-    if (d.adminMobile) { const mob = normalizeMobile(d.adminMobile); if (!mob) throw new BadRequestException(err('bad_mobile', 'شماره درست نیست')); const t = await this.db.query.users.findFirst({ where: eq(users.mobile, mobileKey(mob)), columns: { id: true } }); if (!t) throw new NotFoundException(err('no_user', 'کاربری با این شماره نیست')); await this.db.insert(publisherAdmins).values({ publisherId: id, userId: t.id }).onConflictDoNothing(); await this.db.insert(roleGrants).values({ userId: t.id, role: 'ORG_ADMIN', networkId: null } as any).onConflictDoNothing(); }
+    if (d.adminMobile) { const mob = normalizeMobile(d.adminMobile); if (!mob) throw new BadRequestException(err('bad_mobile', 'شماره درست نیست')); const tId = await userIdByMobile(this.db, mob); const t = tId ? { id: tId } : undefined; if (!t) throw new NotFoundException(err('no_user', 'کاربری با این شماره نیست')); await this.db.insert(publisherAdmins).values({ publisherId: id, userId: t.id }).onConflictDoNothing(); await this.db.insert(roleGrants).values({ userId: t.id, role: 'ORG_ADMIN', networkId: null } as any).onConflictDoNothing(); }
     return { ok: true };
   }
 }

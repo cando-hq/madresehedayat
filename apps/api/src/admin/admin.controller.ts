@@ -108,6 +108,9 @@ export class AdminController {
 
   @Get('users') users(@CurrentUser() u: AuthUser, @Query('q') q = '', @Query('page') page = '1') { this.access.write(u.id, 'users.list', null); return this.admin.listUsers(q, Number(page) || 1); }
   @Patch('users/:id') @Roles('HQ_ADMIN') setActive(@CurrentUser() u: AuthUser, @Param('id') id: string, @Body() d: ActiveDto) { return this.admin.setActive(u.id, id, d.isActive); }
+  /** شمارهٔ دوم حساب را ستاد بی‌کد وصل یا پاک می‌کند (مثلاً وقتی کسی دو خط دارد) */
+  @Post('users/:id/mobile2') @HttpCode(200) @Roles('HQ_ADMIN') setMobile2(@CurrentUser() u: AuthUser, @Param('id') id: string, @Body() d: { mobile?: string }) { return this.admin.setMobile2(u.id, id, d.mobile ?? ''); }
+  @Delete('users/:id/mobile2') @Roles('HQ_ADMIN') removeMobile2(@CurrentUser() u: AuthUser, @Param('id') id: string) { return this.admin.setMobile2(u.id, id, null); }
   @Post('users/:id/roles') @HttpCode(200) @Roles('HQ_ADMIN') grantRole(@CurrentUser() u: AuthUser, @Param('id') id: string, @Body() d: RoleDto) { return this.admin.grantRole(u.id, id, d.role, d.networkId); }
   @Delete('users/:id/roles/:role') @Roles('HQ_ADMIN') revokeRole(@CurrentUser() u: AuthUser, @Param('id') id: string, @Param('role') role: RoleDto['role']) { return this.admin.revokeRole(u.id, id, role); }
 

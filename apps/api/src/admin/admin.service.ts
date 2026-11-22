@@ -1,13 +1,13 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { userIdByMobile, userIdsByMobiles } from '../auth/mobiles';
 import { and, asc, count, desc, eq, gt, ilike, inArray, isNull, or, sql } from 'drizzle-orm';
 import { normalizeMobile } from '../common/mobile';
 import { Db, InjectDb } from '../db/db.module';
 import { toolById } from '../tools/tools';
-import { dec, mobileKey } from '../common/crypto';
+import { dec, enc, mobileKey } from '../common/crypto';
 import {
   accessGrants, auditLogs, certificates, counties, courseDependencies, courses, enrollments, lessonProgress, lessons,
-  modules, mosques, networks, pathItems, paths, provinces, roleGrants, users,
-} from '../db/schema';
+  modules, mosques, networks, pathItems, paths, provinces, roleGrants, users, userMobiles } from '../db/schema';
 
 type LessonTypeName = typeof lessons.$inferSelect['type'];
 
@@ -296,18 +296,38 @@ export class AdminService {
 
   // ───────── کاربران و نقش‌ها ─────────
 
+  /** شمارهٔ دوم یک حساب (null = پاک کردن). شماره‌ای که حساب جدا دارد پذیرفته نمی‌شود */
+  async setMobile2(actor: string, userId: string, mobile: string | null) {
+    if (mobile === null) {
+      await this.db.delete(userMobiles).where(eq(userMobiles.userId, userId));
+      await this.audit(actor, 'user.mobile2.remove', userId);
+      return { mobile2: null };
+    }
+    const m = normalizeMobile(mobile);
+    if (!m) throw new BadRequestException({ code: 'bad_mobile', message: 'شماره ۱۱ رقم است و با ۰۹ شروع می‌شود' });
+    const other = await userIdByMobile(this.db, m);
+    if (other === userId) throw new BadRequestException({ code: 'mobile_same', message: 'این شماره همین الان به همین حساب وصل است' });
+    if (other) throw new BadRequestException({ code: 'mobile_taken', message: 'با این شماره حساب جدایی ساخته شده؛ اول آن حساب را غیرفعال کن یا شمارهٔ دیگری بده' });
+    const e = enc(m)!;
+    await this.db.insert(userMobiles).values({ userId, mobile: mobileKey(m), mobileEnc: e })
+      .onConflictDoUpdate({ target: userMobiles.userId, set: { mobile: mobileKey(m), mobileEnc: e, createdAt: new Date() } });
+    await this.audit(actor, 'user.mobile2', userId);
+    return { mobile2: m };
+  }
+
   async listUsers(q: string, page: number) {
     const term = q?.trim();
-    const where = term ? or(ilike(users.firstName, `%${term}%`), ilike(users.lastName, `%${term}%`), eq(users.mobile, mobileKey(normalizeMobile(term) ?? '-'))) : undefined;
+    const byMob = term && normalizeMobile(term) ? await userIdByMobile(this.db, normalizeMobile(term)!) : null;
+    const where = term ? or(ilike(users.firstName, `%${term}%`), ilike(users.lastName, `%${term}%`), eq(users.id, byMob ?? '-')) : undefined;
     const rows = await this.db.select({
-      id: users.id, mobileEnc: users.mobileEnc, firstName: users.firstName, lastName: users.lastName, gender: users.gender, isActive: users.isActive,
+      id: users.id, mobileEnc: users.mobileEnc, mobile2Enc: sql<string | null>`(select m.mobile_enc from ${userMobiles} m where m.user_id = ${users.id})`, firstName: users.firstName, lastName: users.lastName, gender: users.gender, isActive: users.isActive,
       createdAt: users.createdAt, county: counties.name, province: provinces.name, mosque: mosques.name, nearMosque: users.nearMosque,
       roles: sql<string[]>`coalesce((select array_agg(distinct r.role::text) from ${roleGrants} r where r.user_id = ${users.id}), '{}'::text[])`,
       courses: sql<number>`(select count(*)::int from ${enrollments} e where e.user_id = ${users.id})`,
     }).from(users).leftJoin(counties, eq(counties.id, users.countyId)).leftJoin(provinces, eq(provinces.id, counties.provinceId))
       .leftJoin(mosques, eq(mosques.id, users.mosqueId)).where(where).orderBy(desc(users.createdAt)).limit(50).offset(Math.max(0, page - 1) * 50);
     const [{ n }] = await this.db.select({ n: count() }).from(users).where(where);
-    return { total: n, page, rows: rows.map(({ mobileEnc, ...r }) => ({ ...r, mobile: dec(mobileEnc) ?? '' })) };
+    return { total: n, page, rows: rows.map(({ mobileEnc, mobile2Enc, ...r }) => ({ ...r, mobile: dec(mobileEnc) ?? '', mobile2: mobile2Enc ? dec(mobile2Enc) ?? null : null })) };
   }
 
   async setActive(actor: string, id: string, isActive: boolean) {
@@ -342,8 +362,9 @@ export class AdminService {
     if (d.networkId) for (const c of d.courseIds) values.push({ courseId: c, networkId: d.networkId, issuedById: actor, expiresAt, note: d.note });
     if (d.mobiles?.length) {
       const norm = d.mobiles.map((m) => normalizeMobile(m)).filter(Boolean) as string[];
-      const found = norm.length ? await this.db.select({ id: users.id, mobile: users.mobile }).from(users).where(inArray(users.mobile, norm.map(mobileKey))) : [];
-      for (const m of d.mobiles) { const n = normalizeMobile(m); if (!n || !found.some((f) => f.mobile === mobileKey(n))) missing.push(m); }
+      const map = await userIdsByMobiles(this.db, norm);
+      const found = [...new Set(map.values())].map((id) => ({ id }));
+      for (const m of d.mobiles) { const n = normalizeMobile(m); if (!n || !map.has(n)) missing.push(m); }
       for (const u of found) for (const c of d.courseIds) values.push({ courseId: c, userId: u.id, issuedById: actor, expiresAt, note: d.note });
     }
     if (values.length) await this.db.insert(accessGrants).values(values);

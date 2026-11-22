@@ -34,7 +34,9 @@ async def main():
         # ۵) پاسخ HTML از nginx (۵۰۲) برای یک صفحه
         await a.route('**/api/events?*', lambda r: r.fulfill(status=502, content_type='text/html', body='<html>Bad Gateway</html>'))
         await a.route('**/api/events', lambda r: r.fulfill(status=502, content_type='text/html', body='<html>Bad Gateway</html>'))
-        await a.goto(BASE+'/events'); await a.wait_for_load_state('networkidle'); await a.wait_for_timeout(2500)
+        await a.goto(BASE+'/events'); await a.wait_for_load_state('networkidle')
+        try: await a.get_by_text('در دسترس نیست').first.wait_for(timeout=12000)  # پس از تلاش‌های دوباره
+        except Exception: pass
         t = await a.locator('main').inner_text(); ok('در دسترس نیست' in t, '۵۰۲ HTML: '+t[:120].replace('\n',' | '))
         await a.screenshot(path=OUT+'502.png')
         await a.unroute('**/api/events?*'); await a.unroute('**/api/events')

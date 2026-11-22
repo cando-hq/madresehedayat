@@ -2,7 +2,7 @@ export type Role = 'HQ_ADMIN' | 'HQ_OPERATOR' | 'INSTRUCTOR' | 'RAHYAR' | 'IMAM'
 export type LessonType = 'VIDEO' | 'AUDIO' | 'TEXT' | 'QUIZ' | 'PRACTICE' | 'WORKSHEET' | 'MISSION' | 'TOOL' | 'LIVE';
 
 export interface Me {
-  id: string; mobile: string; firstName: string; lastName: string; gender: 'MALE' | 'FEMALE' | null;
+  id: string; mobile: string; /** شمارهٔ دوم حساب: با هر دو شماره به همین حساب وارد می‌شوی */ mobile2?: string | null; firstName: string; lastName: string; gender: 'MALE' | 'FEMALE' | null;
   hasNationalId: boolean; county: { id: string; name: string; province: string } | null;
   mosque: { id: string; name: string } | null; nearMosque: string | null; roles: Role[];
   cores: { id: string; name: string; isLeader: boolean }[]; ssoLinked: boolean;

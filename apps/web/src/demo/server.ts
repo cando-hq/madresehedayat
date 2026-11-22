@@ -193,7 +193,7 @@ function profile(u: Any) {
   const county = DBV.counties.find((c) => c.id === u.countyId);
   const province = county && DBV.provinces.find((p) => p.id === county.provinceId);
   const mosque = DBV.mosques.find((m) => m.id === u.mosqueId);
-  return { id: u.id, mobile: u.mobile, firstName: u.firstName, lastName: u.lastName, gender: u.gender, hasNationalId: !!u.nationalId,
+  return { id: u.id, mobile: u.mobile, mobile2: u.mobile2 ?? null, firstName: u.firstName, lastName: u.lastName, gender: u.gender, hasNationalId: !!u.nationalId,
     county: county ? { id: county.id, name: county.name, province: province?.name } : null, mosque: mosque ? { id: mosque.id, name: mosque.name } : null,
     nearMosque: u.nearMosque, roles: rolesOf(u.id), ssoLinked: false, allowRahyarMessages: u.allowRahyarMessages !== false,
     cores: DBV.cores.filter((c) => c.leaderId === u.id || DBV.coreMembers.some((x) => x.coreId === c.id && x.userId === u.id)).map((c) => ({ id: c.id, name: c.name, isLeader: c.leaderId === u.id })),
@@ -301,6 +301,10 @@ on('POST', '/auth/refresh', () => { if (!DBV.session) throw E(401, 'session_ende
 on('POST', '/auth/logout', () => { DBV.session = null; return { ok: true }; });
 on('GET', '/auth/sso/core', () => { throw E(501, 'sso_not_configured', 'ورود با سامانهٔ پایه هنوز راه نیفتاده است'); });
 on('GET', '/auth/me', () => profile(me()));
+// شمارهٔ دوم حساب
+on('POST', '/auth/mobile2/otp', (_m, b) => { const mob = normMobile(b.mobile); if (!mob) throw E(400, 'bad_mobile', 'شماره باید ۱۱ رقم باشد و با ۰۹ شروع شود'); if (DBV.users.some((u) => u.mobile === mob || u.mobile2 === mob)) throw E(400, 'mobile_taken', 'با این شماره حساب جدایی در مدرسه ساخته شده؛ برای یکی کردن دو حساب به پشتیبانی پیام بده'); return { sent: true, channel: 'SMS', resendIn: 60, isNew: false, devCode: DEMO_CODE }; });
+on('POST', '/auth/mobile2', (_m, b) => { const mob = normMobile(b.mobile); if (String(b.code) !== DEMO_CODE) throw E(400, 'otp_wrong', 'کد درست نیست'); me().mobile2 = mob; return { mobile2: mob }; });
+on('DELETE', '/auth/mobile2', () => { me().mobile2 = null; return { mobile2: null }; });
 on('PATCH', '/auth/me', (_m, b) => {
   const u = me();
   if (b.firstName) u.firstName = b.firstName.trim(); if (b.lastName) u.lastName = b.lastName.trim(); if (b.countyId) u.countyId = b.countyId;

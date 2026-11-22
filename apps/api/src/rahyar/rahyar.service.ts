@@ -1,8 +1,9 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { userIdByMobile } from '../auth/mobiles';
 import { and, eq, inArray, isNotNull } from 'drizzle-orm';
 import { normalizeMobile } from '../common/mobile';
 import { Db, InjectDb } from '../db/db.module';
-import { dec, mobileKey } from '../common/crypto';
+import { dec } from '../common/crypto';
 import {
   coreMemberships, cores, counties, networkMembers, networks, pathEnrollments, pathRahyars, paths2, provinces, rahyarAssignments, rahyarPositions, regionProvinces, roleGrants, users,
 } from '../db/schema';
@@ -197,7 +198,7 @@ export class RahyarService {
       if (!d.holderMobile) set.holderId = null;
       else {
         const m = normalizeMobile(d.holderMobile);
-        const u = m ? await this.db.query.users.findFirst({ where: eq(users.mobile, mobileKey(m)) }) : undefined;
+        const uid = m ? await userIdByMobile(this.db, m) : null; const u = uid ? await this.db.query.users.findFirst({ where: eq(users.id, uid) }) : undefined;
         if (!u) throw new BadRequestException({ code: 'no_user', message: 'کسی با این شماره ثبت‌نام نکرده؛ اول باید در مدرسه حساب بسازد' });
         if (u.gender && u.gender !== p.gender) throw new BadRequestException({ code: 'gender', message: p.gender === 'MALE' ? 'این جایگاه در درخت برادران است' : 'این جایگاه در درخت بانور است' });
         set.holderId = u.id;

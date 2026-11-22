@@ -46,6 +46,15 @@ export const users = pgTable('users', {
   updatedAt: updatedAt(),
 });
 
+/** شمارهٔ دوم حساب: با هر دو شماره به همین حساب وارد می‌شوی (یک شمارهٔ دوم برای هر حساب) */
+export const userMobiles = pgTable('user_mobiles', {
+  userId: text('user_id').primaryKey().references(() => users.id, { onDelete: 'cascade' }),
+  /** نمایهٔ کور (HMAC) مثل users.mobile؛ خود شماره رمزگذاری‌شده در mobileEnc */
+  mobile: text('mobile').notNull().unique(),
+  mobileEnc: text('mobile_enc').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const otpRequests = pgTable('otp_requests', {
   id: id(),
   mobile: text('mobile').notNull(),

@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Get, HttpCode, NotImplementedException, Patch, Post, Req, Res } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, HttpCode, NotImplementedException, Patch, Post, Req, Res, Delete } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { IsIn, IsOptional, IsString, Length, MaxLength } from 'class-validator';
 import { and, eq } from 'drizzle-orm';
@@ -142,7 +142,7 @@ export class AuthController {
     const p = verifyEitaa(String(d.contact ?? ''), 10 * 60);
     const phone = p && contactPhone(p);
     const mobile = phone ? normalizeMobile(phone) : null;
-    if (!mobile) throw new BadRequestException({ code: 'eitaa_contact', message: 'شماره از ایتا نرسید؛ با کد پیامکی وارد شو' });
+    if (!mobile) throw new BadRequestException({ code: 'eitaa_contact', message: 'شماره از ایتا نرسید؛ با شماره و کد وارد شو' });
     // ورود بی‌کد فقط اگر سرور ایتا هم این امضا را یک‌بار تأیید کند
     if (!(await eitaaVerifyOnce(new URLSearchParams(String(d.contact)).get('hash') ?? '', req.ip ?? ''))) throw new BadRequestException({ code: 'eitaa_contact', message: 'تأیید ایتا انجام نشد؛ با شماره و کد وارد شو' });
     const r = await this.auth.loginByVerifiedMobile(mobile);
@@ -198,6 +198,25 @@ export class AuthController {
     return { ok: true };
   }
 
+  /* شمارهٔ دوم: کد به همان شماره می‌رود (یا از بات بله با «شماره‌ام را بفرست» از گوشی دوم)، بعد وصل می‌شود */
+  @Post('mobile2/otp') @HttpCode(200) @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  async mobile2Otp(@CurrentUser() u: AuthUser, @Body() dto: OtpDto) {
+    const m = this.mobileOrThrow(dto.mobile);
+    await this.auth.assertSecondFree(u.id, m);
+    const r = await this.auth.requestOtp(m, dto.via);
+    return { ...r, isNew: false };
+  }
+
+  @Post('mobile2') @HttpCode(200) @Throttle({ default: { limit: 20, ttl: 60_000 } })
+  mobile2Set(@CurrentUser() u: AuthUser, @Body() dto: VerifyDto) {
+    return this.auth.setSecondMobile(u.id, this.mobileOrThrow(dto.mobile), toEnDigits(dto.code).trim());
+  }
+
+  @Delete('mobile2')
+  mobile2Remove(@CurrentUser() u: AuthUser) {
+    return this.auth.removeSecondMobile(u.id);
+  }
+
   @Patch('me')
   async update(@CurrentUser() u: AuthUser, @Body() dto: ProfileDto) {
     const patch: Partial<typeof users.$inferInsert> = {};
@@ -233,7 +252,7 @@ export class AuthController {
       // منطق مسیر (نسخهٔ ۲)
       actorRole: u.actorRole ?? null, mainPathId: u.mainPathId ?? null, onboarded: !!u.onboardedAt, publisher: pubRow, location: u.lat != null && u.lng != null ? { lat: u.lat, lng: u.lng } : null,
       imamOf, orgs, allowRahyarMessages: u.allowRahyarMessages, notifyMessenger: u.notifyMessenger, mfaEnrolled: !!u.totpEnabledAt,
-      id: u.id, mobile: dec(u.mobileEnc) ?? '', firstName: u.firstName, lastName: u.lastName, gender: u.gender,
+      id: u.id, mobile: dec(u.mobileEnc) ?? '', mobile2: await this.auth.secondMobile(u.id), firstName: u.firstName, lastName: u.lastName, gender: u.gender,
       hasNationalId: !!u.nationalId, county, mosque, nearMosque: u.nearMosque, roles,
       cores: coreRows.map((c) => ({ id: c.id, name: c.name, isLeader: c.leaderId === userId })),
       ssoLinked: !!u.coreSsoId,

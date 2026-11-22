@@ -99,7 +99,7 @@ function PathEditor({ p }: { p: APath }) {
 }
 
 /* ───────── کاربران ───────── */
-interface URow { id: string; mobile: string; firstName: string; lastName: string; gender: string | null; isActive: boolean; createdAt: string; county: string | null; province: string | null; mosque: string | null; nearMosque: string | null; roles: Role[]; courses: number }
+interface URow { id: string; mobile: string; mobile2?: string | null; firstName: string; lastName: string; gender: string | null; isActive: boolean; createdAt: string; county: string | null; province: string | null; mosque: string | null; nearMosque: string | null; roles: Role[]; courses: number }
 
 export function UsersPage() {
   const { has } = useAuth();
@@ -121,7 +121,7 @@ export function UsersPage() {
               <tbody>{q.data.rows.map((u) => (
                 <tr key={u.id} className={`border-t border-line ${!u.isActive ? 'opacity-55' : ''}`}>
                   <td className="px-4 py-2.5"><button className="font-semibold text-ink hover:text-leaf-ink" onClick={() => setSel(u)}>{u.firstName} {u.lastName}</button>{!u.isActive && <span className="chip ms-2">غیرفعال</span>}</td>
-                  <td className="tnum px-4 py-2.5" dir="ltr">{fa(u.mobile)}</td>
+                  <td className="tnum px-4 py-2.5" dir="ltr">{fa(u.mobile)}{u.mobile2 && <span className="block text-xs text-muted">{fa(u.mobile2)}</span>}</td>
                   <td className="px-4 py-2.5 text-muted">{u.mosque ?? u.nearMosque ?? '—'}{u.county ? `، ${u.county}` : ''}</td>
                   <td className="px-4 py-2.5"><div className="flex flex-wrap gap-1">{u.roles.map((r) => <span key={r} className="chip chip-dome">{ROLE_LABEL[r]}</span>)}</div></td>
                   <td className="tnum px-4 py-2.5">{fa(u.courses)}</td>
@@ -159,6 +159,13 @@ function UserRoles({ u, canEdit, onDone }: { u: URow; canEdit: boolean; onDone: 
           <button key={r} disabled={!canEdit} onClick={() => toggle(r)} aria-pressed={roles.includes(r)} className={`chip h-9 cursor-pointer px-3 ${roles.includes(r) ? 'chip-leaf' : ''}`}>{roles.includes(r) && <Check className="size-4" />}{ROLE_LABEL[r]}</button>
         ))}</div>
         <p className="hint mt-2">جایگاه راهیار (لایه و محدوده) از «ساختار راهیاری» و امام محله از «مساجد» تعیین می‌شود.</p></div>
+      <div><b className="mb-1 block text-ink">شمارهٔ دوم</b>
+        <p className="text-sm text-muted">{u.mobile2 ? <>با <span dir="ltr" className="tnum">{fa(u.mobile2)}</span> هم به همین حساب وارد می‌شود.</> : 'ندارد. اگر دو خط دارد، با هر دو به همین حساب وارد شود.'}</p>
+        {canEdit && <div className="mt-2 flex flex-wrap gap-2">
+          <button type="button" className="btn btn-ghost btn-sm" onClick={async () => { const m = await ask({ title: u.mobile2 ? 'تغییر شمارهٔ دوم' : 'افزودن شمارهٔ دوم', body: 'این شماره نباید حساب جدایی در مدرسه داشته باشد.', input: true, required: true, label: 'شمارهٔ موبایل', placeholder: '09…', ok: 'وصل کن' }); if (m) call(api(`/admin/users/${u.id}/mobile2`, { body: { mobile: m } }), 'شمارهٔ دوم وصل شد').then(onDone); }}>{u.mobile2 ? 'تغییر' : 'افزودن شمارهٔ دوم'}</button>
+          {u.mobile2 && <button type="button" className="btn btn-ghost btn-sm text-rose" onClick={async () => { if (await ask({ title: 'شمارهٔ دوم برداشته شود؟', ok: 'بردار', danger: true })) call(api(`/admin/users/${u.id}/mobile2`, { method: 'DELETE' }), 'شمارهٔ دوم برداشته شد').then(onDone); }}>برداشتن</button>}
+        </div>}
+      </div>
       {canEdit && (roles.includes('HQ_ADMIN') || roles.includes('HQ_OPERATOR')) && <button className="btn btn-ghost btn-sm w-fit" onClick={() => call(api(`/admin/security/users/${u.id}/mfa-reset`, { method: 'POST' }), 'رمز دوم بازنشانی شد؛ در ورود بعدی دوباره راه می‌اندازد')}>بازنشانی رمز دوم (گوشی گم شده)</button>}
       {canEdit && <button className={`btn btn-sm w-fit ${u.isActive ? 'btn-ghost text-rose' : 'btn-secondary'}`} onClick={() => call(api(`/admin/users/${u.id}`, { method: 'PATCH', body: { isActive: !u.isActive } }), u.isActive ? 'حساب غیرفعال شد' : 'حساب فعال شد').then(onDone)}>
         <ShieldOff className="size-4" />{u.isActive ? 'غیرفعال کردن حساب' : 'فعال کردن حساب'}</button>}

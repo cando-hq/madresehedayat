@@ -1,11 +1,12 @@
 import { BadRequestException, HttpException, HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
+import { userIdByMobile } from './mobiles';
 import { JwtService } from '@nestjs/jwt';
 import { and, desc, eq, gt, isNull } from 'drizzle-orm';
 import { createHash, createHmac, randomBytes, randomInt, timingSafeEqual } from 'node:crypto';
 import { config } from '../config';
 import { dec, enc, mobileKey } from '../common/crypto';
 import { Db, InjectDb } from '../db/db.module';
-import { coreMemberships, cores, messengerLinks, mosques, networks, otpRequests, roleGrants, sessions, users } from '../db/schema';
+import { coreMemberships, cores, messengerLinks, mosques, networks, otpRequests, roleGrants, sessions, users, userMobiles } from '../db/schema';
 import { Business } from '../business/business';
 import { RoleName } from '../common/auth.decorators';
 import { BaleSafir, SmsSender } from '../sms/sms';
@@ -62,8 +63,8 @@ export class AuthService {
     if (recent.length >= MAX_PER_HOUR) return 'در این یک ساعت کد زیادی خواستی؛ یک ساعت دیگر دوباره امتحان کن.';
     const code = String(randomInt(10000, 100000));
     await this.db.insert(otpRequests).values({ mobile: mobileKey(mobile), codeHash: this.otpHash(mobile, code), expiresAt: new Date(Date.now() + OTP_TTL_MS) });
-    const user = await this.db.query.users.findFirst({ where: eq(users.mobile, mobileKey(mobile)), columns: { id: true } });
-    if (user) await this.linkBale(user.id, chatId);
+    const uid = await userIdByMobile(this.db, mobile);
+    if (uid) await this.linkBale(uid, chatId);
     else {
       const now = Date.now();
       for (const [k, v] of this.pendingBale) if (v.until < now) this.pendingBale.delete(k);
@@ -99,7 +100,8 @@ export class AuthService {
     if (via === 'bale' && !this.safir.enabled) throw new BadRequestException({ code: 'bale_off', message: 'فرستادن کد در بله فعلاً روشن نیست؛ با پیامک بگیر' });
     const code = String(randomInt(10000, 100000)); // هیچ‌وقت با صفر شروع نمی‌شود (بله کد را عدد می‌خواند)
     const [row] = await this.db.insert(otpRequests).values({ mobile: mobileKey(mobile), codeHash: this.otpHash(mobile, code), expiresAt: new Date(Date.now() + OTP_TTL_MS) }).returning({ id: otpRequests.id });
-    const user = await this.db.query.users.findFirst({ where: eq(users.mobile, mobileKey(mobile)), columns: { id: true } });
+    const uid = await userIdByMobile(this.db, mobile);
+    const user = uid ? { id: uid } : undefined;
     let channel: 'SMS' | 'BALE' | 'EITAA' | null = null;
     if (via !== 'sms' && user) channel = await this.messenger.sendDirect(user.id, `مدرسهٔ هدایت: کد ورود ${code}\nتا ۲ دقیقه معتبر است؛ آن را به کسی نده.`);
     if (!channel && via !== 'sms' && (await this.safir.sendOtp(mobile, code))) channel = 'BALE';
@@ -124,13 +126,27 @@ export class AuthService {
 
   /** شماره‌ای که منبع مطمئن دیگری (ایتا) تأییدش کرده */
   async loginByVerifiedMobile(mobile: string) {
-    const user = await this.db.query.users.findFirst({ where: eq(users.mobile, mobileKey(mobile)) });
+    const uid = await userIdByMobile(this.db, mobile);
+    const user = uid ? await this.db.query.users.findFirst({ where: eq(users.id, uid) }) : undefined;
     if (!user) return { needsRegistration: true as const, regToken: this.jwt.sign({ mobile, purpose: 'register' }, { expiresIn: '20m' }) };
     if (!user.isActive) throw new UnauthorizedException({ code: 'inactive', message: 'این حساب غیرفعال است' });
     return { needsRegistration: false as const, userId: user.id };
   }
 
   async verifyOtp(mobile: string, code: string) {
+    await this.consumeOtp(mobile, code);
+    const uid = await userIdByMobile(this.db, mobile);
+    const user = uid ? await this.db.query.users.findFirst({ where: eq(users.id, uid) }) : undefined;
+    if (!user) {
+      const regToken = this.jwt.sign({ mobile, purpose: 'register' }, { expiresIn: '20m' });
+      return { needsRegistration: true as const, regToken };
+    }
+    if (!user.isActive) throw new UnauthorizedException({ code: 'inactive', message: 'این حساب غیرفعال است' });
+    return { needsRegistration: false as const, userId: user.id };
+  }
+
+  /** کد درست است؟ (یک بار مصرف؛ پنج اشتباه قفلش می‌کند) */
+  async consumeOtp(mobile: string, code: string) {
     const [otp] = await this.db.select().from(otpRequests)
       .where(and(eq(otpRequests.mobile, mobileKey(mobile)), isNull(otpRequests.usedAt), gt(otpRequests.expiresAt, new Date())))
       .orderBy(desc(otpRequests.createdAt)).limit(1);
@@ -144,13 +160,36 @@ export class AuthService {
       throw new BadRequestException({ code: 'otp_wrong', message: 'کد درست نیست. دوباره ببین یا کد تازه بگیر', left });
     }
     await this.db.update(otpRequests).set({ usedAt: new Date() }).where(eq(otpRequests.id, otp.id));
-    const user = await this.db.query.users.findFirst({ where: eq(users.mobile, mobileKey(mobile)) });
-    if (!user) {
-      const regToken = this.jwt.sign({ mobile, purpose: 'register' }, { expiresIn: '20m' });
-      return { needsRegistration: true as const, regToken };
-    }
-    if (!user.isActive) throw new UnauthorizedException({ code: 'inactive', message: 'این حساب غیرفعال است' });
-    return { needsRegistration: false as const, userId: user.id };
+  }
+
+  /* ───── شمارهٔ دوم حساب ───── */
+
+  /** شمارهٔ دوم این حساب (یا null) */
+  async secondMobile(userId: string): Promise<string | null> {
+    const [r] = await this.db.select({ e: userMobiles.mobileEnc }).from(userMobiles).where(eq(userMobiles.userId, userId)).limit(1);
+    return r ? dec(r.e) ?? null : null;
+  }
+
+  /** این شماره را می‌شود شمارهٔ دوم این حساب کرد؟ (نه شمارهٔ خودش، نه شمارهٔ حساب دیگری) */
+  async assertSecondFree(userId: string, mobile: string) {
+    const other = await userIdByMobile(this.db, mobile);
+    if (other === userId) throw new BadRequestException({ code: 'mobile_same', message: 'این شماره همین الان به حساب خودت وصل است' });
+    if (other) throw new BadRequestException({ code: 'mobile_taken', message: 'با این شماره حساب جدایی در مدرسه ساخته شده؛ برای یکی کردن دو حساب به پشتیبانی پیام بده' });
+  }
+
+  /** وصل کردن شمارهٔ دوم (جای قبلی را می‌گیرد). code را خود کاربر می‌دهد؛ ستاد بی‌کد وصل می‌کند */
+  async setSecondMobile(userId: string, mobile: string, code?: string) {
+    await this.assertSecondFree(userId, mobile);
+    if (code !== undefined) await this.consumeOtp(mobile, code);
+    const e = enc(mobile)!;
+    await this.db.insert(userMobiles).values({ userId, mobile: mobileKey(mobile), mobileEnc: e })
+      .onConflictDoUpdate({ target: userMobiles.userId, set: { mobile: mobileKey(mobile), mobileEnc: e, createdAt: new Date() } });
+    return { mobile2: mobile };
+  }
+
+  async removeSecondMobile(userId: string) {
+    await this.db.delete(userMobiles).where(eq(userMobiles.userId, userId));
+    return { mobile2: null };
   }
 
   async register(regToken: string, input: RegisterInput) {
@@ -162,8 +201,8 @@ export class AuthService {
     } catch {
       throw new BadRequestException({ code: 'reg_expired', message: 'وقت ثبت‌نام تمام شد؛ دوباره شماره‌ات را بزن' });
     }
-    const existing = await this.db.query.users.findFirst({ where: eq(users.mobile, mobileKey(mobile)) });
-    if (existing) return { userId: existing.id, notice: null as string | null };
+    const existing = await userIdByMobile(this.db, mobile);
+    if (existing) return { userId: existing, notice: null as string | null };
     const [u] = await this.db.insert(users).values({
       mobile: mobileKey(mobile), mobileEnc: enc(mobile),
       firstName: input.firstName.trim(),
@@ -195,7 +234,8 @@ export class AuthService {
 
   async rolesOf(userId: string): Promise<RoleName[]> {
     const u = await this.db.query.users.findFirst({ where: eq(users.id, userId), columns: { mobileEnc: true } });
-    if (u && config.bootstrapAdmins.includes(dec(u.mobileEnc) ?? '')) {
+    const second = config.bootstrapAdmins.length ? await this.secondMobile(userId) : null;
+    if (u && (config.bootstrapAdmins.includes(dec(u.mobileEnc) ?? '') || (second && config.bootstrapAdmins.includes(second)))) {
       await this.db.insert(roleGrants).values({ userId, role: 'HQ_ADMIN' }).onConflictDoNothing();
     }
     const rows = await this.db.select({ role: roleGrants.role }).from(roleGrants).where(eq(roleGrants.userId, userId));

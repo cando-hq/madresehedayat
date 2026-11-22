@@ -1,9 +1,10 @@
 import { BadRequestException, Body, Controller, Delete, ForbiddenException, Get, HttpCode, Injectable, NotFoundException, Param, Patch, Post, Put, Query } from '@nestjs/common';
+import { userIdByMobile } from '../auth/mobiles';
 import { IsBoolean, IsIn, IsObject, IsOptional, IsString, Length } from 'class-validator';
 import { and, desc, eq, inArray, sql } from 'drizzle-orm';
 import { randomBytes } from 'node:crypto';
 import { AuthUser, CurrentUser, Public, Roles } from '../common/auth.decorators';
-import { dec, decJson, enc, encJson, mobileKey } from '../common/crypto';
+import { dec, decJson, enc, encJson } from '../common/crypto';
 import { normalizeMobile } from '../common/mobile';
 import { Db, InjectDb } from '../db/db.module';
 import { boardComments, boardMembers, boards, boardVersions, coreMemberships, lessonProgress, lessons, modules, toolStatus, users } from '../db/schema';
@@ -151,7 +152,7 @@ export class ToolsService {
     let userId = d.userId;
     if (!userId && d.mobile) {
       const n = normalizeMobile(d.mobile);
-      const x = n ? await this.db.query.users.findFirst({ where: eq(users.mobile, mobileKey(n)), columns: { id: true } }) : undefined;
+      const xId = n ? await userIdByMobile(this.db, n) : null; const x = xId ? { id: xId } : undefined;
       if (!x) throw new BadRequestException({ code: 'no_user', message: 'کسی با این شماره در مدرسه حساب ندارد' });
       userId = x.id;
     }

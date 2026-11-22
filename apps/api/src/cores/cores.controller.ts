@@ -1,4 +1,5 @@
 import { BadRequestException, Body, Controller, Delete, ForbiddenException, Get, HttpCode, NotFoundException, Param, Patch, Post } from '@nestjs/common';
+import { userIdByMobile, userIdsByMobiles } from '../auth/mobiles';
 import { ArrayMaxSize, IsArray, IsOptional, IsString, Length } from 'class-validator';
 import { and, count, eq, inArray, isNotNull, isNull, sql } from 'drizzle-orm';
 import { randomInt } from 'node:crypto';
@@ -6,7 +7,6 @@ import { AuthUser, CurrentUser } from '../common/auth.decorators';
 import { normalizeMobile } from '../common/mobile';
 import { Db, InjectDb } from '../db/db.module';
 import { AccessLog } from '../security/security';
-import { mobileKey } from '../common/crypto';
 import { pgArr } from '../db/id';
 import { coreMemberships, cores, mosques, networkMembers, networks, roleGrants, users } from '../db/schema';
 import { Notifier } from '../notifications/notifications';
@@ -223,7 +223,7 @@ export class CoresController {
     if (!u.roles.includes('HQ_ADMIN')) throw new ForbiddenException({ code: 'forbidden', message: 'فقط مدیر ستاد' });
     if (!d.mobile) { await this.db.update(mosques).set({ imamId: null }).where(eq(mosques.id, id)); return { ok: true }; }
     const mob = normalizeMobile(d.mobile);
-    const user = mob ? await this.db.query.users.findFirst({ where: eq(users.mobile, mobileKey(mob)) }) : undefined;
+    const uid = mob ? await userIdByMobile(this.db, mob) : null; const user = uid ? await this.db.query.users.findFirst({ where: eq(users.id, uid) }) : undefined;
     if (!user) throw new BadRequestException({ code: 'no_user', message: 'کسی با این شماره ثبت‌نام نکرده' });
     await this.db.update(mosques).set({ imamId: user.id }).where(eq(mosques.id, id));
     const brothers = await this.db.query.networks.findFirst({ where: eq(networks.kind, 'BROTHERS') });
@@ -279,7 +279,7 @@ export class CoresController {
     await this.orgAccess(u, id);
     const norm = [...new Set(d.mobiles.map((m) => normalizeMobile(m)).filter(Boolean) as string[])];
     const invalid = d.mobiles.length - d.mobiles.filter((m) => normalizeMobile(m)).length;
-    const found = norm.length ? await this.db.select({ id: users.id }).from(users).where(inArray(users.mobile, norm.map(mobileKey))) : [];
+    const found = [...new Set((await userIdsByMobiles(this.db, norm)).values())].map((id) => ({ id }));
     const fresh = found.length ? await this.db.insert(networkMembers).values(found.map((f) => ({ networkId: id, userId: f.id, invitedById: u.id }))).onConflictDoNothing().returning({ id: networkMembers.userId }) : [];
     const net = await this.db.query.networks.findFirst({ where: eq(networks.id, id) });
     await this.notify.send(fresh.map((f) => f.id), { kind: 'org_invite', title: `«${net?.name}» تو را به اشتراکش دعوت کرده است`, body: 'اگر عضو این سازمان هستی، دعوت را بپذیر تا دوره‌های اشتراک برایت باز شود.', link: '/settings#orgs' });
@@ -321,7 +321,7 @@ export class CoresController {
   async setOrgAdmin(@CurrentUser() u: AuthUser, @Param('id') id: string, @Body() d: { mobile: string }) {
     if (!u.roles.includes('HQ_ADMIN')) throw new ForbiddenException({ code: 'forbidden', message: 'فقط مدیر ستاد' });
     const mob = normalizeMobile(d.mobile ?? '');
-    const user = mob ? await this.db.query.users.findFirst({ where: eq(users.mobile, mobileKey(mob)) }) : undefined;
+    const uid = mob ? await userIdByMobile(this.db, mob) : null; const user = uid ? await this.db.query.users.findFirst({ where: eq(users.id, uid) }) : undefined;
     if (!user) throw new BadRequestException({ code: 'no_user', message: 'کسی با این شماره ثبت‌نام نکرده' });
     await this.db.insert(roleGrants).values({ userId: user.id, role: 'ORG_ADMIN', networkId: id }).onConflictDoNothing();
     return { ok: true };

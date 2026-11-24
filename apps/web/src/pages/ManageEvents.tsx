@@ -1,10 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ManageTabs } from '../components/ManageTabs';
-import { Ban, Camera, CameraOff, CheckCircle2, CircleAlert, Download, Megaphone, Pencil, Plus, QrCode, ScanLine, Send, Star, Trash2, WifiOff, XCircle } from 'lucide-react';
+import { Ban, Camera, CameraOff, CheckCircle2, CircleAlert, Download, ExternalLink, Megaphone, MonitorPlay, Pencil, Plus, QrCode, ScanLine, Send, Star, Trash2, WifiOff, XCircle } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router';
 import { Dialog, Empty, ErrorBox, Spinner, useToast } from '../components/ui';
 import { api } from '../lib/api';
+import { useOpenLink } from '../lib/open';
 import { fa, jDateTime, toEn } from '../lib/fa';
 import { DateBadge } from './Events';
 import { JalaliInput } from '../components/JalaliInput';
@@ -166,6 +167,8 @@ export function ManageEvent() {
   const [msg, setMsg] = useState({ title: '', body: '' });
   const refresh = () => { qc.invalidateQueries({ queryKey: ['manage-event', id] }); qc.invalidateQueries({ queryKey: ['manage-events'] }); };
   const err = (e: unknown) => toast((e as Error).message, 'err');
+  const openLink = useOpenLink();
+  const join = useMutation({ mutationFn: () => api<{ url: string }>(`/events/${id}/join`, { method: 'POST' }), onSuccess: (r) => openLink(r.url), onError: (x) => toast((x as Error).message, 'err') });
   const publish = useMutation({ mutationFn: () => api(`/manage/events/${id}/publish`, { method: 'POST' }), onSuccess: () => { refresh(); toast('منتشر شد؛ مخاطبان می‌بینند'); }, onError: err });
   const cancel = useMutation({ mutationFn: () => api(`/manage/events/${id}/cancel`, { body: { reason } }), onSuccess: () => { refresh(); setDlg(null); toast('لغو شد و به ثبت‌نامی‌ها خبر داده شد'); }, onError: err });
   const del = useMutation({ mutationFn: () => api(`/manage/events/${id}`, { method: 'DELETE' }), onSuccess: () => { qc.invalidateQueries({ queryKey: ['manage-events'] }); nav(base); }, onError: err });
@@ -192,10 +195,12 @@ export function ManageEvent() {
           <p className="mt-1 text-muted">{jDateTime(e.startsAt)} · {e.kind === 'ONLINE' ? 'آنلاین' : e.location ?? 'حضوری'}</p>
           <div className="mt-2 flex flex-wrap gap-2"><span className={`chip ${ST[e.status][0]}`}>{ST[e.status][1]}</span>{rating != null && <span className="chip chip-flame"><Star className="size-3.5" />{fa(rating)} از ۵</span>}</div></div>
         <div className="flex flex-wrap gap-2">
+          {e.kind === 'ONLINE' && e.status !== 'CANCELLED' && new Date(e.endsAt).getTime() > Date.now() && (e.useBbb || e.onlineUrl) && <button className="btn btn-primary" disabled={join.isPending} onClick={() => join.mutate()}><MonitorPlay className="size-4" />ورود به کلاس</button>}
           {e.status === 'DRAFT' && <button className="btn btn-primary" disabled={publish.isPending} onClick={() => publish.mutate()}>انتشار</button>}
           {e.status === 'PUBLISHED' && e.kind === 'IN_PERSON' && <Link className="btn btn-primary" to={`${base}/${id}/checkin`}><ScanLine className="size-4" />حضور دم در</Link>}
           {e.status !== 'CANCELLED' && <Link className="btn btn-secondary" to={`${base}/${id}/edit`}><Pencil className="size-4" />ویرایش</Link>}
           {e.status === 'PUBLISHED' && <button className="btn btn-secondary" onClick={() => setDlg('notify')}><Send className="size-4" />پیام به ثبت‌نامی‌ها</button>}
+          <Link className="btn btn-ghost" to={`/events/${id}`}><ExternalLink className="size-4" />صفحهٔ برنامه</Link>
           <button className="btn btn-ghost" onClick={csv}><Download className="size-4" />CSV</button>
           {e.status === 'PUBLISHED' && <button className="btn btn-ghost text-rose" onClick={() => setDlg('cancel')}><Ban className="size-4" />لغو</button>}
           {e.status === 'DRAFT' && <button className="btn btn-ghost text-rose" onClick={() => del.mutate()}><Trash2 className="size-4" />حذف</button>}

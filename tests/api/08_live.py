@@ -61,4 +61,10 @@ r = mk('آزمون کلاس زنده سقف ۲', 30, 32); ok(r.status_code == 40
 r = admin.post(f'{B}/manage/events', json={'title': 'آزمون کلاس زنده بیرونی', 'kind': 'ONLINE', 'onlineUrl': 'https://example.org/x', 'audienceNetworkId': NET, 'startsAt': iso(60 * 24 * 3 + 40 * 60), 'endsAt': iso(60 * 24 * 3 + 42 * 60)}); ok(r.ok, 'پیوند بیرونی سقف ندارد')
 psql(f"update subscriptions set plan='ORG_PREMIUM' where id='smk9sub'")
 ok(mk('آزمون کلاس زنده سقف ۳', 30, 32).ok, 'بستهٔ ویژه بی‌سقف')
+print('پیوند بیرونی: میزبان هر وقت، ثبت‌نامی از یک ساعت پیش')
+r = hq.post(f'{B}/manage/events', json={'title': 'آزمون کلاس زنده پیوند', 'kind': 'ONLINE', 'useBbb': False, 'onlineUrl': 'https://example.org/room', 'startsAt': iso(180), 'endsAt': iso(240)}); ok(r.ok, 'برنامهٔ با پیوند بیرونی', r.text); X = r.json()['id']
+j = hq.post(f'{B}/events/{X}/join'); ok(j.ok and j.json()['url'] == 'https://example.org/room', 'میزبان پیش‌نویس را هم باز می‌کند', j.text)
+ok(hq.post(f'{B}/manage/events/{X}/publish').ok, 'منتشر شد'); a.post(f'{B}/events/{X}/register')
+r = a.post(f'{B}/events/{X}/join'); ok(r.status_code == 400 and r.json()['code'] == 'early', 'ثبت‌نامی زودتر از یک ساعت نه')
+ok(psql(f"select count(*) from registrations where event_id='{X}' and attended_at is not null") == '0', 'باز کردن میزبان حضور ثبت نکرد')
 print('\nنتیجه:', 'همه درست' if not h.fails else f'{h.fails} خطا'); sys.exit(1 if h.fails else 0)

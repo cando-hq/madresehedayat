@@ -284,6 +284,8 @@ export class EventsService {
     if (e.kind === 'ONLINE' && e.useBbb) return this.live.join(u, e);
     const r = await this.db.query.registrations.findFirst({ where: and(eq(registrations.eventId, id), eq(registrations.userId, u.id)) });
     if (e.kind !== 'ONLINE' || !e.onlineUrl) throw new BadRequestException({ code: 'not_online', message: 'این برنامه آنلاین نیست' });
+    // برگزارکننده و ستاد هر وقت بخواهند پیوند را باز می‌کنند (برای آزمودن و میزبانی)؛ حضورشان ثبت نمی‌شود
+    if (this.canManage(u, e) && r?.status !== 'REGISTERED') return { url: e.onlineUrl };
     if (r?.status !== 'REGISTERED') throw new ForbiddenException({ code: 'not_registered', message: 'اول ثبت‌نام کن' });
     if (Date.now() < e.startsAt.getTime() - 3600_000) throw new BadRequestException({ code: 'early', message: 'پیوند از یک ساعت پیش از شروع باز می‌شود' });
     if (!r.attendedAt) await this.db.update(registrations).set({ attendedAt: new Date(), attendanceMethod: 'ONLINE' }).where(and(eq(registrations.eventId, id), eq(registrations.userId, u.id)));

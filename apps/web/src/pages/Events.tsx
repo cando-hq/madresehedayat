@@ -114,6 +114,7 @@ export function EventPage() {
   const now = Date.now();
   const started = new Date(e.startsAt).getTime() < now;
   const ended = new Date(e.endsAt).getTime() < now;
+  const joinAt = new Date(e.startsAt).getTime() - (e.useBbb ? 15 : 60) * 60_000;
   const lateCancel = new Date(e.startsAt).getTime() - now < 24 * 3600_000;
   const active = e.my && ['REGISTERED', 'WAITLIST', 'PENDING'].includes(e.my.status);
   const closed = e.status !== 'PUBLISHED' || started || (e.registrationDeadline && new Date(e.registrationDeadline).getTime() < now);
@@ -152,9 +153,9 @@ export function EventPage() {
               <>
                 <b className="text-ink">ثبت‌نام تو قطعی است</b>
                 {e.kind === 'IN_PERSON' && e.my.checkInCode && !e.my.attendedAt && <button className="btn btn-primary" onClick={() => setTicket(true)}><Ticket className="size-4" />کارت ورود</button>}
-                {e.kind === 'ONLINE' && !ended && (e.onlineSoon
-                  ? <button className="btn btn-primary" onClick={() => join.mutate()} disabled={join.isPending}><MonitorPlay className="size-4" />ورود به کلاس</button>
-                  : <p className="hint">پیوند کلاس هنوز گذاشته نشده.</p>)}
+                {e.kind === 'ONLINE' && !ended && (!e.onlineSoon ? <p className="hint">پیوند کلاس هنوز گذاشته نشده.</p>
+                  : now < joinAt ? <p className="rounded-lg bg-sunken px-3 py-2 text-sm text-body"><MonitorPlay className="me-1 inline size-4" />«ورود به کلاس» از {jTime(new Date(joinAt).toISOString())} همین‌جا باز می‌شود.</p>
+                  : <button className="btn btn-primary" onClick={() => join.mutate()} disabled={join.isPending}><MonitorPlay className="size-4" />ورود به کلاس</button>)}
                 {e.kind === 'ONLINE' && <p className="hint">{e.useBbb ? 'کلاس از ۱۵ دقیقه پیش از شروع باز می‌شود. اگر دست‌کم نیمی از زمان کلاس حاضر باش، حضورت ثبت می‌شود.' : 'پیوند کلاس از یک ساعت پیش از شروع باز می‌شود و ورودت حضور حساب می‌شود.'}</p>}
                 {e.record && <p className="hint">این کلاس ضبط می‌شود؛ ضبط فقط برای ثبت‌نامی‌ها و تا ۶ ماه می‌ماند.</p>}
                 {!import.meta.env.VITE_DEMO && <a className="btn btn-secondary" href={`/api/events/${e.id}/ics`}><CalendarPlus className="size-4" />افزودن به تقویم</a>}
@@ -170,7 +171,9 @@ export function EventPage() {
 
           {active && !started && e.status === 'PUBLISHED' && <button className="btn btn-ghost btn-sm text-rose" onClick={() => setAskCancel(true)}>انصراف</button>}
           {e.ledCores.length > 0 && !closed && <button className="btn btn-secondary btn-sm" onClick={() => setGroup(true)}><Users className="size-4" />ثبت‌نام گروهی هسته</button>}
-          {e.canManage && e.useBbb && e.status === 'PUBLISHED' && !ended && e.my?.status !== 'REGISTERED' && <button className="btn btn-primary btn-sm" onClick={() => join.mutate()} disabled={join.isPending}><MonitorPlay className="size-4" />ورود به کلاس (برگزارکننده)</button>}
+          {e.canManage && e.kind === 'ONLINE' && e.onlineSoon && e.status !== 'CANCELLED' && !ended && e.my?.status !== 'REGISTERED' && <button className="btn btn-primary btn-sm" onClick={() => join.mutate()} disabled={join.isPending}><MonitorPlay className="size-4" />ورود به کلاس (برگزارکننده)</button>}
+          {e.canManage && e.status === 'DRAFT' && <p className="rounded-lg bg-flame-soft px-3 py-2 text-sm text-flame-ink">هنوز منتشر نشده و کسی جز برگزارکننده آن را نمی‌بیند. از «مدیریت این برنامه» منتشرش کن.</p>}
+          {e.canManage && e.kind === 'ONLINE' && !e.onlineSoon && <p className="hint">{e.useBbb ? 'سرور کلاس زندهٔ مدرسه هنوز راه نیفتاده است؛ در «مدیریت این برنامه» پیوند بیرونی بگذار.' : 'پیوند کلاس را در «مدیریت این برنامه» بگذار.'}</p>}
           {e.canManage && <Link className="btn btn-ghost btn-sm" to={`/manage/events/${e.id}`}>مدیریت این برنامه</Link>}
           {e.my?.attendedAt && <Feedback e={e} onDone={done} />}
         </aside>

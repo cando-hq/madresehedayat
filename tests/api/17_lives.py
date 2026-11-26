@@ -34,6 +34,7 @@ ok(psql(f"select status||'/'||is_live||'/'||use_bbb||'/'||record from events whe
 lst = view.get(f'{B}/v2/lives').json(); ok(any(x['id'] == L1 for x in lst['now']), 'در «الان زنده»')
 ok(any(x['id'] == L1 for x in view.get(f'{B}/v2/lives/now').json()), 'در نوار بالا')
 j = view.post(f'{B}/v2/lives/{L1}/join'); ok(j.status_code == 200 and 'url' in j.json(), 'مخاطب با یک ضربه وارد شد', j.text[:200])
+ok('bbb_override_default_locale=fa-IR' in j.json()['url'] and 'bbb_custom_style_url=' in j.json()['url'] and '%2Fbbb%2Ftheme.css' in j.json()['url'], 'کلاس فارسی با پوستهٔ مدرسه', j.json()['url'][:300])
 ok(psql(f"select status from registrations where event_id='{L1}' and user_id=(select id from users where last_name='پخشی' and first_name='سمیه')") == 'REGISTERED', 'ورود خودش ثبت‌نام هم هست')
 hj = lead.post(f'{B}/v2/lives/{L1}/join'); ok(hj.status_code == 200, 'میزبان وارد شد')
 ok(view.get(f'{B}/events/{L1}').json().get('isLive') is True, 'صفحهٔ قدیمی برنامه می‌داند پخش زنده است')

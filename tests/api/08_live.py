@@ -17,6 +17,7 @@ r = c.post(f'{B}/events/{E}/join'); ok(r.status_code == 403, 'ثبت‌نام‌
 j = a.post(f'{B}/events/{E}/join').json(); ok(j.get('live') and '/join?' in j['url'] and 'checksum=' in j['url'] and f'userID={A}' in j['url'], 'پیوند ورود امضاشده')
 ok(rq.get(j['url']).text == '<html>joined</html>', 'سرور کلاس امضا را پذیرفت')
 st = rq.get(f'{FB}/state').json(); m = st['meetings'][E]; ok(m['record'] == 'true' and 'ضبط' in m['welcome'], 'کلاس با ضبط و اعلام در پیام خوش‌آمد ساخته شد')
+ok(m.get('logo', '').endswith('/brand/logo-mark.png') and m.get('preUploadedPresentation', '').endswith('/bbb/slide.jpg'), 'نشان و اسلاید آغازین مدرسه', {k: m.get(k) for k in ('logo', 'preUploadedPresentation')})
 hj = hq.post(f'{B}/events/{E}/join').json(); ok(m['moderatorPW'] in hj['url'] and m['attendeePW'] in j['url'], 'میزبان مدیر کلاس، کنشگر شنونده')
 ok(psql(f"select attended_at is null from registrations where event_id='{E}' and user_id='{A}'") == 't', 'ورود به‌تنهایی حضور حساب نمی‌شود')
 print('حضور')

@@ -55,18 +55,28 @@ export class BbbClient {
   async create(e: typeof events.$inferSelect) {
     const minutes = Math.ceil((e.endsAt.getTime() - e.startsAt.getTime()) / MIN) + 30;
     const welcome = e.record
-      ? 'خوش آمدید. این کلاس ضبط می‌شود؛ ضبط فقط برای ثبت‌نامی‌ها و تا ۶ ماه نگه داشته می‌شود.'
-      : 'خوش آمدید. این کلاس ضبط نمی‌شود.';
+      ? 'به کلاس زندهٔ مدرسهٔ هدایت خوش آمدید. این کلاس ضبط می‌شود؛ ضبط فقط برای مخاطبان همین کلاس و تا ۶ ماه نگه داشته می‌شود.'
+      : 'به کلاس زندهٔ مدرسهٔ هدایت خوش آمدید. این کلاس ضبط نمی‌شود.';
     return this.call('create', {
       name: e.title, meetingID: e.id, attendeePW: this.pw(e.id, 'a'), moderatorPW: this.pw(e.id, 'm'),
       record: e.record, autoStartRecording: false, allowStartStopRecording: e.record, duration: minutes,
-      welcome, logoutURL: `${config.publicUrl.replace(/\/$/, '')}/events/${e.id}`,
+      welcome, logoutURL: `${config.publicUrl.replace(/\/$/, '')}/${e.isLive ? 'live' : 'events'}/${e.id}`,
+      logo: `${config.publicUrl.replace(/\/$/, '')}/brand/logo-mark.png`,
+      // اسلاید آغازین با نشان مدرسه به‌جای اسلاید پیش‌فرض BigBlueButton (ساخته از tools/bbb/slide.html)
+      preUploadedPresentation: `${config.publicUrl.replace(/\/$/, '')}/bbb/slide.jpg`, preUploadedPresentationName: 'مدرسهٔ هدایت',
       'meta_madrese-event': e.id,
     });
   }
 
   joinUrl(e: typeof events.$inferSelect, u: { id: string; name: string }, moderator: boolean) {
-    return this.url('join', { fullName: u.name, meetingID: e.id, password: this.pw(e.id, moderator ? 'm' : 'a'), userID: u.id, redirect: true });
+    const site = config.publicUrl.replace(/\/$/, '');
+    // کلاس فارسی و راست‌به‌چپ، با فونت و رنگ مدرسه (پوستهٔ public/bbb/theme.css) و نشان مدرسه در کنار کلاس
+    return this.url('join', {
+      fullName: u.name, meetingID: e.id, password: this.pw(e.id, moderator ? 'm' : 'a'), userID: u.id, redirect: true,
+      'userdata-bbb_override_default_locale': 'fa-IR',
+      'userdata-bbb_custom_style_url': `${site}/bbb/theme.css`,
+      'userdata-bbb_display_branding_area': true,
+    });
   }
 
   /** شناسهٔ کاربرانی که الان در کلاس‌اند (userID همان شناسهٔ مدرسه است) */

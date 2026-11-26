@@ -1,0 +1,16 @@
+/* مدرسهٔ هدایت — پوستهٔ کلاس زنده (BigBlueButton). از tools/bbb/build.mjs ساخته می‌شود؛ خود theme.css را ویرایش نکن.
+   با userdata-bbb_custom_style_url در هر ورود بار می‌شود. فونت‌ها داخل همین فایل‌اند تا بین دو دامنه مشکل CORS پیش نیاید. */
+/*FONTS*/
+:root {
+  --color-primary: #1E3A9E;
+  --color-primary-hover: #17307f;
+  --color-success: #0B8547;
+  --color-warning: #F5B700;
+  --color-danger: #C2304B;
+  --font-family-base: 'Ravagh', Tahoma, sans-serif;
+}
+html, body, button, input, textarea, select, p, span, div, a, h1, h2, h3, h4, label, li, td, th {
+  font-family: 'Ravagh', Tahoma, sans-serif !important;
+}
+/* آیکن‌ها فونت خودشان را دارند */
+[class^="icon-"], [class*=" icon-"], i[class*="icon"], [class*="icon-bbb"] { font-family: 'bbb-icons' !important; }

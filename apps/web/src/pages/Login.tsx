@@ -164,8 +164,8 @@ export default function Login() {
                   <input className="input ltr tnum h-12 text-lg" inputMode="numeric" autoComplete="username" placeholder="۰۹۱۲ ۳۴۵ ۶۷۸۹" value={mobile} onChange={(e) => { setMobile(e.target.value); setErr(''); }} autoFocus={!mobile} /></label>
                 <label className="field"><span>رمز</span>
                   <span className="relative block">
-                    <input className="input ltr h-12 text-lg" style={{ paddingInlineEnd: 48 }} type={showPw ? 'text' : 'password'} autoComplete="current-password" value={password} onChange={(e) => { setPassword(e.target.value); setErr(''); }} autoFocus={!!mobile} aria-describedby={err ? 'pw-err' : undefined} />
-                    <button type="button" className="absolute inset-y-0 end-0 grid w-12 place-items-center text-muted hover:text-ink" onClick={() => setShowPw(!showPw)} aria-label={showPw ? 'پنهان کردن رمز' : 'نشان دادن رمز'}>{showPw ? <EyeOff className="size-5" /> : <Eye className="size-5" />}</button>
+                    <input className="input ltr h-12 text-lg" style={{ paddingLeft: 48 }} type={showPw ? 'text' : 'password'} autoComplete="current-password" value={password} onChange={(e) => { setPassword(e.target.value); setErr(''); }} autoFocus={!!mobile} aria-describedby={err ? 'pw-err' : undefined} />
+                    <button type="button" className="absolute inset-y-0 left-0 grid w-12 place-items-center text-muted hover:text-ink" onClick={() => setShowPw(!showPw)} aria-label={showPw ? 'پنهان کردن رمز' : 'نشان دادن رمز'}>{showPw ? <EyeOff className="size-5" /> : <Eye className="size-5" />}</button>
                   </span></label>
                 {err && <p id="pw-err" className="err" role="alert"><CircleAlert className="size-4" />{err}</p>}
               </div>

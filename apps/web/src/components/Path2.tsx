@@ -11,7 +11,7 @@ import { fa, minutes } from '../lib/fa';
 import type { ActorRole, Learning, PathItemV2, PathStepV2, PathV2 } from '../lib/types';
 import { CourseIcon } from './ui';
 
-export const ROLE_FA: Record<ActorRole, string> = { IMAM: 'امام', SHARIK: 'شریکة‌الامام', BAZU: 'بازو', HASTEH: 'عضو هسته', OTHER: 'دیگر' };
+export const ROLE_FA: Record<ActorRole, string> = { IMAM: 'امام', SHARIK: 'شریکة‌الامام', BAZU: 'دستیار امام', HASTEH: 'عضو هسته', OTHER: 'دیگر' };
 export const useLearning = () => useQuery({ queryKey: ['v2', 'learning'], queryFn: () => api<Learning>('/v2/learning') });
 export const usePaths2 = (q = '') => useQuery({ queryKey: ['v2', 'paths', q], queryFn: () => api<PathV2[]>(`/v2/paths${q}`) });
 

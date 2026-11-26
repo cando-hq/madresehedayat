@@ -20,9 +20,9 @@ import { Notifier } from '../notifications/notifications';
 
 type ActorRole = 'IMAM' | 'SHARIK' | 'BAZU' | 'HASTEH' | 'OTHER';
 const ROLES: ActorRole[] = ['IMAM', 'SHARIK', 'BAZU', 'HASTEH', 'OTHER'];
-const ROLE_FA: Record<ActorRole, string> = { IMAM: 'امام', SHARIK: 'شریکة‌الامام', BAZU: 'بازو', HASTEH: 'عضو هسته', OTHER: 'دیگر' };
+const ROLE_FA: Record<ActorRole, string> = { IMAM: 'امام', SHARIK: 'شریکة‌الامام', BAZU: 'دستیار امام', HASTEH: 'عضو هسته', OTHER: 'دیگر' };
 // نسبت با مسجد از نقش معلوم است؛ جدا پرسیده نمی‌شود
-const RELATION_OF: Record<ActorRole, string> = { IMAM: 'امام جماعت', SHARIK: 'شریکة‌الامام', BAZU: 'بازو', HASTEH: 'عضو هسته', OTHER: 'نمازگزار' };
+const RELATION_OF: Record<ActorRole, string> = { IMAM: 'امام جماعت', SHARIK: 'شریکة‌الامام', BAZU: 'دستیار امام', HASTEH: 'عضو هسته', OTHER: 'نمازگزار' };
 const SIZE_FA: Record<string, string> = { micro: 'مسیر خرد', mid: 'مسیر میانه', macro: 'مسیر کلان' };
 const STATUS_FA: Record<string, string> = { DRAFT: 'پیش‌نویس', IN_REVIEW: 'در بازبینی', PUBLISHED: 'منتشرشده', RETURNED: 'نیاز به اصلاح', ARCHIVED: 'بایگانی' };
 const err = (code: string, message: string, extra: Record<string, unknown> = {}) => ({ code, message, ...extra });
@@ -46,7 +46,7 @@ class OnboardDto {
   @IsOptional() @IsString() countyId?: string;
   @IsOptional() @IsNumber() lat?: number;
   @IsOptional() @IsNumber() lng?: number;
-  @IsOptional() @IsString() @Length(0, 30) relation?: string;
+  @IsOptional() @IsString() @Length(0, 60) relation?: string; // نقش به زبان خود کاربر (۱.۱۱: نوشتنی)
   @IsOptional() @IsBoolean() enrollMain?: boolean;
 }
 class MosqueDto { @IsString() @Length(3, 80) name: string; @IsOptional() @IsString() countyId?: string; @IsOptional() @IsString() @Length(0, 160) address?: string; @IsOptional() @IsNumber() lat?: number; @IsOptional() @IsNumber() lng?: number }
@@ -279,6 +279,7 @@ export class Paths2Service {
     let rows = await pick(here0 && !q.county ? 0.045 : null);
     if (here0 && !q.county && rows.length < limit) rows = await pick(0.45);
     if (here0 && !q.county && rows.length < limit) rows = await pick(2.7);
+    if (here0 && !q.county && s && rows.length < limit) rows = await pick(null); // جستجوی نام: اگر نزدیک نبود، در کل کشور
     const dist = (a: number, b: number, c: number, d: number) => { const R = 6371e3, p1 = a * Math.PI / 180, p2 = c * Math.PI / 180, dp = (c - a) * Math.PI / 180, dl = (d - b) * Math.PI / 180; const h = Math.sin(dp / 2) ** 2 + Math.cos(p1) * Math.cos(p2) * Math.sin(dl / 2) ** 2; return 2 * R * Math.asin(Math.sqrt(h)); };
     const here = isFinite(lat) && isFinite(lng) && q.lat != null && q.lng != null;
     return rows.map((m) => ({ ...m, distance: here && m.lat != null && m.lng != null ? Math.round(dist(lat, lng, m.lat, m.lng)) : null }))

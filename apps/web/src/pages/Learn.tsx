@@ -83,7 +83,7 @@ function Main({ d, onExplore }: { d: NonNullable<ReturnType<typeof useLearning>[
 
 /* ───────── کاوش ───────── */
 const SIZES: [PathSize | 'all', string][] = [['all', 'همه'], ['micro', 'مسیر خرد'], ['mid', 'مسیر میانه'], ['macro', 'مسیر کلان']];
-const WHO: [ActorRole | 'all', string][] = [['all', 'همه'], ['IMAM', 'امام'], ['SHARIK', 'شریکة‌الامام'], ['BAZU', 'بازو'], ['HASTEH', 'عضو هسته']];
+const WHO: [ActorRole | 'all', string][] = [['all', 'همه'], ['IMAM', 'امام'], ['SHARIK', 'شریکة‌الامام'], ['BAZU', 'دستیار امام'], ['HASTEH', 'عضو هسته']];
 type Kind = 'all' | PathSize | 'course' | 'live';
 
 function Explore({ role }: { role: ActorRole | null }) {

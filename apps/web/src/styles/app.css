@@ -496,3 +496,9 @@ dialog.drawer[open] { animation: drawer-in var(--dur-base, 260ms) var(--ease-out
 .hscroll::-webkit-scrollbar { display: none; }
 .hscroll > * { flex-shrink: 0; white-space: nowrap; }
 @media (min-width: 640px) { .hscroll { overflow: visible; margin-inline: 0; padding-inline: 0; } }
+
+/* نقشهٔ مسجد (۱.۱۱): برچسب‌ها با فونت سایت؛ مسجد انتخاب‌شده درشت و پررنگ */
+.leaflet-container { font-family: inherit; }
+.leaflet-tooltip { font-family: inherit; font-size: 13px; font-weight: 700; border-radius: 10px; padding: 4px 10px; direction: rtl; }
+.leaflet-tooltip.mq-tip-on { font-size: 15px; font-weight: 800; padding: 6px 12px; background: #1B2150; color: #fff; border-color: transparent; }
+.leaflet-tooltip-top.mq-tip-on::before { border-top-color: #1B2150; }

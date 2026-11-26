@@ -50,7 +50,7 @@ export default function Field() {
               <Link to={t.to} className={`btn ${s.btn} w-fit`}>{s.cta}<ChevronLeft className="size-4" /></Link>
             </article>); })}
         </div>
-      ) : <Empty icon={ClipboardCheck} title="تکلیف بازی نداری">تکلیف‌ها از درس‌های مسیرهایت می‌آیند. <Link to="/learn" className="font-bold text-leaf-ink">یک درس بعدی بردار</Link>.</Empty>}
+      ) : <Empty icon={ClipboardCheck} title="تکلیف تازه‌ای نداری">تکلیف‌ها از درس‌های مسیرهایت می‌آیند. <Link to="/learn" className="font-bold text-leaf-ink">یک درس بعدی بردار</Link>.</Empty>}
 
       <section className="grid gap-3 sm:grid-cols-3" aria-label="درهای میدان">
         {[{ to: '/events', icon: CalendarDays, t: 'برنامه‌ها', d: `${fa(events.data?.length ?? 0)} برنامهٔ پیش رو` }, { to: '/campaigns', icon: Flag, t: 'پویش‌ها', d: live.length ? `${fa(live.length)} پویش فعال` : 'پویش فعالی نیست' }, { to: '/tools', icon: Wrench, t: 'جعبه‌ابزار', d: 'کاربرگ، تخته، ابزارهای درس' }].map((x) => (

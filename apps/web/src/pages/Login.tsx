@@ -262,9 +262,9 @@ function Register({ regToken, invite, onDone }: { regToken: string; mobile: stri
   async function submit(e: FormEvent) {
     e.preventDefault();
     const er: Record<string, string> = {};
-    if (f.firstName.trim().length < 2) er.firstName = 'نامت را بنویس';
-    if (f.lastName.trim().length < 2) er.lastName = 'نام خانوادگی‌ات را بنویس';
-    if (!f.gender) er.gender = 'برادر یا خواهر را انتخاب کن';
+    if (f.firstName.trim().length < 2) er.firstName = 'اسمت را بنویس';
+    if (f.lastName.trim().length < 2) er.lastName = 'فامیلت را بنویس';
+    if (!f.gender) er.gender = 'یکی را بزن';
     setErrs(er); if (Object.keys(er).length) return;
     setBusy(true); setErr('');
     try {
@@ -279,15 +279,15 @@ function Register({ regToken, invite, onDone }: { regToken: string; mobile: stri
   const E = ({ k }: { k: string }) => errs[k] ? <p className="err" role="alert"><CircleAlert className="size-4" />{errs[k]}</p> : null;
   return (
     <form onSubmit={submit} noValidate className="rise">
-      <h1 className="text-[26px] font-extrabold leading-tight">خوش آمدی</h1>
-      <p className="mt-2 text-[15px] text-muted">سه چیز برای ساختن حسابت.</p>
-      {invite && <p className="mt-4 flex items-center gap-2 rounded-xl bg-leaf-soft px-3 py-2 text-sm text-leaf-ink"><ShieldCheck className="size-4 shrink-0" />با دعوت آمده‌ای؛ بعد از ثبت‌نام عضو همان هسته یا مسجد می‌شوی.</p>}
+      <h1 className="text-[26px] font-extrabold leading-tight">خوش آمدی! اسمت چیست؟</h1>
+      <p className="mt-2 text-[15px] text-muted">همین‌طور صدایت می‌کنیم.</p>
+      {invite && <p className="mt-4 flex items-center gap-2 rounded-xl bg-leaf-soft px-3 py-2 text-sm text-leaf-ink"><ShieldCheck className="size-4 shrink-0" />با دعوت آمده‌ای؛ بعد از ثبت‌نام به همان هسته یا مسجد وصل می‌شوی.</p>}
       <div className="mt-8 grid gap-4">
-        <div className="field"><label htmlFor="fn">نام</label><input id="fn" className="input h-12" value={f.firstName} onChange={(e) => set('firstName', e.target.value)} autoComplete="given-name" autoFocus /><E k="firstName" /></div>
-        <div className="field"><label htmlFor="ln">نام خانوادگی</label><input id="ln" className="input h-12" value={f.lastName} onChange={(e) => set('lastName', e.target.value)} autoComplete="family-name" /><E k="lastName" /></div>
+        <div className="field"><label htmlFor="fn">اسم</label><input id="fn" className="input h-12" value={f.firstName} onChange={(e) => set('firstName', e.target.value)} autoComplete="given-name" autoFocus /><E k="firstName" /></div>
+        <div className="field"><label htmlFor="ln">فامیل</label><input id="ln" className="input h-12" value={f.lastName} onChange={(e) => set('lastName', e.target.value)} autoComplete="family-name" /><E k="lastName" /></div>
         <fieldset className="field">
-          <legend className="mb-2 text-sm font-bold text-ink">برادر هستی یا خواهر؟</legend>
-          <div className="grid grid-cols-2 gap-2.5">{[['MALE', 'برادر'], ['FEMALE', 'خواهر']].map(([v, t]) => (
+          <legend className="mb-2 text-sm font-bold text-ink">برادری یا خواهر؟</legend>
+          <div className="grid grid-cols-2 gap-2.5">{[['MALE', 'برادرم'], ['FEMALE', 'خواهرم']].map(([v, t]) => (
             <button type="button" key={v} aria-pressed={f.gender === v} onClick={() => set('gender', v)} className={`h-12 rounded-xl border text-[15px] font-bold transition-colors ${f.gender === v ? 'border-leaf bg-leaf-soft text-leaf-ink' : 'border-line bg-card text-body hover:border-line-strong'}`}>{t}</button>
           ))}</div>
           <E k="gender" />
@@ -295,7 +295,7 @@ function Register({ regToken, invite, onDone }: { regToken: string; mobile: stri
         {showInvite && <div className="field"><label htmlFor="inv">کد دعوت</label><input id="inv" className="input ltr h-12" value={f.inviteCode} onChange={(e) => set('inviteCode', e.target.value)} placeholder="از امام محله یا مسئول هسته" /></div>}
       </div>
       {err && <p className="err mt-4" role="alert"><CircleAlert className="size-4" />{err}</p>}
-      <button className="btn btn-primary btn-lg mt-8 w-full" disabled={busy}>{busy ? 'در حال ساختن حساب…' : 'حسابم را بساز'}</button>
+      <button className="btn btn-primary btn-lg mt-8 w-full" disabled={busy}>{busy ? 'یک لحظه…' : 'بعدی'}</button>
       {!showInvite && <button type="button" className="mx-auto mt-4 block py-2 text-sm font-bold text-muted" onClick={() => setShowInvite(true)}>کد دعوت دارم</button>}
     </form>
   );
@@ -309,7 +309,7 @@ function Art() {
       <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, transparent 45%, rgb(16 24 72 / .88))' }} />
       <div className="absolute inset-x-12 bottom-12 z-10 grid max-w-[460px] gap-2">
         <b className="text-[34px] font-extrabold leading-snug text-white">فَلیُبَلِّغِ الحاضِرُ الغائبَ</b>
-        <p className="text-[15px] leading-loose text-white/80">مدرسهٔ امامان، شریکة‌الامام‌ها و بازوان مسجد؛ از درس تا میدان، همراه راهیار و همتایان.</p>
+        <p className="text-[15px] leading-loose text-white/80">مدرسهٔ امامان، شریکة‌الامام‌ها و دستیاران امام؛ از درس تا میدان، همراه راهیار و همتایان.</p>
       </div>
     </div>
   );

@@ -50,9 +50,10 @@ RAW = [  # (مسیر در مخزن، توضیح)
     ('apps/web/public/fonts', 'فونت وب رواق (مجوز خریدار)'),
 ]
 PANEL = [  # سنگین یا تصویری ← zip برای پنل
-    ('design/system/brand', 'لوگو و تصویرهای نشان'), ('design/assets', 'تصویرهای پایهٔ طراحی'), ('design/system/fonts', 'بستهٔ کامل فونت رواق و مجوز'),
-    ('docs/sources', 'اسناد پایه (محرمانه)'), ('apps/web/public/bbb/slide.jpg', 'اسلاید آغازین کلاس'),
+    ('design/system/brand', 'لوگو و تصویرهای نشان'), ('design/assets', 'تصویرهای پایهٔ طراحی'), ('apps/web/public/bbb/slide.jpg', 'اسلاید آغازین کلاس'),
 ]
+# لینک‌های /f/ بارگذار بی‌رمز باز می‌شوند؛ این‌ها فقط در مخزن خصوصی می‌مانند و به پنل نمی‌روند
+PRIVATE = [('docs/sources', 'اسناد پایه (محرمانه، از جمله نامه‌ها)'), ('design/system/fonts', 'بستهٔ کامل فونت رواق و مجوز (مجوز خریدار)')]
 SKIP_IN_RAW = ('docs/sources',)
 
 
@@ -213,7 +214,7 @@ def main():
     sw = ''.join(f'<div><i style="background:{v}"></i><span>{k} {v}</span></div>' for k, v in tok['color']['light'].items() if isinstance(v, str) and v.startswith('#'))
     boards = [f for f in walk('design/boards') if f.endswith('.html')]
     body = ('<h1>سیستم طراحی</h1>'
-            f'<h2>فونت</h2><p style="font-size:30px;font-weight:800;color:var(--ink);margin:.2em 0">مدرسهٔ هدایت — ۱۲۳۴۵۶۷۸۹۰</p><p>{html.escape(tok["font"]["family"])}. {html.escape(tok["font"]["note"])}. فونت وب: {rawlink("apps/web/public/fonts", "apps/web/public/fonts")}؛ بستهٔ کامل و مجوز در پنل بارگذار.</p>'
+            f'<h2>فونت</h2><p style="font-size:30px;font-weight:800;color:var(--ink);margin:.2em 0">مدرسهٔ هدایت — ۱۲۳۴۵۶۷۸۹۰</p><p>{html.escape(tok["font"]["family"])}. {html.escape(tok["font"]["note"])}. فونت وب: {rawlink("apps/web/public/fonts", "apps/web/public/fonts")}؛ بستهٔ کامل و مجوز فقط در مخزن خصوصی: <a href="{REPO_URL}/tree/main/design/system/fonts">design/system/fonts</a>.</p>'
             f'<h2>رنگ‌ها (روشن)</h2><div class="sw">{sw}</div><p>همهٔ رنگ‌ها و حالت تیره: {rawlink("design/system/tokens.json")}، {rawlink("design/system/tokens.css")}.</p>'
             '<h2>لوگو و تصویرها</h2><p>لوگو را بازترسیم نکن؛ همین فایل‌ها:</p><ul>' + ''.join(f'<li>{plink(f)}</li>' for f, w, _ in panel if f.startswith(('design/system/brand', 'design/assets'))) + f'<li>{rawlink("design/system/brand/mark.svg", "mark.svg")}</li></ul>'
             '<h2>راهنمای سیستم طراحی</h2>' + md(read('design/system/guide/README.md')) +
@@ -232,7 +233,7 @@ def main():
         open(os.path.join(out, 'd', slug), 'w', encoding='utf-8').write(doc)
         lst += f'<tr><td><a href="d/{slug}">{html.escape(title)}</a></td><td><code>{f}</code></td></tr>'
     W('docs.html', 'اسناد', md(read('docs/README.md')) + '<h2>همهٔ اسناد خواندنی</h2><table><tr><th>سند</th><th>مسیر در مخزن</th></tr>' + lst + '</table>'
-      + '<h2>اسناد پایه (محرمانه)</h2><p>فایل‌های <code>docs/sources/</code> در پنل بارگذار:</p><ul>' + ''.join(f'<li>{plink(f)}</li>' for f, w, _ in panel if f.startswith('docs/sources')) + '</ul>')
+      + '<h2>اسناد پایه (محرمانه)</h2><p>این‌ها عمداً در بارگذار نیستند، چون لینک فایل‌های بارگذار بی‌رمز باز می‌شود. فقط در مخزن خصوصی گیت‌هاب:</p><ul>' + ''.join(f'<li><a href="{REPO_URL}/blob/main/{f}">{html.escape(os.path.basename(f))}</a></li>' for p, _ in PRIVATE for f in walk(p)) + '</ul>')
 
     # ورودی و خروجی‌ها
     rows = [

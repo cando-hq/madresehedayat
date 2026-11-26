@@ -66,7 +66,7 @@ def walk(p):
 
 
 def is_text(p):
-    return os.path.splitext(p)[1].lower() in TEXT_EXT and 'data:image' not in (open(os.path.join(ROOT, p), 'rb').read(400000).decode('utf-8', 'ignore'))
+    return (os.path.splitext(p)[1].lower() in TEXT_EXT or os.path.basename(p) in ('.env.example',)) and 'data:image' not in (open(os.path.join(ROOT, p), 'rb').read(400000).decode('utf-8', 'ignore'))
 
 
 # ───────── قالب صفحه
@@ -218,17 +218,25 @@ def main():
             f'<h2>رنگ‌ها (روشن)</h2><div class="sw">{sw}</div><p>همهٔ رنگ‌ها و حالت تیره: {rawlink("design/system/tokens.json")}، {rawlink("design/system/tokens.css")}.</p>'
             '<h2>لوگو و تصویرها</h2><p>لوگو را بازترسیم نکن؛ همین فایل‌ها:</p><ul>' + ''.join(f'<li>{plink(f)}</li>' for f, w, _ in panel if f.startswith(('design/system/brand', 'design/assets'))) + f'<li>{rawlink("design/system/brand/mark.svg", "mark.svg")}</li></ul>'
             '<h2>راهنمای سیستم طراحی</h2>' + md(read('design/system/guide/README.md')) +
-            f'<h2>بردهای طراحی ({str(len(boards)).translate(FA)} صفحه)</h2><ul>' + ''.join(f'<li>{rawlink(f, os.path.basename(f).replace(".dc.html", ""))}</li>' for f in boards) + '</ul>')
+            f'<h2>بردهای طراحی ({str(len(boards)).translate(FA)} صفحه)</h2><p>این‌ها سورس بردهای ابزار طراحی‌اند و بیرون از آن ابزار کامل دیده نمی‌شوند (اسکریپت و تصویرهایشان در خود ابزار است). شکل نهایی هر صفحه را در خود سایت ببین؛ این فایل‌ها برای متن، چیدمان و ادامهٔ طراحی‌اند.</p><ul>' + ''.join(f'<li>{rawlink(f, os.path.basename(f).replace(".dc.html", ""))}</li>' for f in boards) + '</ul>')
     W('design.html', 'سیستم طراحی', body)
 
     # اسناد
     docs = [f for f in walk('docs') if f.endswith('.md') and not f.startswith(('docs/handoff', 'docs/sources'))] + ['DEPLOY.md', 'README.md', 'CLAUDE.md']
     os.makedirs(os.path.join(out, 'd'), exist_ok=True)
+    slug_of = {f: re.sub(r'[^\w\u0600-\u06FF-]+', '-', f.replace('.md', '')).strip('-') + '.html' for f in docs}
+    def fix_links(h, base):
+        def rep(m):
+            target = os.path.normpath(os.path.join(os.path.dirname(base), m[1])).replace(os.sep, '/')
+            for cand in (target, m[1]):
+                if cand in slug_of: return f'href="{slug_of[cand]}"'
+            return f'href="{REPO_URL}/blob/main/{target}"'
+        return re.sub(r'href="(?!https?:|#|mailto:)([^"]+\.md)"', rep, h)
     lst = ''
     for f in docs:
         slug = re.sub(r'[^\w؀-ۿ-]+', '-', f.replace('.md', '')).strip('-') + '.html'
         t = read(f); title = (re.search(r'^# (.+)$', t, re.M) or [None, f])[1]
-        doc = page('docs.html', title, f'<p class="meta"><a href="../docs.html">اسناد</a> · <code>{f}</code></p>' + md(t), built).replace('href="style.css"', 'href="../style.css"').replace('src:url(fonts/', 'src:url(../fonts/')
+        doc = page('docs.html', title, f'<p class="meta"><a href="../docs.html">اسناد</a> · <code>{f}</code></p>' + fix_links(md(t), f), built).replace('href="style.css"', 'href="../style.css"').replace('src:url(fonts/', 'src:url(../fonts/')
         doc = re.sub(r'<nav aria-label="بخش‌ها">(.*?)</nav>', lambda m: '<nav aria-label="بخش‌ها">' + re.sub(r'href="(?!http)', 'href="../', m[1]) + '</nav>', doc, flags=re.S)
         open(os.path.join(out, 'd', slug), 'w', encoding='utf-8').write(doc)
         lst += f'<tr><td><a href="d/{slug}">{html.escape(title)}</a></td><td><code>{f}</code></td></tr>'
@@ -267,6 +275,16 @@ def main():
     open(os.path.join(out, 'README.md'), 'w', encoding='utf-8').write(
         f'# بایگانی مدرسهٔ هدایت\n\nنسخهٔ {version}، commit {built["commit"]}. اول `raw/docs/handoff/00-از-این‌جا-شروع.md` را بخوان.\n'
         f'همه‌چیز از مخزن {REPO_URL} با `tools/archive/build.py` ساخته شده؛ این پوشه را دستی عوض نکن. فهرست کامل: `manifest.json`.\n')
+    # بررسی: هر پیوند داخلی صفحه‌ها باید به فایلی برسد
+    broken = []
+    for d, _, fs in os.walk(out):
+        if os.sep + 'raw' in d: continue
+        for f in fs:
+            if not f.endswith('.html'): continue
+            for u in re.findall(r'(?:href|src)="([^"]+)"', open(os.path.join(d, f), encoding='utf-8').read()):
+                if re.match(r'(https?:|#|mailto:)', u): continue
+                if not os.path.exists(os.path.normpath(os.path.join(d, u.split('#')[0].split('?')[0]))): broken.append(f'{os.path.relpath(os.path.join(d, f), out)} → {u}')
+    if broken: print('پیوند شکسته:', *broken[:20], sep='\n  '); sys.exit(1)
     n = sum(len(fs) for _, _, fs in os.walk(out)); total = sum(os.path.getsize(os.path.join(d, f)) for d, _, fs in os.walk(out) for f in fs)
     print(f'بایگانی: {n} فایل، {total // 1024} کیلوبایت در site؛ {len(panel)} فایل برای پنل ({sum(x[2] for x in panel) // 1024} کیلوبایت){"، zip: " + pzip if pzip else ""}')
 

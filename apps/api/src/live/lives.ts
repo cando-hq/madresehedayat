@@ -38,6 +38,7 @@ export class LiveCreateDto {
   @IsOptional() @IsString() hostMobile?: string; // میزبان دیگر (مثلاً یک استاد)؛ خالی = خودم
   @IsOptional() @IsBoolean() record?: boolean;
   @IsOptional() @IsString() @MaxLength(500) onlineUrl?: string; // وقتی سرور کلاس مدرسه راه نیفتاده
+  @IsOptional() @IsIn(['LECTURE', 'CLASS', 'MEETING']) mode?: 'LECTURE' | 'CLASS' | 'MEETING';
 }
 export class LivePatchDto {
   @IsOptional() @IsString() @Length(3, 120) title?: string;
@@ -46,6 +47,7 @@ export class LivePatchDto {
   @IsOptional() @IsInt() @Min(15) @Max(240) minutes?: number;
   @IsOptional() @IsBoolean() record?: boolean;
   @IsOptional() @IsString() @MaxLength(500) onlineUrl?: string;
+  @IsOptional() @IsIn(['LECTURE', 'CLASS', 'MEETING']) mode?: 'LECTURE' | 'CLASS' | 'MEETING';
 }
 class StopDto { @IsString() @Length(2, 300) reason: string }
 
@@ -137,7 +139,7 @@ export class LivesService {
       title: d.title.trim(), description: d.about?.trim() || null, kind: 'ONLINE', startsAt: start, endsAt: new Date(start.getTime() + d.minutes * MIN),
       onlineUrl: useBbb ? null : url, useBbb, record: useBbb && d.record !== false, isLive: true, publisherId, instructorId: hostId ?? u.id,
       hostName: host ? `${host.firstName} ${host.lastName}`.trim() : null, courseId, audiencePathId: pathId, audienceCourseOnly: d.audience === 'COURSE',
-      status: 'PUBLISHED', reviewStatus: 'PUBLISHED', waitlist: false, createdById: u.id,
+      status: 'PUBLISHED', reviewStatus: 'PUBLISHED', waitlist: false, createdById: u.id, liveMode: d.mode ?? 'CLASS',
     } as any).returning();
     await this.db.insert(auditLogs).values({ actorId: u.id, action: 'live.create', target: e.id, meta: { title: e.title } } as any);
     // مخاطبان مسیر یا دوره همان لحظه خبر می‌گیرند؛ پخش «همه» فقط در صفحه‌ها دیده می‌شود
@@ -170,7 +172,7 @@ export class LivesService {
       id: e.id, title: e.title, about: e.description, startsAt: e.startsAt, endsAt: e.endsAt, state: this.state(e), host: e.hostName,
       publisher: pub ?? { id: null, name: 'ستاد مدرسهٔ هدایت', color: '#1E3A9E' },
       audience: e.audiencePathId ? { kind: 'PATH', title: aud } : e.courseId && e.audienceCourseOnly ? { kind: 'COURSE', title: aud } : { kind: 'ALL', title: null },
-      reminded: reg?.status === 'REGISTERED', hasRecording: (recs[0]?.n ?? 0) > 0, record: e.record, useBbb: e.useBbb,
+      mode: (e.liveMode ?? 'CLASS') as 'LECTURE' | 'CLASS' | 'MEETING', reminded: reg?.status === 'REGISTERED', hasRecording: (recs[0]?.n ?? 0) > 0, record: e.record, useBbb: e.useBbb,
       joinOpensAt: new Date(e.startsAt.getTime() - OPEN_BEFORE), canManage: extra ? await this.isHost(u, e) : undefined,
       stopReason: e.status === 'CANCELLED' ? e.cancelReason : undefined,
     };
@@ -265,6 +267,7 @@ export class LivesService {
     const minutes = d.minutes ?? Math.round((e.endsAt.getTime() - e.startsAt.getTime()) / MIN);
     if (d.startsAt || d.minutes) { set.startsAt = start; set.endsAt = new Date(start.getTime() + minutes * MIN); }
     if (d.record !== undefined) set.record = e.useBbb && d.record;
+    if (d.mode) set.liveMode = d.mode; // روی کلاس‌هایی که از این به بعد باز می‌شوند اثر دارد
     // پیوند بیرونی: هم برای پخش‌های بی‌سرور، هم وقتی سرور کلاس مدرسه جواب نمی‌دهد (پخش از سرور مدرسه به پیوند بیرونی می‌رود)
     if (d.onlineUrl !== undefined) { if (!/^https?:\/\/\S+$/i.test(d.onlineUrl.trim())) throw new BadRequestException(err('bad_link', 'پیوند کلاس باید با https:// شروع شود')); set.onlineUrl = d.onlineUrl.trim(); set.useBbb = false; set.record = false; }
     if (Object.keys(set).length) await this.db.update(events).set(set as any).where(eq(events.id, id));

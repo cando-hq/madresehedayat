@@ -17,7 +17,7 @@ type State = 'SOON' | 'LIVE' | 'ENDED' | 'STOPPED';
 export interface LiveCard {
   id: string; title: string; about: string | null; startsAt: string; endsAt: string; state: State; host: string | null;
   publisher: { id: string | null; name: string; color: string }; audience: { kind: 'ALL' | 'PATH' | 'COURSE'; title: string | null };
-  reminded: boolean; hasRecording: boolean; record: boolean; useBbb: boolean; joinOpensAt: string; canManage?: boolean; stopReason?: string | null;
+  mode?: Mode; reminded: boolean; hasRecording: boolean; record: boolean; useBbb: boolean; joinOpensAt: string; canManage?: boolean; stopReason?: string | null;
 }
 interface Detail extends LiveCard { inAudience: boolean; audienceNote: string | null }
 interface Room extends LiveCard { onlineUrl: string | null; minutes: number; link: string; invite: string; audienceSize: number | null; remindedCount: number; attendees: { name: string; minutes: number | null }[]; finalized: boolean }
@@ -25,6 +25,18 @@ interface Options { canCreate: boolean; bbb: boolean; hq: boolean; onlyCourses: 
 interface LiveInfo { recordings: { id: string; durationSec: number | null; startedAt: string | null; expiresAt: string | null }[]; canSeeRecordings: boolean }
 
 const STATE_FA: Record<State, string> = { LIVE: 'زنده', SOON: 'به‌زودی', ENDED: 'تمام شد', STOPPED: 'متوقف شد' };
+const seg = (on: boolean) => `btn btn-sm ${on ? 'btn-primary' : 'btn-secondary'}`;
+type Mode = 'LECTURE' | 'CLASS' | 'MEETING';
+const MODES: [Mode, string, string][] = [
+  ['LECTURE', 'سخنرانی', 'فقط تو صدا و تصویر داری؛ بقیه می‌شنوند و با گفت‌وگو و دست بالا شرکت می‌کنند. کسی را خواستی، صدایش را باز می‌کنی.'],
+  ['CLASS', 'کلاس', 'همه با میکروفون خاموش وارد می‌شوند و هر وقت لازم شد خودشان روشن می‌کنند. نظرسنجی و گروه‌بندی هم هست.'],
+  ['MEETING', 'جلسه', 'همه صدا و تصویر دارند و تصویرها بزرگ دیده می‌شوند. برای جمع‌های کوچک.'],
+];
+const HOST_GUIDE: Record<Mode, string[]> = {
+  LECTURE: ['اسلاید: دکمهٔ + پایین صفحه، «بارگذاری فایل»؛ پی‌دی‌اف بهتر از پاورپوینت است.', 'کسی خواست صحبت کند: در فهرست حاضران روی نامش، «برداشتن قفل»؛ بعد صدایش باز می‌شود.', 'پرسش‌ها در گفت‌وگو می‌آید؛ دست‌بالاها کنار نام‌ها.', 'ضبط: دکمهٔ گرد بالای صفحه. تا آن را نزنی چیزی ضبط نمی‌شود.'],
+  CLASS: ['اسلاید و نظرسنجی: دکمهٔ + پایین صفحه.', 'سروصدا شد: چرخ‌دندهٔ فهرست حاضران، «بی‌صدا کردن همه».', 'گروه‌بندی: همان چرخ‌دنده، «ساخت اتاق‌های جانبی».', 'ضبط: دکمهٔ گرد بالای صفحه.'],
+  MEETING: ['اشتراک صفحه: دکمهٔ صفحه پایین صفحه.', 'سروصدا شد: چرخ‌دندهٔ فهرست حاضران، «بی‌صدا کردن همه».', 'ضبط: دکمهٔ گرد بالای صفحه.'],
+};
 const AUD_FA = (a: LiveCard['audience']) => (a.kind === 'PATH' ? `کنشگران مسیر «${a.title ?? ''}»` : a.kind === 'COURSE' ? `شرکت‌کنندگان دورهٔ «${a.title ?? ''}»` : 'همه');
 const when = (iso: string) => jDateTime(iso);
 const hhmm = (iso: string) => new Intl.DateTimeFormat('fa-IR', { hour: '2-digit', minute: '2-digit' }).format(new Date(iso));
@@ -139,14 +151,28 @@ export function LivePage() {
 
 /* ───────── ساختن ───────── */
 const DURS = [30, 45, 60, 90, 120];
+/** شیوهٔ کلاس و راهنمای کوتاه میزبان؛ شیوه روی اتاقی اثر دارد که از این به بعد باز شود. */
+function HostKit({ id, mode, live, onDone }: { id: string; mode: Mode; live: boolean; onDone: () => void }) {
+  const toast = useToast();
+  const set = useMutation({ mutationFn: (m: Mode) => api(`/v2/lives/${id}`, { method: 'PATCH', body: { mode: m } }), onSuccess: () => { toast('شیوه عوض شد'); onDone(); }, onError: (e) => toast(errorText(e), 'err') });
+  return (
+    <div className="grid gap-3 border-t border-line pt-4">
+      <div className="flex flex-wrap items-center gap-2"><span className="text-sm font-bold text-ink">شیوه:</span>{MODES.map(([k, l]) => <button key={k} type="button" className={seg(mode === k)} aria-pressed={mode === k} disabled={set.isPending || live} onClick={() => set.mutate(k)}>{l}</button>)}</div>
+      <p className="text-sm text-muted">{MODES.find((m) => m[0] === mode)![2]}{live ? ' شیوه را پیش از شروع می‌شود عوض کرد.' : ''}</p>
+      <details className="rounded-xl bg-sunken px-3 py-2"><summary className="cursor-pointer text-sm font-bold text-ink">راهنمای میزبان در کلاس</summary>
+        <ul className="mt-2 grid list-disc gap-1 pr-5 text-sm text-body">{HOST_GUIDE[mode].map((x) => <li key={x}>{x}</li>)}</ul></details>
+    </div>
+  );
+}
+
 export function LiveNew() {
   const nav = useNavigate(); const toast = useToast(); const qc = useQueryClient();
   const o = useQuery({ queryKey: ['v2', 'lives', 'options'], queryFn: () => api<Options>('/v2/lives/options') });
-  const [f, setF] = useState({ title: '', about: '', now: false, startsAt: '', minutes: 60, audience: 'ALL' as 'ALL' | 'PATH' | 'COURSE', pathId: '', courseId: '', publisherId: '', hostOther: false, hostMobile: '', record: true, onlineUrl: '' });
+  const [f, setF] = useState({ title: '', about: '', now: false, startsAt: '', minutes: 60, audience: 'ALL' as 'ALL' | 'PATH' | 'COURSE', pathId: '', courseId: '', publisherId: '', hostOther: false, hostMobile: '', record: true, onlineUrl: '', mode: 'LECTURE' as Mode });
   const [errs, setErrs] = useState('');
   useEffect(() => { if (o.data?.onlyCourses) setF((x) => ({ ...x, audience: 'COURSE' })); if (o.data && !o.data.hq && o.data.publishers[0]) setF((x) => ({ ...x, publisherId: x.publisherId || o.data!.publishers[0].id })); }, [o.data]);
   const create = useMutation({
-    mutationFn: () => api<{ id: string }>('/v2/lives', { body: { title: f.title, about: f.about || undefined, now: f.now, startsAt: f.now ? undefined : f.startsAt, minutes: f.minutes, audience: f.audience, pathId: f.audience === 'PATH' ? f.pathId : undefined, courseId: f.audience === 'COURSE' ? f.courseId : undefined, publisherId: f.publisherId || undefined, hostMobile: f.hostOther ? f.hostMobile : undefined, record: f.record, onlineUrl: f.onlineUrl || undefined } }),
+    mutationFn: () => api<{ id: string }>('/v2/lives', { body: { title: f.title, about: f.about || undefined, now: f.now, startsAt: f.now ? undefined : f.startsAt, minutes: f.minutes, audience: f.audience, pathId: f.audience === 'PATH' ? f.pathId : undefined, courseId: f.audience === 'COURSE' ? f.courseId : undefined, publisherId: f.publisherId || undefined, hostMobile: f.hostOther ? f.hostMobile : undefined, record: f.record, onlineUrl: f.onlineUrl || undefined, mode: f.mode } }),
     onSuccess: (r) => { qc.invalidateQueries({ queryKey: ['v2', 'lives'] }); toast(f.now ? 'پخش ساخته شد؛ از اتاق پخش وارد شو' : 'پخش زنده ساخته شد'); nav(`/live/${r.id}/room`, { replace: true }); },
     onError: (e) => setErrs(errorText(e)),
   });
@@ -163,7 +189,6 @@ export function LiveNew() {
     if (!d.bbb && !f.onlineUrl.trim()) return setErrs('پیوند کلاس را بگذار');
     create.mutate();
   };
-  const seg = (on: boolean) => `btn btn-sm ${on ? 'btn-primary' : 'btn-secondary'}`;
   return (
     <form onSubmit={submit} className="mx-auto grid max-w-2xl gap-6" noValidate>
       <header><h1 className="text-[clamp(24px,3vw,32px)] font-extrabold">پخش زندهٔ تازه</h1><p className="mt-1 text-muted">بی‌مرحلهٔ انتشار: همین که بسازی، مخاطب‌ها می‌بینند{d.bbb ? '.' : '. سرور کلاس مدرسه هنوز راه نیفتاده؛ پیوند کلاس را خودت می‌گذاری.'}</p></header>
@@ -189,6 +214,10 @@ export function LiveNew() {
           {f.hostOther && <input className="input" dir="ltr" inputMode="tel" placeholder="شمارهٔ میزبان، 0912…" value={f.hostMobile} onChange={(e) => setF({ ...f, hostMobile: e.target.value })} aria-label="شمارهٔ میزبان" />}
           {f.hostOther && <p className="text-sm text-muted">میزبان باید یک بار با همین شماره وارد مدرسه شده باشد. او و تیم برگزارکننده هر دو اتاق پخش را دارند.</p>}
         </fieldset>
+        {d.bbb && <fieldset className="grid gap-2"><legend className="mb-2 text-sm font-bold text-ink">شیوه</legend>
+          <div className="flex flex-wrap gap-2">{MODES.map(([k, l]) => <button key={k} type="button" className={seg(f.mode === k)} aria-pressed={f.mode === k} onClick={() => setF({ ...f, mode: k })}>{l}</button>)}</div>
+          <p className="text-sm text-muted">{MODES.find((m) => m[0] === f.mode)![2]}</p>
+        </fieldset>}
         {d.bbb ? <label className="flex items-start gap-3"><input type="checkbox" className="mt-1 size-5" checked={f.record} onChange={(e) => setF({ ...f, record: e.target.checked })} /><span><b className="text-ink">ضبط شود</b><span className="block text-sm text-muted">اول پخش به همه اعلام می‌شود. ضبط تا شش ماه برای مخاطب‌ها می‌ماند.</span></span></label>
           : <label className="field"><span>پیوند کلاس</span><input className="input" dir="ltr" value={f.onlineUrl} onChange={(e) => setF({ ...f, onlineUrl: e.target.value })} placeholder="https://…" /><span className="text-sm text-muted">اسکای‌روم، گوگل‌میت یا هر اتاق دیگر. مخاطب‌ها فقط از ربع ساعت پیش از شروع می‌بینندش.</span></label>}
       </div>
@@ -235,7 +264,7 @@ export function LiveRoom() {
             <p className="text-body">{r.state === 'LIVE' ? 'پخش در جریان است.' : `${left(r.startsAt, now)} تا شروع. تو هر وقت بخواهی وارد می‌شوی؛ مخاطب‌ها از ساعت ${hhmm(r.joinOpensAt)}.`}</p>
             <button className="btn btn-primary btn-lg w-full sm:w-auto" disabled={join.isPending} onClick={() => join.mutate(id)}><MonitorPlay className="size-5" />{r.state === 'LIVE' ? 'ورود به پخش (میزبان)' : 'باز کردن اتاق (میزبان)'}</button>
             {r.useBbb && join.isError && <ExternalFallback id={id} onDone={refresh} />}
-            {r.useBbb ? <p className="text-sm text-muted">میزبان با اختیار کامل وارد می‌شود: میکروفون، تصویر، صفحه و {r.record ? 'دکمهٔ ضبط (ضبط از وقتی که آن را بزنی شروع می‌شود)' : 'مدیریت حاضران'}.</p> : r.onlineUrl && <p className="text-sm text-muted" dir="ltr">{r.onlineUrl}</p>}
+            {r.useBbb ? <HostKit id={id} mode={r.mode ?? 'CLASS'} live={r.state === 'LIVE'} onDone={refresh} /> : r.onlineUrl && <p className="text-sm text-muted" dir="ltr">{r.onlineUrl}</p>}
           </>}
       </section>
 

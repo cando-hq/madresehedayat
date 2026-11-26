@@ -17,6 +17,31 @@ const RECORD_KEEP_DAYS = 182; // ۶ ماه (تصمیم ۱۱.۷)
 export const bbbEnabled = () => !!config.bbbUrl && !!config.bbbSecret;
 
 /**
+ * شیوهٔ پخش زنده (۱.۹.۳): کلاس BigBlueButton از همان اول برای کار استاد چیده می‌شود.
+ * سخنرانی: فقط میزبان صدا و تصویر دارد، شرکت‌کنندگان شنونده‌اند و با گفت‌وگو و دست بالا شرکت می‌کنند (بی پرسش میکروفون).
+ * کلاس: شرکت‌کنندگان با میکروفون خاموش وارد می‌شوند و خودشان روشن می‌کنند؛ نظرسنجی و اتاق جانبی هست.
+ * جلسه: همه صدا و تصویر دارند، چیدمان روی تصویرها.
+ */
+export type LiveMode = 'LECTURE' | 'CLASS' | 'MEETING';
+const NOISE = 'captions,liveTranscription,customVirtualBackgrounds';
+const MODE_CREATE: Record<LiveMode, Record<string, string | boolean>> = {
+  LECTURE: { muteOnStart: true, lockSettingsDisableMic: true, lockSettingsDisableCam: true, webcamsOnlyForModerator: true, lockSettingsDisablePrivateChat: true, allowModsToUnmuteUsers: true, meetingLayout: 'PRESENTATION_FOCUS', disabledFeatures: `${NOISE},breakoutRooms,sharedNotes,virtualBackgrounds` },
+  CLASS: { muteOnStart: true, allowModsToUnmuteUsers: true, meetingLayout: 'SMART_LAYOUT', disabledFeatures: NOISE },
+  MEETING: { muteOnStart: false, allowModsToUnmuteUsers: true, meetingLayout: 'VIDEO_FOCUS', disabledFeatures: `${NOISE},breakoutRooms` },
+};
+const MODE_JOIN_HOST = { 'userdata-bbb_auto_join_audio': true };
+const MODE_JOIN_VIEWER: Record<LiveMode, Record<string, boolean>> = {
+  LECTURE: { 'userdata-bbb_auto_join_audio': true, 'userdata-bbb_force_listen_only': true, 'userdata-bbb_listen_only_mode': true, 'userdata-bbb_skip_check_audio': true },
+  CLASS: { 'userdata-bbb_auto_join_audio': true, 'userdata-bbb_skip_check_audio': true },
+  MEETING: { 'userdata-bbb_auto_join_audio': true },
+};
+const HOST_TIPS: Record<LiveMode, string> = {
+  LECTURE: 'میزبان گرامی: شرکت‌کنندگان فقط می‌شنوند و با گفت‌وگو و دست بالا شرکت می‌کنند. برای اینکه کسی صحبت کند، در فهرست حاضران روی نامش بزن و «برداشتن قفل» را بزن. اسلاید را با دکمهٔ + پایین صفحه بگذار. ضبط با دکمهٔ ضبط بالای صفحه شروع می‌شود.',
+  CLASS: 'میزبان گرامی: شرکت‌کنندگان با میکروفون خاموش وارد می‌شوند و خودشان روشن می‌کنند. اسلاید، نظرسنجی و اتاق جانبی با دکمهٔ + پایین صفحه است. ضبط با دکمهٔ ضبط بالای صفحه شروع می‌شود.',
+  MEETING: 'میزبان گرامی: همه صدا و تصویر دارند. اگر سروصدا شد، از فهرست حاضران «بی‌صدا کردن همه» را بزن. ضبط با دکمهٔ ضبط بالای صفحه شروع می‌شود.',
+};
+
+/**
  * کلاس زنده روی BigBlueButton خود بنیاد (تصمیم ۱۱.۳).
  * صدا و تصویر روی سرور کلاس می‌ماند؛ ما فقط کلاس را می‌سازیم، پیوند ورود امضاشده می‌دهیم،
  * هر دقیقه فهرست حاضران را می‌خوانیم تا «حضور ≥ نیمی از زمان» حساب شود، و ضبط‌ها را برای ثبت‌نامی‌ها نگه می‌داریم.
@@ -57,21 +82,27 @@ export class BbbClient {
     const welcome = e.record
       ? 'به کلاس زندهٔ مدرسهٔ هدایت خوش آمدید. این کلاس ضبط می‌شود؛ ضبط فقط برای مخاطبان همین کلاس و تا ۶ ماه نگه داشته می‌شود.'
       : 'به کلاس زندهٔ مدرسهٔ هدایت خوش آمدید. این کلاس ضبط نمی‌شود.';
+    const site = config.publicUrl.replace(/\/$/, '');
+    const mode = (e.liveMode ?? (e.isLive ? 'CLASS' : null)) as LiveMode | null;
     return this.call('create', {
       name: e.title, meetingID: e.id, attendeePW: this.pw(e.id, 'a'), moderatorPW: this.pw(e.id, 'm'),
       record: e.record, autoStartRecording: false, allowStartStopRecording: e.record, duration: minutes,
-      welcome, logoutURL: `${config.publicUrl.replace(/\/$/, '')}/${e.isLive ? 'live' : 'events'}/${e.id}`,
-      logo: `${config.publicUrl.replace(/\/$/, '')}/brand/logo-mark.png`,
+      welcome, logoutURL: `${site}/${e.isLive ? 'live' : 'events'}/${e.id}`,
+      logo: `${site}/brand/logo-mark.png`,
       // اسلاید آغازین با نشان مدرسه به‌جای اسلاید پیش‌فرض BigBlueButton (ساخته از tools/bbb/slide.html)
-      preUploadedPresentation: `${config.publicUrl.replace(/\/$/, '')}/bbb/slide.jpg`, preUploadedPresentationName: 'مدرسهٔ هدایت',
+      preUploadedPresentation: `${site}/bbb/slide.jpg`, preUploadedPresentationName: 'مدرسهٔ هدایت',
+      ...(mode ? MODE_CREATE[mode] : {}),
+      ...(mode ? { moderatorOnlyMessage: HOST_TIPS[mode] } : {}),
       'meta_madrese-event': e.id,
     });
   }
 
   joinUrl(e: typeof events.$inferSelect, u: { id: string; name: string }, moderator: boolean) {
     const site = config.publicUrl.replace(/\/$/, '');
+    const mode = (e.liveMode ?? (e.isLive ? 'CLASS' : null)) as LiveMode | null;
     // کلاس فارسی و راست‌به‌چپ، با فونت و رنگ مدرسه (پوستهٔ public/bbb/theme.css) و نشان مدرسه در کنار کلاس
     return this.url('join', {
+      ...(mode ? (moderator ? MODE_JOIN_HOST : MODE_JOIN_VIEWER[mode]) : {}),
       fullName: u.name, meetingID: e.id, password: this.pw(e.id, moderator ? 'm' : 'a'), userID: u.id, redirect: true,
       'userdata-bbb_override_default_locale': 'fa-IR',
       'userdata-bbb_custom_style_url': `${site}/bbb/theme.css`,

@@ -39,6 +39,17 @@ ok(psql(f"select status from registrations where event_id='{L1}' and user_id=(se
 hj = lead.post(f'{B}/v2/lives/{L1}/join'); ok(hj.status_code == 200, 'میزبان وارد شد')
 ok(view.get(f'{B}/events/{L1}').json().get('isLive') is True, 'صفحهٔ قدیمی برنامه می‌داند پخش زنده است')
 
+ok(lead.get(f'{B}/v2/lives/{L1}/room').json()['mode'] == 'CLASS' and 'bbb_skip_check_audio=true' in j.json()['url'] and 'force_listen_only' not in j.json()['url'], 'بی‌شیوه یعنی کلاس: مخاطب بی‌آزمون صدا وارد می‌شود')
+
+print('۲الف. شیوهٔ سخنرانی')
+r = lead.post(f'{B}/v2/lives', json={'title': 'سخنرانی آزمایشی', 'now': True, 'minutes': 30, 'audience': 'ALL', 'mode': 'LECTURE'}); LL = r.json()['id']
+ok(lead.get(f'{B}/v2/lives/{LL}/room').json()['mode'] == 'LECTURE', 'شیوه ثبت شد')
+u = view.post(f'{B}/v2/lives/{LL}/join').json()['url']; ok('bbb_force_listen_only=true' in u, 'مخاطب سخنرانی فقط می‌شنود', u[:300])
+hu = lead.post(f'{B}/v2/lives/{LL}/join').json()['url']; ok('force_listen_only' not in hu, 'میزبان صدا دارد')
+ok(lead.patch(f'{B}/v2/lives/{LL}', json={'mode': 'MEETING'}).status_code == 200 and lead.get(f'{B}/v2/lives/{LL}/room').json()['mode'] == 'MEETING', 'شیوه عوض می‌شود')
+ok(lead.patch(f'{B}/v2/lives/{LL}', json={'mode': 'PARTY'}).status_code == 400, 'شیوهٔ ناشناخته پذیرفته نیست')
+hq.post(f'{B}/v2/lives/{LL}/stop', json={'reason': 'پایان آزمون شیوه'})
+
 print('۳. اتاق پخش')
 room = lead.get(f'{B}/v2/lives/{L1}/room').json()
 ok(room['link'].endswith(f'/live/{L1}') and room['link'] in room['invite'] and 'پرسش و پاسخ گعده' in room['invite'], 'متن دعوت با پیوند', room.get('invite'))

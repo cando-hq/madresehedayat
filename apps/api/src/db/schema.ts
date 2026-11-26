@@ -451,7 +451,8 @@ export const events = pgTable('events', {
   liveFinalizedAt: timestamp('live_finalized_at', { withTimezone: true }), // حضور ≥۵۰٪ حساب شد
   isLive: boolean('is_live').notNull().default(false), // «پخش زنده»: واحد مستقل انتشار برگزارکننده
   audiencePathId: text('audience_path_id'), // پخش زنده برای کنشگران یک مسیر (۱.۹)
-  audienceCourseOnly: boolean('audience_course_only').notNull().default(false), // پخش زنده فقط برای شرکت‌کنندگان دورهٔ course_id
+  audienceCourseOnly: boolean('audience_course_only').notNull().default(false),
+  liveMode: text('live_mode'), // شیوهٔ پخش زنده: LECTURE | CLASS | MEETING (۱.۹.۳) // پخش زنده فقط برای شرکت‌کنندگان دورهٔ course_id
   publisherId: text('publisher_id'),
   instructorId: text('instructor_id'),
   reviewStatus: text('review_status'),

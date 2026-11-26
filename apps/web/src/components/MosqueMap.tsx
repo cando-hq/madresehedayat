@@ -1,6 +1,7 @@
 /*
  * نقشهٔ انتخاب مسجد. جدا بار می‌شود تا صفحه‌های دیگر سنگین نشوند.
  * اگر VITE_NESHAN_KEY پر باشد نقشهٔ «نشان» (کیت رسمی نشان، بر پایهٔ Leaflet) و گرنه OpenStreetMap
+ * مکان‌های نشان (poi) روشن است تا مسجدهای محله با نامشان روی نقشه دیده شوند.
  * (کاشی‌ها از VITE_MAP_TILES یا کاشی‌های عمومی OSM). رابط هر دو یکی است؛ فقط سازندهٔ نقشه فرق دارد.
  */
 import Leaflet from 'leaflet';
@@ -43,7 +44,7 @@ export default function MosqueMap({ center, zoom = 15, me, mosques, selected, on
       lib.current = L;
       m = NESHAN_KEY
         // گزینه‌های key و maptype را فقط کیت نشان می‌شناسد
-        ? new L.Map(box.current, { key: NESHAN_KEY, maptype: 'neshan', poi: false, traffic: false, center: [center.lat, center.lng], zoom } as L.MapOptions)
+        ? new L.Map(box.current, { key: NESHAN_KEY, maptype: 'neshan', poi: true, traffic: false, center: [center.lat, center.lng], zoom } as L.MapOptions)
         : L.map(box.current, { zoomControl: true, attributionControl: true }).setView([center.lat, center.lng], zoom);
       if (!NESHAN_KEY) L.tileLayer(TILES, { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(m);
       m.on('click', (e: L.LeafletMouseEvent) => cb.current.onPin?.({ lat: e.latlng.lat, lng: e.latlng.lng }));

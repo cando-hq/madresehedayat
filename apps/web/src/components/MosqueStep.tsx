@@ -117,9 +117,10 @@ export function MosqueStep({ role, value, onChange, onNext, onBack, finishing }:
       {params && (
         <div className="mt-6 grid gap-4">
           <Suspense fallback={<div className="grid h-52 place-items-center rounded-2xl bg-sunken"><InlineSpinner /></div>}>
-            <MosqueMap center={adding && pin ? pin : center} zoom={here ? 15 : list.some((m) => m.lat != null) ? 13 : 5} me={here} mosques={adding ? [] : list} selected={value.mosqueId} onPick={(id) => { const m = list.find((x) => x.id === id); if (m) pick(m); }} pin={adding ? pin : null} onPin={adding ? setPin : undefined} />
+            <MosqueMap center={adding && pin ? pin : center} zoom={here ? 15 : list.some((m) => m.lat != null) ? 13 : 5} me={here} mosques={adding ? [] : list} selected={value.mosqueId} onPick={(id) => { const m = list.find((x) => x.id === id); if (m) pick(m); }} pin={adding ? pin : null} onPin={adding ? setPin : (p) => { startAdd(); setPin(p); }} />
           </Suspense>
 
+          {!adding && <p className="-mt-2 text-[13px] text-muted">نقطه‌های آبی مسجدهای ثبت‌شده در مدرسه‌اند. مسجدت روی نقشه هست ولی نقطه ندارد؟ روی همان‌جا بزن تا اضافه‌اش کنی.</p>}
           {!adding && (
             <>
               <div className="flex items-baseline justify-between gap-3">

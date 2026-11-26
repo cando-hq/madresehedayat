@@ -98,7 +98,7 @@ r = hq.post(f'{B}/v2/lives/{L1}/stop', json={'reason': 'آزمون توقف'}); 
 ok(view.get(f'{B}/v2/lives/{L1}').status_code == 404, 'برای مخاطب دیگر نیست')
 ok(lead.get(f'{B}/v2/lives/{L1}/room').json()['state'] == 'STOPPED', 'میزبان «متوقف شد» می‌بیند')
 ok(view.post(f'{B}/v2/lives/{L1}/join').status_code in (400, 404), 'ورود بسته شد')
-ok(psql(f"select count(*) from notifications where user_id=(select id from users where last_name='پخشی' and first_name='حمید') and title like '%متوقف کرد%'") == '1', 'سازنده خبر گرفت')
+ok(psql(f"select count(*) from notifications where user_id=(select id from users where last_name='پخشی' and first_name='حمید') and title like '%پرسش و پاسخ گعده%متوقف کرد%'") == '1', 'سازنده خبر گرفت')
 adm = hq.get(f'{B}/v2/admin/lives').json(); ok({L1, L2, L3} <= {x['id'] for x in adm}, 'ستاد همه را می‌بیند')
 ok(view.get(f'{B}/v2/admin/lives').status_code == 403, 'فهرست ستاد برای دیگران بسته است')
 

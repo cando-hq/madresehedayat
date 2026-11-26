@@ -19,6 +19,7 @@ import type { ActorRole, PathSize } from '../lib/types';
 
 const NAV = [
   { to: '/pub', label: 'محتوای ما', icon: BookOpen, end: true },
+  { to: '/pub/lives', label: 'پخش زنده', icon: Radio },
   { to: '/pub/paths/new', label: 'مسیرساز', icon: Route },
   { to: '/pub/library', label: 'کتابخانهٔ مشترک', icon: Library },
   { to: '/pub/rahyars', label: 'راهیاران', icon: Compass },
@@ -72,7 +73,7 @@ export function PubHome() {
         <div className="flex gap-4 text-sm"><span><b className="tnum text-2xl font-extrabold text-ink">{fa(d.stats.enrolled)}</b> <span className="text-muted">کنشگر</span></span><span><b className="tnum text-2xl font-extrabold text-ink">{fa(d.stats.growth)}</b> <span className="text-muted">گام رشد</span></span>{d.stats.inReview > 0 && <span className="chip chip-flame self-center">{fa(d.stats.inReview)} در بازبینی</span>}</div>
       </header>
       <div className="grid grid-cols-3 gap-2 sm:gap-3">
-        {[{ t: 'مسیر تازه', d: 'خرد، میانه یا کلان؛ با دوره‌های خودت یا دیگران', icon: Route, go: () => nav('/pub/paths/new') }, { t: 'دورهٔ تازه', d: 'درس‌های صوتی، ویدیویی، متنی؛ تکلیف و آزمون', icon: BookOpen, go: () => setNewCourse('') }, { t: 'پخش زندهٔ تازه', d: 'بدون مسیر هم می‌شود؛ ضبطش بعداً به مسیر می‌چسبد', icon: Radio, go: () => nav('/manage/events/new') }].map((x) => (
+        {[{ t: 'مسیر تازه', d: 'خرد، میانه یا کلان؛ با دوره‌های خودت یا دیگران', icon: Route, go: () => nav('/pub/paths/new') }, { t: 'دورهٔ تازه', d: 'درس‌های صوتی، ویدیویی، متنی؛ تکلیف و آزمون', icon: BookOpen, go: () => setNewCourse('') }, { t: 'پخش زندهٔ تازه', d: 'همین الان یا برای بعد، در یک صفحه؛ بی‌بازبینی', icon: Radio, go: () => nav('/live/new') }].map((x) => (
           <button key={x.t} type="button" onClick={x.go} className="card is-link grid content-start justify-items-center gap-2 p-3 text-center sm:justify-items-start sm:p-5 sm:text-start"><span className="grid size-11 place-items-center rounded-2xl bg-deep-soft text-deep"><x.icon className="size-5" /></span><b className="text-sm text-ink sm:text-base">{x.t}</b><span className="hidden text-sm text-muted sm:block">{x.d}</span></button>
         ))}
       </div>
@@ -87,7 +88,7 @@ export function PubHome() {
       )}
       {!!d.lives.length && (
         <section className="grid gap-3"><h2 className="text-lg font-extrabold">پخش‌های زنده</h2>
-          <div className="card divide-y divide-line">{d.lives.map((e) => <Link key={e.id} to={`/manage/events/${e.id}`} className="flex flex-wrap items-center gap-3 px-4 py-3 no-underline"><span className="grid size-10 place-items-center rounded-xl bg-rose-soft text-rose-ink"><Radio className="size-5" /></span><span className="min-w-0 flex-1"><b className="block text-ink">{e.title}</b><span className="text-sm text-muted">{jDate(e.startsAt)}، {fa(e.registered)} یادآوری‌خواه</span></span><span className={`chip ${STATUS_CHIP[e.status]}`}>{e.statusFa}</span></Link>)}</div></section>
+          <div className="card divide-y divide-line">{d.lives.map((e) => <Link key={e.id} to={`/live/${e.id}/room`} className="flex flex-wrap items-center gap-3 px-4 py-3 no-underline"><span className="grid size-10 place-items-center rounded-xl bg-rose-soft text-rose-ink"><Radio className="size-5" /></span><span className="min-w-0 flex-1"><b className="block text-ink">{e.title}</b><span className="text-sm text-muted">{jDate(e.startsAt)}، {fa(e.registered)} یادآوری‌خواه</span></span><span className={`chip ${STATUS_CHIP[e.status]}`}>{e.statusFa}</span></Link>)}</div></section>
       )}
       <Dialog open={newCourse !== null} onClose={() => setNewCourse(null)} title="دورهٔ تازه">
         <div className="grid gap-3"><label className="field"><span>عنوان دوره</span><input className="input" value={newCourse ?? ''} onChange={(e) => setNewCourse(e.target.value)} placeholder="تا ۶ کلمه" autoFocus /></label><p className="text-sm text-muted">بعدش درس‌ها را می‌سازی؛ در هر مسیری قابل استفاده است.</p><div className="flex gap-2"><button className="btn btn-primary" disabled={!newCourse?.trim() || create.isPending} onClick={() => create.mutate(newCourse!.trim())}>بساز</button><button className="btn btn-ghost" onClick={() => setNewCourse(null)}>برگرد</button></div></div>

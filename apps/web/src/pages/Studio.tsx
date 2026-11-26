@@ -2,6 +2,7 @@
  * استودیوی استاد: دوره‌های من (ساخت و ارسال برای بازبینی)، پرسش‌های درس‌هایم، پخش‌های زندهٔ من، تحلیل (کدام درس رها می‌شود).
  * استاد زیرمجموعهٔ برگزارکننده است: برگزارکننده دوره را به او می‌سپارد؛ ستاد منتشر می‌کند.
  */
+import { MyLives } from './Live';
 import { ScrollManager } from '../components/ScrollManager';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { BookOpen, ChevronLeft, MessageCircle, Plus, Radio, TrendingUp } from 'lucide-react';
@@ -91,17 +92,7 @@ export function StudioQuestions() {
 }
 
 export function StudioLives() {
-  const d = useStudio();
-  if (d.isLoading) return <Spinner />;
-  if (d.error || !d.data) return <ErrorBox error={d.error} onRetry={() => d.refetch()} />;
-  const ls = d.data!.lives;
-  return (
-    <div className="grid gap-6">
-      <header className="flex flex-wrap items-end justify-between gap-4"><div><h1 className="text-[clamp(24px,3vw,32px)] font-extrabold">پخش‌های زندهٔ من</h1><p className="mt-1 text-muted">اتاق کنترل: ثبت‌نام‌ها، حضور، ضبط. ضبط بعد از پایان به مسیرها الصاق می‌شود.</p></div><Link to="/manage/events/new" className="btn btn-primary"><Plus className="size-4" />پخش زندهٔ تازه</Link></header>
-      {ls.length ? <div className="grid gap-3">{ls.map((e) => <div key={e.id} className="card flex flex-wrap items-center gap-3 p-4"><span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-rose-soft text-rose-ink"><Radio className="size-5" /></span><span className="min-w-0 flex-1"><b className="block text-ink">{e.title}</b><span className="text-sm text-muted">{jDate(e.startsAt)}، {fa(e.registered)} یادآوری‌خواه{e.past ? `، ${fa(e.attended)} حاضر` : ''}{e.record ? '، ضبط می‌شود' : ''}</span></span><span className={`chip ${e.status === 'PUBLISHED' ? 'chip-leaf' : e.status === 'IN_REVIEW' ? 'chip-flame' : ''}`}>{e.status === 'PUBLISHED' ? 'منتشرشده' : e.status === 'IN_REVIEW' ? 'در بازبینی' : e.status === 'DRAFT' ? 'پیش‌نویس' : e.status}</span><Link to={e.past ? `/events/${e.id}` : `/manage/events/${e.id}`} className="btn btn-secondary btn-sm">{e.past ? 'ضبط و حضور' : 'اتاق کنترل'}</Link></div>)}</div>
-        : <Empty icon={Radio} title="پخش زنده‌ای نداری">با «پخش زندهٔ تازه» بساز؛ بدون مسیر هم منتشر می‌شود.</Empty>}
-    </div>
-  );
+  return <MyLives intro="جلسه‌های زندهٔ دوره‌هایت. هر کدام را باز کنی، به اتاق پخش می‌روی: ورود، دعوت، حاضران و ضبط." />;
 }
 
 export function StudioAnalytics() {

@@ -1,5 +1,6 @@
 import { Paths2Controller, Paths2Service } from './paths2/paths2';
 import { PublishersController, PublishersService } from './paths2/publishers';
+import { LivesController, LivesService } from './live/lives';
 import { PeersController, PeersService } from './peers/peers';
 import { Controller, Get, Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
@@ -59,10 +60,10 @@ class HealthController {
   ],
   controllers: [HealthController, AuthController, GeoController, LearningController, AdminController, FilesController,
     NotificationsController, RahyarController, CoresController, EventsController,
-    MessengerController, SecurityController, BroadcastsController, SupportController, ToolsController, CampaignsController, BusinessController, FeedbackController, LiveController, GrowthController, CohortsController, Paths2Controller, PublishersController, PeersController],
+    MessengerController, SecurityController, BroadcastsController, SupportController, ToolsController, CampaignsController, BusinessController, FeedbackController, LiveController, GrowthController, CohortsController, Paths2Controller, PublishersController, LivesController, PeersController],
   providers: [
     AuthService, LearningService, AdminService, FileStore,
-    Notifier, RahyarService, MissionsService, EventsService, Scheduler, Messenger, AccessLog, Broadcasts, ToolsService, Campaigns, Business, FeedbackService, BbbClient, LiveService, GrowthService, CohortsService, Paths2Service, PublishersService, PeersService,
+    Notifier, RahyarService, MissionsService, EventsService, Scheduler, Messenger, AccessLog, Broadcasts, ToolsService, Campaigns, Business, FeedbackService, BbbClient, LiveService, GrowthService, CohortsService, Paths2Service, PublishersService, LivesService, PeersService,
     { provide: SmsSender, useClass: config.smsProvider === 'kavenegar' ? KavenegarSms : ConsoleSms }, BaleSafir,
     { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_GUARD, useClass: AuthGuard },

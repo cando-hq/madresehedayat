@@ -1,3 +1,4 @@
+import { LiveNowBar } from '../pages/Live';
 import { useQuery } from '@tanstack/react-query';
 import { ScrollManager } from './ScrollManager';
 import { MessageSquarePlus, Award, Bell, LifeBuoy, BookOpen, ClipboardCheck, Compass, House, Landmark, LayoutDashboard, LogOut, MessageCircle, Settings, Building2, UsersRound, CalendarCog } from 'lucide-react';
@@ -125,6 +126,7 @@ export function Shell() {
           </div>
         </div>
       </header>
+      <LiveNowBar />
       <main id="main" tabIndex={-1} className="wrap py-6 outline-none md:py-10"><div key={loc.pathname} className="page"><Suspense fallback={<Spinner />}><Outlet /></Suspense></div></main>
       <span className="shell-feedback"><FeedbackLink /></span>
       <nav className="shell-tabs fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-line bg-card/95 backdrop-blur md:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }} aria-label="بخش‌های اصلی">

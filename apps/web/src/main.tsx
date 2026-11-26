@@ -92,6 +92,11 @@ const ReviewQueue = lazy(() => import('./pages/admin/Review').then((m) => ({ def
 const StudioAnalytics = lazy(() => import('./pages/Studio').then((m) => ({ default: m.StudioAnalytics })));
 const StudioCourses = lazy(() => import('./pages/Studio').then((m) => ({ default: m.StudioCourses })));
 const StudioLives = lazy(() => import('./pages/Studio').then((m) => ({ default: m.StudioLives })));
+const PubLives = lazy(() => import('./pages/Live').then((m) => ({ default: () => <m.MyLives intro="پخش‌های زندهٔ برگزارکننده؛ هر کدام را باز کنی، به اتاق پخش می‌روی." /> })));
+const LivePage = lazy(() => import('./pages/Live').then((m) => ({ default: m.LivePage })));
+const LiveNew = lazy(() => import('./pages/Live').then((m) => ({ default: m.LiveNew })));
+const LiveRoom = lazy(() => import('./pages/Live').then((m) => ({ default: m.LiveRoom })));
+const AdminLives = lazy(() => import('./pages/Live').then((m) => ({ default: m.AdminLives })));
 const StudioQuestions = lazy(() => import('./pages/Studio').then((m) => ({ default: m.StudioQuestions })));
 const StudioShell = lazy(() => import('./pages/Studio').then((m) => ({ default: m.StudioShell })));
 const ImamatPage = lazy(() => import('./pages/Imamat'));
@@ -178,6 +183,7 @@ const router = (import.meta.env.VITE_DEMO ? createHashRouter : createBrowserRout
       { path: 'rahyars', element: <PubRahyars /> },
       { path: 'impact', element: <PubImpact /> },
       { path: 'team', element: <PubTeam /> },
+      { path: 'lives', element: <PubLives /> },
       { path: 'courses/:id', element: <CourseEditor /> },
       { path: '*', element: <NotFound /> },
     ],
@@ -217,6 +223,10 @@ const router = (import.meta.env.VITE_DEMO ? createHashRouter : createBrowserRout
       { path: '/manage/campaigns/:id', element: <ManageCampaign /> },
       { path: '/manage/campaigns/:id/edit', element: <CampaignEditor /> },
       { path: '/events/:id', element: <EventPage /> },
+      { path: '/live', element: <Navigate to="/learn?tab=live" replace /> },
+      { path: '/live/new', element: <LiveNew /> },
+      { path: '/live/:id', element: <LivePage /> },
+      { path: '/live/:id/room', element: <LiveRoom /> },
       { path: '/notifications', element: <Notifications /> },
       { path: '/messages', element: <Messages /> },
       { path: '/cores', element: <MyCores /> },
@@ -250,6 +260,7 @@ const router = (import.meta.env.VITE_DEMO ? createHashRouter : createBrowserRout
       { index: true, element: <Dashboard /> },
       { path: 'review', element: <ReviewQueue /> },
       { path: 'publishers', element: <Publishers /> },
+      { path: 'lives', element: <AdminLives /> },
       { path: 'publishers/:id', element: <PublisherProfile /> },
       { path: 'courses', element: <Courses /> },
       { path: 'business', element: <AdminBusiness /> },

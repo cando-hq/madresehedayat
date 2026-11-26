@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { CalendarDays, CalendarPlus, CircleAlert, Clock, Hourglass, MapPin, MonitorPlay, Star, Ticket, Users, Video } from 'lucide-react';
 import QRCode from 'qrcode';
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router';
+import { Link, useParams, Navigate } from 'react-router';
 import { Dialog, Empty, ErrorBox, Spinner, useToast } from '../components/ui';
 import { useFeedbackContext } from '../components/Feedback';
 import { useOpenLink } from '../lib/open';
@@ -111,6 +111,7 @@ export function EventPage() {
   if (q.isLoading) return <Spinner />;
   if (q.error) return <ErrorBox error={q.error} />;
   const e = q.data!;
+  if ((e as { isLive?: boolean }).isLive) return <Navigate to={`/live/${e.id}`} replace />;
   const now = Date.now();
   const started = new Date(e.startsAt).getTime() < now;
   const ended = new Date(e.endsAt).getTime() < now;

@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ManageTabs } from '../components/ManageTabs';
 import { Ban, Camera, CameraOff, CheckCircle2, CircleAlert, Download, ExternalLink, Megaphone, MonitorPlay, Pencil, Plus, QrCode, ScanLine, Send, Star, Trash2, WifiOff, XCircle } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Link, useLocation, useNavigate, useParams } from 'react-router';
+import { Link, Navigate, useLocation, useNavigate, useParams } from 'react-router';
 import { Dialog, Empty, ErrorBox, Spinner, useToast } from '../components/ui';
 import { api } from '../lib/api';
 import { useOpenLink } from '../lib/open';
@@ -184,6 +184,7 @@ export function ManageEvent() {
   if (q.isLoading) return <Spinner />;
   if (q.error) return <ErrorBox error={q.error} />;
   const { event: e, counts, people, rating, comments = [] } = q.data!;
+  if ((e as { isLive?: boolean }).isLive) return <Navigate to={`/live/${e.id}/room`} replace />;
   const list = people.filter((p) => (tab === 'ATTENDED' ? p.attendedAt : p.status === tab));
   const tabs: [string, string, number][] = [['REGISTERED', 'ثبت‌نام', counts.registered], ['WAITLIST', 'انتظار', counts.waitlist], ['PENDING', 'منتظر تأیید', counts.pending], ['ATTENDED', 'حاضر', counts.attended], ['CANCELLED', 'انصراف', people.filter((p) => p.status === 'CANCELLED').length]];
   return (

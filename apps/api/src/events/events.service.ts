@@ -133,7 +133,7 @@ export class EventsService {
       id: e.id, title: e.title, kind: e.kind, startsAt: e.startsAt, endsAt: e.endsAt, location: e.location, hostName: e.hostName,
       capacity: e.capacity, seatsLeft, waitlist: e.waitlist, requiresApproval: e.requiresApproval, registrationDeadline: e.registrationDeadline,
       audienceGender: e.audienceGender, status: e.status, cancelReason: e.cancelReason, courseId: e.courseId, feeNote: e.feeNote,
-      scoped: e.audienceNetworkId ? 'ORG' : e.audienceMosqueId ? 'MOSQUE' : e.audienceCoreId ? 'CORE' : null, useBbb: e.useBbb, record: e.useBbb && e.record,
+      isLive: e.isLive, scoped: e.audienceNetworkId ? 'ORG' : e.audienceMosqueId ? 'MOSQUE' : e.audienceCoreId ? 'CORE' : null, useBbb: e.useBbb, record: e.useBbb && e.record,
       registered: c?.registered ?? 0,
       my: mine && mine.status !== 'CANCELLED' && mine.status !== 'REJECTED' ? { status: mine.status, checkInCode: mine.status === 'REGISTERED' ? mine.checkInCode : null, attendedAt: mine.attendedAt, feedback: mine.feedback ? { rating: (mine.feedback as any).rating, comment: dec((mine.feedback as any).comment) } : null } : mine ? { status: mine.status } : null,
     };
@@ -472,9 +472,12 @@ export class EventsService {
         const [ins] = await this.db.insert(eventReminders).values({ eventId: e.id, kind: k }).onConflictDoNothing().returning();
         if (!ins) continue;
         const ids = (await this.db.select({ userId: registrations.userId }).from(registrations).where(and(eq(registrations.eventId, e.id), eq(registrations.status, 'REGISTERED')))).map((r) => r.userId);
-        await this.notify.send(ids, k === 'DAY'
+        // پخش زندهٔ مسیر یا دوره: کنشگران همان مسیر یا دوره هم یادآوری می‌گیرند، حتی اگر «یادم بینداز» نزده باشند
+        if (e.isLive && e.audiencePathId) ids.push(...(await this.db.execute<{ u: string }>(sql`select user_id as u from path_enrollments where path_id = ${e.audiencePathId} and completed_at is null`)).rows.map((r) => r.u));
+        if (e.isLive && e.audienceCourseOnly && e.courseId) ids.push(...(await this.db.execute<{ u: string }>(sql`select user_id as u from enrollments where course_id = ${e.courseId}`)).rows.map((r) => r.u));
+        await this.notify.send([...new Set(ids)], k === 'DAY'
           ? { kind: 'event_reminder', title: `فردا: «${e.title}»`, body: `${faDate(e.startsAt)}${e.location ? ' — ' + e.location : ''}${e.kind === 'IN_PERSON' ? ' — کارت ورود را همراه داشته باش' : ''}`, link: `/events/${e.id}` }
-          : { kind: 'event_reminder', title: `«${e.title}» تا ربع ساعت دیگر شروع می‌شود`, body: 'از صفحهٔ برنامه وارد کلاس شو', link: `/events/${e.id}` });
+          : { kind: 'event_reminder', title: `«${e.title}» تا ربع ساعت دیگر شروع می‌شود`, body: e.isLive ? 'با یک ضربه وارد پخش شو' : 'از صفحهٔ برنامه وارد کلاس شو', link: e.isLive ? `/live/${e.id}` : `/events/${e.id}` });
         sent += ids.length;
       }
     }

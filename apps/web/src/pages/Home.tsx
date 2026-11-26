@@ -31,24 +31,16 @@ export default function Home() {
   const due = reviews.data?.due[0];
   const step = due ? { kicker: 'وقت مرور، دو دقیقه', title: due.course.title, cta: 'شروع مرور', to: `/review/${due.id}`, color: d.next.color } : d.next;
   const live = (events.data ?? []).filter((e) => e.kind === 'ONLINE' && e.status === 'PUBLISHED');
-  const liveNow = live.find((e) => e.my?.status === 'REGISTERED' && new Date(e.startsAt).getTime() - 15 * 60_000 <= Date.now() && Date.now() <= new Date(e.endsAt).getTime());
   const team = me?.cores?.[0];
   const week: { k: string; t: string; sub: string; to: string; color: string; icon: typeof Users }[] = [];
   if (d.gaade) week.push({ k: 'گعده', t: d.gaade.topic || d.gaade.title, sub: `${when(d.gaade.at)}، ${d.gaade.where}`, to: `/gaade/${d.gaade.id}`, color: 'var(--flame)', icon: Users });
-  for (const e of live.slice(0, 1)) week.push({ k: 'پخش زنده', t: e.title, sub: `${when(e.startsAt)}${e.my ? '، یادآوری فعال' : ''}`, to: `/events/${e.id}`, color: 'var(--rose)', icon: Radio });
+  for (const e of live.slice(0, 1)) week.push({ k: 'پخش زنده', t: e.title, sub: `${when(e.startsAt)}${e.my ? '، یادآوری فعال' : ''}`, to: (e as { isLive?: boolean }).isLive ? `/live/${e.id}` : `/events/${e.id}`, color: 'var(--rose)', icon: Radio });
   if (team) week.push({ k: 'تیم من', t: team.name, sub: team.isLeader ? 'تو مسئول تیمی' : 'عضو', to: `/cores/${team.id}`, color: 'var(--leaf)', icon: Users });
   const inPerson = (events.data ?? []).find((e) => e.kind === 'IN_PERSON');
   if (inPerson && week.length < 3) week.push({ k: 'برنامه', t: inPerson.title, sub: `${jShort(inPerson.startsAt)}${inPerson.location ? `، ${inPerson.location}` : ''}`, to: `/events/${inPerson.id}`, color: 'var(--deep)', icon: Radio });
   const mine = [...d.mine].sort((a, b) => (a.isMain ? -1 : b.isMain ? 1 : 0)).filter((p) => p.percent < 100).slice(0, 3);
   return (
     <div className="grid gap-10">
-      {liveNow && (
-        <Link to={`/events/${liveNow.id}`} className="live-strip flex items-center gap-3 rounded-2xl bg-[#262A4F] px-4 py-3 text-white no-underline">
-          <span className="chip chip-live !text-flame">{new Date(liveNow.startsAt) <= new Date() ? 'زنده' : 'به‌زودی'}</span>
-          <b className="min-w-0 flex-1 truncate">{liveNow.title}</b>
-          <span className="flex items-center gap-1.5 text-sm font-bold text-flame"><Radio className="size-4" />ورود</span>
-        </Link>
-      )}
 
       <section className="hero-blue grid overflow-hidden rounded-[32px] md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]" aria-labelledby="hi-h">
         <div className="grid content-center gap-5 p-6 md:p-10">

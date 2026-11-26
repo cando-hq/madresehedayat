@@ -434,6 +434,12 @@ export function registerPaths2(X: Any) {
   on('POST', '/v2/admin/publishers/([^/]+)/team', (m: Any, b: Any) => { staff(); return addToTeam(m[1], b.mobile); });
   on('DELETE', '/v2/admin/publishers/([^/]+)/team/([^/]+)', (m: Any) => { staff(); return dropFromTeam(m[1], m[2]); });
   on('DELETE', '/v2/admin/publishers/([^/]+)/invites/([^/]+)', (m: Any) => { staff(); const p = pub(m[1]); if (p) p.pending = (p.pending ?? []).filter((x: Any) => x.id !== m[2]); return { ok: true }; });
+  // پخش زنده (۱.۹): نسخهٔ نمایشی فقط فهرست خالی دارد
+  on('GET', '/v2/lives/now', () => []);
+  on('GET', '/v2/lives/mine', () => []);
+  on('GET', '/v2/lives/options', () => ({ canCreate: false, bbb: false, hq: false, onlyCourses: false, publishers: [], paths: [], courses: [] }));
+  on('GET', '/v2/lives', () => ({ now: [], soon: [], recorded: [] }));
+  on('GET', '/v2/admin/lives', () => []);
   on('GET', '/v2/pub/team', () => { const pid = myPubId(); const p = pub(pid); return { publisher: { id: p.id, name: p.name, color: p.color, kind: p.kind, about: p.about ?? null, status: p.status, statusFa: PST[p.status] }, me: me().id, ...teamOf(pid) }; });
   on('POST', '/v2/pub/team', (_m: Any, b: Any) => addToTeam(myPubId(), b.mobile));
   on('DELETE', '/v2/pub/team/([^/]+)', (m: Any) => dropFromTeam(myPubId(), m[1], true));

@@ -96,13 +96,13 @@ export class LiveService {
   constructor(@InjectDb() private readonly db: Db, private readonly bbb: BbbClient, private readonly learning: LearningService, private readonly notify: Notifier) {}
 
   private isHost(u: AuthUser, e: typeof events.$inferSelect) {
-    return e.createdById === u.id || u.roles.includes('HQ_ADMIN') || u.roles.includes('HQ_OPERATOR');
+    return e.createdById === u.id || (!!e.instructorId && e.instructorId === u.id) || u.roles.includes('HQ_ADMIN') || u.roles.includes('HQ_OPERATOR');
   }
 
   /** ورود به کلاس: میزبان همیشه، ثبت‌نامی از ۱۵ دقیقه پیش از شروع تا پایان */
-  async join(u: AuthUser, e: typeof events.$inferSelect) {
+  async join(u: AuthUser, e: typeof events.$inferSelect, hostFlag?: boolean) {
     if (!bbbEnabled()) throw new BadRequestException(err('bbb_off', 'سرور کلاس زنده هنوز راه نیفتاده است؛ برگزارکننده پیوند بیرونی بگذارد'));
-    const host = this.isHost(u, e);
+    const host = hostFlag ?? this.isHost(u, e);
     if (e.status === 'CANCELLED') throw new BadRequestException(err('cancelled', 'این کلاس لغو شده است'));
     if (!host && e.status !== 'PUBLISHED') throw new BadRequestException(err('not_published', 'این کلاس هنوز منتشر نشده است'));
     if (!host) {
@@ -194,6 +194,14 @@ export class LiveService {
   /** چه کسی ضبط را می‌بیند: ثبت‌نامی‌ها، برگزارکننده و ستاد، و کسانی که درس «جلسهٔ زنده»ِ این برنامه را دارند */
   private async canSeeRecording(u: AuthUser, e: typeof events.$inferSelect) {
     if (this.isHost(u, e)) return true;
+    // پخش زندهٔ مستقل: ضبط برای همهٔ مخاطبانش است (همه، کنشگران مسیر، یا شرکت‌کنندگان دوره)
+    if (e.isLive) {
+      if (e.audiencePathId) return (await this.db.execute(sql`select 1 from path_enrollments where path_id = ${e.audiencePathId} and user_id = ${u.id} limit 1`)).rows.length > 0
+        || (await this.db.execute(sql`select 1 from publisher_admins where publisher_id = ${e.publisherId} and user_id = ${u.id} limit 1`)).rows.length > 0;
+      if (e.audienceCourseOnly && e.courseId) return (await this.db.execute(sql`select 1 from enrollments where course_id = ${e.courseId} and user_id = ${u.id} limit 1`)).rows.length > 0
+        || (await this.db.execute(sql`select 1 from publisher_admins where publisher_id = ${e.publisherId} and user_id = ${u.id} limit 1`)).rows.length > 0;
+      return true;
+    }
     const r = await this.db.query.registrations.findFirst({ where: and(eq(registrations.eventId, e.id), eq(registrations.userId, u.id)) });
     if (r && ['REGISTERED'].includes(r.status)) return true;
     const viaLesson = await this.db.execute(sql`select 1 from lessons l join modules m on m.id = l.module_id join enrollments en on en.course_id = m.course_id

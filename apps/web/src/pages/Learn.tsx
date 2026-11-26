@@ -2,6 +2,7 @@
  * یادگیری: سه زبانه. «مسیرهای من» (برداشته‌ها)، «مسیر اصلی من» (پیش‌فرض بر پایهٔ نقش، نه اجبار)، «کاوش» (همهٔ برگزارکنندگان).
  * صفحهٔ مسیر برای هر سه اندازه یکی است؛ فقط واحد پله (هفته/پله) و قفل‌شدن فرق می‌کند.
  */
+import { LiveList } from './Live';
 import { ask } from '../components/Confirm';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Award, Compass, MessageCircle, Radio, Route, Search, Users } from 'lucide-react';
@@ -16,8 +17,8 @@ import { fa, jDate, jShort } from '../lib/fa';
 import type { ActorRole, CourseCard as C, EventCard, PathSize, PathV2, Pub } from '../lib/types';
 import { ImamatCard } from './Imamat';
 
-type Tab = 'mine' | 'main' | 'explore';
-const TABS: [Tab, string][] = [['mine', 'مسیرهای من'], ['main', 'مسیر اصلی من'], ['explore', 'کاوش']];
+type Tab = 'mine' | 'main' | 'explore' | 'live';
+const TABS: [Tab, string][] = [['mine', 'مسیرهای من'], ['main', 'مسیر اصلی من'], ['live', 'پخش زنده'], ['explore', 'کاوش']];
 
 export default function Learn() {
   const [sp, setSp] = useSearchParams();
@@ -29,12 +30,13 @@ export default function Learn() {
   return (
     <div className="grid gap-8">
       <header className="flex flex-wrap items-end justify-between gap-4">
-        <div><h1 className="text-[clamp(24px,3vw,32px)] font-extrabold">یادگیری</h1><p className="mt-1 text-muted">{tab === 'explore' ? 'همهٔ مسیرها، دوره‌ها و پخش‌های زندهٔ برگزارکنندگان؛ هر کدام را جدا بردار.' : tab === 'main' ? 'مسیر اصلی پیش‌فرض است، نه اجبار.' : 'مسیرهایی که برداشته‌ای.'}</p></div>
+        <div><h1 className="text-[clamp(24px,3vw,32px)] font-extrabold">یادگیری</h1><p className="mt-1 text-muted">{tab === 'live' ? 'پخش‌های زندهٔ برگزارکنندگان و استادها: الان، به‌زودی و ضبط‌شده‌ها.' : tab === 'explore' ? 'همهٔ مسیرها، دوره‌ها و پخش‌های زندهٔ برگزارکنندگان؛ هر کدام را جدا بردار.' : tab === 'main' ? 'مسیر اصلی پیش‌فرض است، نه اجبار.' : 'مسیرهایی که برداشته‌ای.'}</p></div>
         <div className="seg seg-pill" role="tablist" aria-label="بخش‌های یادگیری">{TABS.map(([k, t]) => <button key={k} role="tab" aria-selected={tab === k} aria-pressed={tab === k} onClick={() => setSp({ tab: k })}>{t}</button>)}</div>
       </header>
       {tab === 'mine' && <Mine d={d} onExplore={() => setSp({ tab: 'explore' })} />}
       {tab === 'main' && <Main d={d} onExplore={() => setSp({ tab: 'explore' })} />}
       {tab === 'explore' && <Explore role={d.actorRole} />}
+      {tab === 'live' && <LiveList />}
     </div>
   );
 }

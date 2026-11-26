@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 import { ScrollManager } from '../../components/ScrollManager';
-import { Building2, Flag, Award, BadgeDollarSign, MessageSquarePlus, BookOpen, BookOpenCheck, CalendarDays, Compass, House, KeyRound, LayoutDashboard, Landmark, LifeBuoy, Megaphone, Route, ScrollText, ShieldCheck, Users, Wrench } from 'lucide-react';
+import { Building2, Flag, Award, BadgeDollarSign, MessageSquarePlus, BookOpen, BookOpenCheck, CalendarDays, Compass, House, KeyRound, LayoutDashboard, Landmark, LifeBuoy, Megaphone, Radio, Route, ScrollText, ShieldCheck, Users, Wrench } from 'lucide-react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router';
 import { TopLoader, Spinner } from '../../components/ui';
 import { Brand } from '../../components/Shell';
@@ -31,6 +31,7 @@ const GROUPS: { title?: string; more?: boolean; items: Sec[] }[] = [
     { to: '/admin/support', label: 'پشتیبانی', icon: LifeBuoy },
     { to: '/admin/feedback', label: 'بازخوردها', icon: MessageSquarePlus },
     { to: '/admin/broadcasts', label: 'پیام گروهی', icon: Megaphone },
+    { to: '/admin/lives', label: 'پخش‌های زنده', icon: Radio },
     { to: '/admin/events', label: 'برنامه‌ها', icon: CalendarDays },
     { to: '/admin/campaigns', label: 'پویش‌ها', icon: Flag },
   ] },

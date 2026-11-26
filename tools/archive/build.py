@@ -178,10 +178,16 @@ def main():
             for f, _, _ in panel:
                 src = os.path.join(extra, f[len('inputs/'):]) if f.startswith('inputs/') else os.path.join(ROOT, f)
                 z.write(src, f)
+    def pfile(f): return panel_files.get(f) or next((v for k, v in panel_files.items() if k and k.endswith('/' + f)), None)
+    def pimg(f, w=320):
+        pf = pfile(f)
+        if not pf or not f.lower().endswith(('.png', '.jpg', '.jpeg', '.webp')): return ''
+        wh = f' width="{pf["width"]}" height="{pf["height"]}"' if pf.get('width') else ''
+        return f'<a href="{html.escape(pf["url"])}"><img src="{html.escape(pf["url"])}?w={w}" alt="{html.escape(os.path.basename(f))}" loading="lazy"{wh} style="width:{w // 2}px;max-width:100%;height:auto;border-radius:12px;border:1px solid var(--line);background:#fff;padding:6px;margin:4px"></a>'
     def plink(f):
-        pf = panel_files.get(f) or next((v for k, v in panel_files.items() if k and k.endswith(f)), None)
+        pf = pfile(f)
         return f'<a href="{html.escape(pf["url"])}">{html.escape(os.path.basename(f))}</a>' if pf else html.escape(os.path.basename(f))
-    manifest['panel'] = [{'path': f, 'about': w, 'bytes': n, 'uploaded': bool(panel_files.get(f))} for f, w, n in panel]
+    manifest['panel'] = [{'path': f, 'about': w, 'bytes': n, 'uploaded': bool(pfile(f)), 'url': (pfile(f) or {}).get('url')} for f, w, n in panel]
 
     W = lambda name, title, body: open(os.path.join(out, name), 'w', encoding='utf-8').write(page(name, title, body, built))
     rawlink = lambda f, t=None: f'<a href="raw/{f}">{html.escape(t or f)}</a>'
@@ -216,7 +222,7 @@ def main():
     body = ('<h1>سیستم طراحی</h1>'
             f'<h2>فونت</h2><p style="font-size:30px;font-weight:800;color:var(--ink);margin:.2em 0">مدرسهٔ هدایت — ۱۲۳۴۵۶۷۸۹۰</p><p>{html.escape(tok["font"]["family"])}. {html.escape(tok["font"]["note"])}. فونت وب: {rawlink("apps/web/public/fonts", "apps/web/public/fonts")}؛ بستهٔ کامل و مجوز فقط در مخزن خصوصی: <a href="{REPO_URL}/tree/main/design/system/fonts">design/system/fonts</a>.</p>'
             f'<h2>رنگ‌ها (روشن)</h2><div class="sw">{sw}</div><p>همهٔ رنگ‌ها و حالت تیره: {rawlink("design/system/tokens.json")}، {rawlink("design/system/tokens.css")}.</p>'
-            '<h2>لوگو و تصویرها</h2><p>لوگو را بازترسیم نکن؛ همین فایل‌ها:</p><ul>' + ''.join(f'<li>{plink(f)}</li>' for f, w, _ in panel if f.startswith(('design/system/brand', 'design/assets'))) + f'<li>{rawlink("design/system/brand/mark.svg", "mark.svg")}</li></ul>'
+            '<h2>لوگو و تصویرها</h2><p>لوگو را بازترسیم نکن؛ همین فایل‌ها:</p><div>' + ''.join(pimg(f) for f, w, _ in panel if f.startswith(('design/system/brand', 'design/assets'))) + '</div><ul>' + ''.join(f'<li>{plink(f)}</li>' for f, w, _ in panel if f.startswith(('design/system/brand', 'design/assets'))) + f'<li>{rawlink("design/system/brand/mark.svg", "mark.svg")}</li></ul>'
             '<h2>راهنمای سیستم طراحی</h2>' + md(read('design/system/guide/README.md')) +
             f'<h2>بردهای طراحی ({str(len(boards)).translate(FA)} صفحه)</h2><p>این‌ها سورس بردهای ابزار طراحی‌اند و بیرون از آن ابزار کامل دیده نمی‌شوند (اسکریپت و تصویرهایشان در خود ابزار است). شکل نهایی هر صفحه را در خود سایت ببین؛ این فایل‌ها برای متن، چیدمان و ادامهٔ طراحی‌اند.</p><ul>' + ''.join(f'<li>{rawlink(f, os.path.basename(f).replace(".dc.html", ""))}</li>' for f in boards) + '</ul>')
     W('design.html', 'سیستم طراحی', body)
@@ -253,7 +259,7 @@ def main():
     ]
     body = '<h1>ورودی و خروجی‌ها</h1><table><tr><th>چه</th><th>توضیح</th><th>فایل</th></tr>' + ''.join(f'<tr><td>{a}</td><td>{b}</td><td>{c}</td></tr>' for a, b, c in rows) + '</table>'
     shots = [f for f, w, _ in panel if f.startswith('inputs/') and f.lower().endswith(('.png', '.jpg'))]
-    if shots: body += '<h2>عکس صفحه‌ها</h2><ul>' + ''.join(f'<li>{plink(f)}</li>' for f in shots) + '</ul>'
+    if shots: body += '<h2>عکس صفحه‌ها</h2>' + ''.join(f'<p>{plink(f)}<br>{pimg(f, 1280)}</p>' for f in shots)
     body += '<h2>همهٔ فایل‌های پنل</h2><table class="files"><tr><th>فایل</th><th>چیست</th><th>حجم</th></tr>' + ''.join(f'<tr><td>{plink(f)}</td><td>{w}</td><td>{size_fa(n)}</td></tr>' for f, w, n in panel) + '</table>'
     up = sum(1 for x in manifest['panel'] if x['uploaded'])
     body += f'<p class="meta">{str(up).translate(FA)} از {str(len(panel)).translate(FA)} فایل در پنل بارگذار است.' + ('' if up == len(panel) else ' بقیه را با zip «madrese-archive-files» در پنل بارگذار کن و «باز کردن zip» را بزن.') + '</p>'

@@ -9,7 +9,7 @@ import { userIdByMobile } from '../auth/mobiles';
 import { BadRequestException, Body, Controller, ForbiddenException, Get, HttpCode, Injectable, NotFoundException, Param, Patch, Post, Query } from '@nestjs/common';
 import { AdminService } from '../admin/admin.service';
 import { ArrayMaxSize, IsArray, IsBoolean, IsIn, IsNumber, IsObject, IsOptional, IsString, Length } from 'class-validator';
-import { and, asc, desc, eq, inArray, isNotNull, sql } from 'drizzle-orm';
+import { and, asc, between, desc, eq, inArray, isNotNull, sql } from 'drizzle-orm';
 import { AuthUser, CurrentUser, MaybeUser, Public, Roles } from '../common/auth.decorators';
 import { dec, decJson, enc, mobileKey } from '../common/crypto';
 import { normalizeMobile } from '../common/mobile';
@@ -267,9 +267,18 @@ export class Paths2Service {
   /** مسجدهای نزدیک یک نقطه (یا یک شهرستان)، نزدیک‌ترین اول؛ شهرستان هر مسجد هم می‌آید تا شهرستان کاربر از مسجدش معلوم شود */
   async near(q: { lat?: string; lng?: string; q?: string; county?: string; limit?: string }) {
     const lat = Number(q.lat), lng = Number(q.lng); const s = (q.q ?? '').trim(); const limit = Math.min(Math.max(Number(q.limit) || 8, 1), 30);
-    const conds = [s ? sql`${mosques.name} ilike ${'%' + s + '%'}` : undefined, q.county ? eq(mosques.countyId, q.county) : undefined].filter(Boolean) as any[];
-    const rows = await this.db.select({ id: mosques.id, name: mosques.name, address: mosques.address, lat: mosques.lat, lng: mosques.lng, verified: mosques.verified, countyId: mosques.countyId, county: counties.name, provinceId: counties.provinceId })
-      .from(mosques).innerJoin(counties, eq(counties.id, mosques.countyId)).where(conds.length ? and(...conds) : undefined).limit(2000);
+    const here0 = isFinite(lat) && isFinite(lng) && q.lat != null && q.lng != null;
+    const base = [s ? sql`${mosques.name} ilike ${'%' + s + '%'}` : undefined, q.county ? eq(mosques.countyId, q.county) : undefined].filter(Boolean) as any[];
+    // با ده‌ها هزار مسجد (۱.۱۰): نزدیک‌ها اول در جعبه‌ای حدود ۵ کیلومتری، اگر کم بود ۵۰ و ۳۰۰ کیلومتری؛ نزدیک‌ترین‌ها در خود پایگاه داده مرتب می‌شوند
+    const pick = (box: number | null) => {
+      const conds = [...base, ...(here0 && box != null && !q.county ? [between(mosques.lat, lat - box, lat + box), between(mosques.lng, lng - box * 1.25, lng + box * 1.25)] : [])];
+      return this.db.select({ id: mosques.id, name: mosques.name, address: mosques.address, lat: mosques.lat, lng: mosques.lng, verified: mosques.verified, countyId: mosques.countyId, county: counties.name, provinceId: counties.provinceId })
+        .from(mosques).innerJoin(counties, eq(counties.id, mosques.countyId)).where(conds.length ? and(...conds) : undefined)
+        .orderBy(here0 ? sql`(${mosques.lat} - ${lat})^2 + ((${mosques.lng} - ${lng}) * ${Math.cos(lat * Math.PI / 180)})^2 NULLS LAST` : asc(mosques.name)).limit(2000);
+    };
+    let rows = await pick(here0 && !q.county ? 0.045 : null);
+    if (here0 && !q.county && rows.length < limit) rows = await pick(0.45);
+    if (here0 && !q.county && rows.length < limit) rows = await pick(2.7);
     const dist = (a: number, b: number, c: number, d: number) => { const R = 6371e3, p1 = a * Math.PI / 180, p2 = c * Math.PI / 180, dp = (c - a) * Math.PI / 180, dl = (d - b) * Math.PI / 180; const h = Math.sin(dp / 2) ** 2 + Math.cos(p1) * Math.cos(p2) * Math.sin(dl / 2) ** 2; return 2 * R * Math.asin(Math.sqrt(h)); };
     const here = isFinite(lat) && isFinite(lng) && q.lat != null && q.lng != null;
     return rows.map((m) => ({ ...m, distance: here && m.lat != null && m.lng != null ? Math.round(dist(lat, lng, m.lat, m.lng)) : null }))

@@ -19,6 +19,7 @@ WORKDIR /app
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/apps/api/dist ./apps/api/dist
 COPY --from=build /app/apps/api/drizzle ./apps/api/drizzle
+COPY --from=build /app/apps/api/data ./apps/api/data
 COPY --from=build /app/apps/api/package.json ./apps/api/
 WORKDIR /app/apps/api
 USER node

@@ -9,6 +9,7 @@ import { and, eq, sql } from 'drizzle-orm';
 import { Pool } from 'pg';
 import { config } from '../config';
 import * as s from './schema';
+import { importMosques } from './mosques-import';
 
 const GEO: Record<string, string[]> = {
   'آذربایجان شرقی': ['تبریز', 'مراغه', 'مرند'], 'آذربایجان غربی': ['ارومیه', 'خوی', 'مهاباد'], 'اردبیل': ['اردبیل', 'مشگین‌شهر'],
@@ -83,6 +84,8 @@ async function main() {
   }
   console.log('دادهٔ پایه آماده است');
 
+  // فهرست مسجدهای ایران؛ هر نسخهٔ فهرست یک بار (آزمون‌ها با MOSQUE_IMPORT=false خاموشش می‌کنند)
+  if (process.env.MOSQUE_IMPORT !== 'false') console.log('مسجدها:', JSON.stringify(await importMosques(db)));
   if (process.env.SEED_DEMO === 'true') await demo(db);
   await paths2Seed(db);
   await pool.end();

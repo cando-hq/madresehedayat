@@ -113,6 +113,8 @@ export const mosques = pgTable('mosques', {
   inviteCode: text('invite_code').unique(), // پیوند دعوت امام محله برای اعضای آزاد
   lat: doublePrecision('lat'),
   lng: doublePrecision('lng'),
+  source: text('source'), // فهرست واردشده، مثل neshan-1402.10.24؛ خالی = ثبت دستی یا کاربر (۱.۱۰)
+  sourceRef: text('source_ref'), // شناسهٔ پایدار در آن فهرست (مختصات گردشده)
   proposedBy: text('proposed_by'), // کنشگری که مسجد را با پین اضافه کرده (تا تأیید ستاد verified=false)
   createdAt: createdAt(),
 });

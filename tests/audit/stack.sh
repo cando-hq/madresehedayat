@@ -6,7 +6,7 @@ pg_isready -h /tmp/pg -p 5433 >/dev/null 2>&1 || { PGC=$(ls /usr/lib/postgresql/
 if [ "$1" = fresh ]; then
   fuser -k 3100/tcp 3101/tcp >/dev/null 2>&1; sleep 1
   psql -h /tmp/pg -p 5433 -U postgres -c "drop database if exists madrese_test" -c "create database madrese_test" postgres >/dev/null
-  (cd $R/apps/api && node dist/db/migrate.js | tail -1 && SEED_DEMO=true node dist/db/seed.js | tail -1)
+  (cd $R/apps/api && node dist/db/migrate.js | tail -1 && MOSQUE_IMPORT=false SEED_DEMO=true node dist/db/seed.js | tail -1)
 fi
 cd $R/tests; for f in fakebbb fakesafir fakebale; do pgrep -f $f.py >/dev/null || [ ! -f $f.py ] || nohup python3 $f.py >/tmp/$f.log 2>&1 & done
 cd $R/apps/api; fuser -k 3100/tcp 3101/tcp >/dev/null 2>&1; sleep 1

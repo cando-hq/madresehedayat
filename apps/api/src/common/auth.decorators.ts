@@ -7,6 +7,8 @@ export interface AuthUser {
   roles: RoleName[];
   /** نقش ستادی دارد ولی رمز دوم این نشست هنوز تأیید نشده؛ نقش‌های ستادی موقتاً برداشته شده‌اند */
   mfaPending?: boolean;
+  /** نشست با رمز ثابت باز شده */
+  viaPassword?: boolean;
 }
 
 export const IS_PUBLIC = 'isPublic';

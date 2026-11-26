@@ -5,7 +5,7 @@
 import { ask } from '../components/Confirm';
 import { ScrollManager } from '../components/ScrollManager';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { BookOpen, ChevronLeft, Compass, Library, Plus, Radio, Route, Trash2, TrendingUp, Users } from 'lucide-react';
+import { BookOpen, ChevronLeft, Compass, Library, Plus, Radio, Route, Trash2, TrendingUp, Users, KeyRound } from 'lucide-react';
 import { ColorPick, PubBadge, TeamCard, type Invite, type TeamMember } from './admin/Publishers';
 import { useEffect, useState, Suspense } from 'react';
 import { Link, NavLink, Outlet, useNavigate, useParams } from 'react-router';
@@ -233,6 +233,7 @@ export function PubImpact() {
 /* ───────── تیم و معرفی ───────── */
 interface TeamData { publisher: { id: string; name: string; color: string; kind: string | null; about: string | null; status: string; statusFa: string }; me: string; admins: TeamMember[]; pending: Invite[] }
 export function PubTeam() {
+  const { me } = useAuth();
   const qc = useQueryClient();
   const toast = useToast();
   const q = useQuery({ queryKey: ['v2', 'pub', 'team'], queryFn: () => api<TeamData>('/v2/pub/team') });
@@ -263,6 +264,7 @@ export function PubTeam() {
           <p className="mt-3 text-sm text-muted">نام و نوع را ستاد عوض می‌کند؛ اگر لازم است از <Link to="/help" className="font-bold text-leaf-ink">پشتیبانی</Link> بخواهید.</p>
         </div>
       </section>
+      {me && !me.password?.setAt && <p className="card flex flex-wrap items-center gap-3 p-4 text-sm text-body"><KeyRound className="size-5 text-leaf-ink" />هر بار کد بله نمی‌خواهی؟ در تنظیمات یک رمز بگذار و از آن به بعد با شماره و رمز وارد شو.<Link to="/settings#password" className="btn btn-secondary btn-sm ms-auto">گذاشتن رمز</Link></p>}
       <TeamCard admins={d.admins} pending={d.pending} me={d.me} busy={remove.isPending || cancel.isPending} onAdd={add}
         intro="هر عضو تیم همهٔ پنل را دارد: ساختن مسیر و دوره، بارگذاری و فرستادن برای بازبینی. برای کسی که فقط روی یک دوره کار می‌کند، در «محتوای ما» آن دوره را به او بسپار."
         onRemove={async (m) => { const self = m.id === d.me; if (await ask({ title: self ? 'خروج از تیم' : `برداشتن ${m.name}`, body: self ? 'دیگر به این پنل دسترسی نداری. برای برگشتن، یکی از اعضای تیم باید دوباره اضافه‌ات کند.' : 'دیگر به این پنل دسترسی ندارد. کارهایی که ساخته سر جایش می‌ماند.', ok: self ? 'خارج می‌شوم' : 'بردار', danger: true })) remove.mutate(m.id, { onSuccess: () => { if (self) { qc.invalidateQueries({ queryKey: ['me'] }); } } }); }}

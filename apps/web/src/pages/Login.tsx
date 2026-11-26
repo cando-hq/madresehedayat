@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { CircleAlert, KeyRound, Send, ShieldCheck } from 'lucide-react';
+import { CircleAlert, Eye, EyeOff, KeyRound, LockKeyhole, Send, ShieldCheck } from 'lucide-react';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { eitaaApp, eitaaContact, inEitaa } from '../lib/eitaa';
 import { Link, useNavigate, useSearchParams } from 'react-router';
@@ -9,7 +9,7 @@ import { fa, maskMobile, toEn } from '../lib/fa';
 import type { Me } from '../lib/types';
 import { useToast } from '../components/ui';
 
-type Step = 'mobile' | 'code' | 'register';
+type Step = 'mobile' | 'code' | 'register' | 'password';
 
 const normMobile = (v: string) => {
   const s = toEn(v).replace(/[\s\-()]/g, '').replace(/^\+98/, '0').replace(/^0098/, '0');
@@ -103,6 +103,23 @@ export default function Login() {
     } finally { setBusy(false); }
   }
 
+  const [password, setPassword] = useState('');
+  const [showPw, setShowPw] = useState(false);
+  async function passwordLogin(e: FormEvent) {
+    e.preventDefault();
+    const m = toEn(mobile).replace(/\D/g, '');
+    if (m.length < 10) { setErr('شماره‌ات را کامل بزن'); return; }
+    if (!password) { setErr('رمز را بزن'); return; }
+    setBusy(true); setErr('');
+    try {
+      const r = await api<{ user: Me }>('/auth/password/login', { body: { mobile: m, password } });
+      setMe(r.user); welcome(`خوش برگشتی، ${r.user.firstName}`); nav(homeOf(r.user), { replace: true });
+    } catch (x) {
+      const a = x as ApiError; const left = Number(a.data?.left);
+      setErr(a.code === 'pw_wrong' && Number.isFinite(left) && left > 0 && left < 5 ? `${a.message} (${fa(left)} فرصت دیگر)` : a.message); setPassword('');
+    } finally { setBusy(false); }
+  }
+
   useEffect(() => { if (step === 'code' && toEn(code).replace(/\D/g, '').length === 5) verify(); /* ارسال خودکار وقتی ۵ رقم کامل شد */ // eslint-disable-next-line
   }, [code]);
 
@@ -133,8 +150,27 @@ export default function Login() {
                 <button type="button" className="btn btn-primary" disabled={busy} onClick={withEitaaPhone}>ورود با شمارهٔ ایتا</button>
               </div>}
               <button className={`btn btn-lg mt-6 w-full ${eitaa ? 'btn-secondary' : 'btn-primary'}`} disabled={busy}>{busy ? 'یک لحظه…' : baleOnly ? <><Send className="size-5" />ادامه با بله</> : 'کد را بفرست'}</button>
+              <button type="button" className="mt-3 inline-flex items-center justify-center gap-1.5 py-2 text-sm font-bold text-leaf-ink" onClick={() => { setStep('password'); setErr(''); }}><LockKeyhole className="size-4" />ورود با رمز (برگزارکنندگان و استادها)</button>
               <SsoButton />
               <p className="mt-auto pt-10 text-center text-[13px] text-muted sm:mt-8 sm:pt-0">ورود یعنی پذیرفتن <Link to="/terms" className="inline-block py-2 font-semibold text-leaf-ink">شرایط و حریم خصوصی</Link></p>
+            </form>
+          )}
+          {step === 'password' && (
+            <form onSubmit={passwordLogin} noValidate className="rise flex flex-1 flex-col sm:flex-none">
+              <h1 className="text-[26px] font-extrabold leading-tight">ورود با رمز</h1>
+              <p className="mt-2 text-[15px] text-muted">برای برگزارکنندگان و استادهایی که در تنظیمات حسابشان رمز گذاشته‌اند.</p>
+              <div className="mt-8 grid gap-4">
+                <label className="field"><span>شمارهٔ موبایل</span>
+                  <input className="input ltr tnum h-12 text-lg" inputMode="numeric" autoComplete="username" placeholder="۰۹۱۲ ۳۴۵ ۶۷۸۹" value={mobile} onChange={(e) => { setMobile(e.target.value); setErr(''); }} autoFocus={!mobile} /></label>
+                <label className="field"><span>رمز</span>
+                  <span className="relative block">
+                    <input className="input ltr h-12 text-lg" style={{ paddingInlineEnd: 48 }} type={showPw ? 'text' : 'password'} autoComplete="current-password" value={password} onChange={(e) => { setPassword(e.target.value); setErr(''); }} autoFocus={!!mobile} aria-describedby={err ? 'pw-err' : undefined} />
+                    <button type="button" className="absolute inset-y-0 end-0 grid w-12 place-items-center text-muted hover:text-ink" onClick={() => setShowPw(!showPw)} aria-label={showPw ? 'پنهان کردن رمز' : 'نشان دادن رمز'}>{showPw ? <EyeOff className="size-5" /> : <Eye className="size-5" />}</button>
+                  </span></label>
+                {err && <p id="pw-err" className="err" role="alert"><CircleAlert className="size-4" />{err}</p>}
+              </div>
+              <button className="btn btn-primary btn-lg mt-6 w-full" disabled={busy}>{busy ? 'یک لحظه…' : 'ورود'}</button>
+              <p className="mt-6 text-center text-sm text-muted">رمز نگذاشته‌ای یا یادت رفته؟ <button type="button" className="py-2 font-bold text-leaf-ink" onClick={back}>{baleOnly ? 'با بله وارد شو' : 'با کد وارد شو'}</button> و از «تنظیمات ← حساب» رمز تازه بگذار.</p>
             </form>
           )}
           {step === 'code' && (

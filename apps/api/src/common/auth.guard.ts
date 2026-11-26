@@ -20,11 +20,11 @@ export class AuthGuard implements CanActivate {
     const token = req.cookies?.[ACCESS_COOKIE] ?? req.headers.authorization?.replace(/^Bearer /, '');
     if (token) {
       try {
-        const p = this.jwt.verify<{ sub: string; roles: RoleName[]; mfa?: boolean }>(token);
+        const p = this.jwt.verify<{ sub: string; roles: RoleName[]; mfa?: boolean; pw?: boolean }>(token);
         const roles = p.roles ?? [];
         // کارکنان ستاد تا رمز دوم را تأیید نکنند، اختیار ستادی ندارند (۱۳.۴)
         const pending = config.staffMfa && !p.mfa && roles.some((r) => STAFF.includes(r));
-        req.user = { id: p.sub, roles: pending ? roles.filter((r) => !STAFF.includes(r)) : roles, mfaPending: pending };
+        req.user = { id: p.sub, roles: pending ? roles.filter((r) => !STAFF.includes(r)) : roles, mfaPending: pending, viaPassword: !!p.pw };
       } catch {
         if (!isPublic) throw new UnauthorizedException({ code: 'token_expired', message: 'نشست تو تمام شده است' });
       }

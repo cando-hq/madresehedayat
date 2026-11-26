@@ -127,6 +127,13 @@
       "when": 1795500000000,
       "tag": "0017_publisher_profile",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1795600000000,
+      "tag": "0018_password_login",
+      "breakpoints": true
     }
   ]
 }

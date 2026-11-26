@@ -31,6 +31,14 @@ class RegisterDto {
   @IsOptional() @IsString() @MaxLength(120) nearMosque?: string;
   @IsOptional() @IsString() @MaxLength(40) inviteCode?: string;
 }
+class PasswordLoginDto {
+  @IsString() @MaxLength(20) mobile: string;
+  @IsString() @MaxLength(128) password: string;
+}
+class PasswordSetDto {
+  @IsString() @MaxLength(128) password: string;
+  @IsOptional() @IsString() @MaxLength(128) current?: string;
+}
 class ProfileDto {
   @IsOptional() @IsString() @Length(2, 40) firstName?: string;
   @IsOptional() @IsString() @Length(2, 60) lastName?: string;
@@ -69,6 +77,17 @@ export class AuthController {
     this.setCookies(res, await this.auth.issueTokens(r.userId, req.headers['user-agent']));
     return { needsRegistration: false, user: await this.profile(r.userId) };
   }
+
+  @Public() @Post('password/login') @HttpCode(200) @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  async passwordLogin(@Body() d: PasswordLoginDto, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    const uid = await this.auth.passwordLogin(this.mobileOrThrow(d.mobile), d.password ?? '');
+    this.setCookies(res, await this.auth.issueTokens(uid, req.headers['user-agent'], null, 'password'));
+    return { needsRegistration: false, user: await this.profile(uid) };
+  }
+  @Post('password') @HttpCode(200) @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  setPassword(@CurrentUser() u: AuthUser, @Body() d: PasswordSetDto) { return this.auth.setPassword(u.id, d.password, d.current, !!u.viaPassword); }
+  @Delete('password')
+  removePassword(@CurrentUser() u: AuthUser) { return this.auth.removePassword(u.id); }
 
   @Public() @Post('register') @HttpCode(200)
   async register(@Body() dto: RegisterDto, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
@@ -164,7 +183,7 @@ export class AuthController {
 
   @Get('me')
   async me(@CurrentUser() u: AuthUser) {
-    return { ...(await this.profile(u.id)), mfaPending: !!u.mfaPending };
+    return { ...(await this.profile(u.id)), mfaPending: !!u.mfaPending, viaPassword: !!u.viaPassword };
   }
 
   // ───────── رمز دوم کارکنان ستاد (۱۳.۴) ─────────
@@ -252,6 +271,7 @@ export class AuthController {
       // منطق مسیر (نسخهٔ ۲)
       actorRole: u.actorRole ?? null, mainPathId: u.mainPathId ?? null, onboarded: !!u.onboardedAt, publisher: pubRow, location: u.lat != null && u.lng != null ? { lat: u.lat, lng: u.lng } : null,
       imamOf, orgs, allowRahyarMessages: u.allowRahyarMessages, notifyMessenger: u.notifyMessenger, mfaEnrolled: !!u.totpEnabledAt,
+      password: { allowed: await this.auth.canPassword(u.id), setAt: u.passwordSetAt ?? null },
       id: u.id, mobile: dec(u.mobileEnc) ?? '', mobile2: await this.auth.secondMobile(u.id), firstName: u.firstName, lastName: u.lastName, gender: u.gender,
       hasNationalId: !!u.nationalId, county, mosque, nearMosque: u.nearMosque, roles,
       cores: coreRows.map((c) => ({ id: c.id, name: c.name, isLeader: c.leaderId === userId })),

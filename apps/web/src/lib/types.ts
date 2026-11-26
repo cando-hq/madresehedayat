@@ -8,6 +8,7 @@ export interface Me {
   cores: { id: string; name: string; isLeader: boolean }[]; ssoLinked: boolean;
   imamOf: { id: string; name: string }[]; orgs: { id: string; name: string }[]; allowRahyarMessages: boolean;
   notifyMessenger: boolean; mfaEnrolled: boolean; mfaPending: boolean;
+  password?: { allowed: boolean; setAt: string | null }; viaPassword?: boolean;
   actorRole?: ActorRole | null; mainPathId?: string | null; onboarded?: boolean; publisher?: Pub | null; location?: { lat: number; lng: number } | null;
 }
 

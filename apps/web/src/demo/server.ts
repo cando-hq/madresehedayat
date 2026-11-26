@@ -195,7 +195,7 @@ function profile(u: Any) {
   const mosque = DBV.mosques.find((m) => m.id === u.mosqueId);
   return { id: u.id, mobile: u.mobile, mobile2: u.mobile2 ?? null, firstName: u.firstName, lastName: u.lastName, gender: u.gender, hasNationalId: !!u.nationalId,
     county: county ? { id: county.id, name: county.name, province: province?.name } : null, mosque: mosque ? { id: mosque.id, name: mosque.name } : null,
-    nearMosque: u.nearMosque, roles: rolesOf(u.id), ssoLinked: false, allowRahyarMessages: u.allowRahyarMessages !== false,
+    nearMosque: u.nearMosque, roles: rolesOf(u.id), ssoLinked: false, password: { allowed: rolesOf(u.id).some((r: string) => r === 'ORG_ADMIN' || r === 'INSTRUCTOR'), setAt: u.passwordSetAt ?? null }, allowRahyarMessages: u.allowRahyarMessages !== false,
     cores: DBV.cores.filter((c) => c.leaderId === u.id || DBV.coreMembers.some((x) => x.coreId === c.id && x.userId === u.id)).map((c) => ({ id: c.id, name: c.name, isLeader: c.leaderId === u.id })),
     imamOf: DBV.mosques.filter((m) => m.imamId === u.id).map((m) => ({ id: m.id, name: m.name })),
     orgs: DBV.roles.filter((r) => r.userId === u.id && r.role === 'ORG_ADMIN').map((r) => { const n = DBV.networks.find((x) => x.id === r.networkId); return { id: n?.id, name: n?.name }; }) };
@@ -305,6 +305,10 @@ on('GET', '/auth/me', () => profile(me()));
 on('POST', '/auth/mobile2/otp', (_m, b) => { const mob = normMobile(b.mobile); if (!mob) throw E(400, 'bad_mobile', 'شماره باید ۱۱ رقم باشد و با ۰۹ شروع شود'); if (DBV.users.some((u) => u.mobile === mob || u.mobile2 === mob)) throw E(400, 'mobile_taken', 'با این شماره حساب جدایی در مدرسه ساخته شده؛ برای یکی کردن دو حساب به پشتیبانی پیام بده'); return { sent: true, channel: 'SMS', resendIn: 60, isNew: false, devCode: DEMO_CODE }; });
 on('POST', '/auth/mobile2', (_m, b) => { const mob = normMobile(b.mobile); if (String(b.code) !== DEMO_CODE) throw E(400, 'otp_wrong', 'کد درست نیست'); me().mobile2 = mob; return { mobile2: mob }; });
 on('DELETE', '/auth/mobile2', () => { me().mobile2 = null; return { mobile2: null }; });
+// ورود با رمز (نمایشی: رمز در حافظهٔ مرورگر، بی‌رمزنگاری)
+on('POST', '/auth/password', (_m, b) => { if (String(b.password ?? '').length < 8) throw E(400, 'pw_weak', 'رمز دست‌کم ۸ نویسه است'); const u = me(); u.demoPassword = b.password; u.passwordSetAt = new Date().toISOString(); return { ok: true }; });
+on('DELETE', '/auth/password', () => { const u = me(); u.demoPassword = null; u.passwordSetAt = null; return { ok: true }; });
+on('POST', '/auth/password/login', (_m, b) => { const u = DBV.users.find((x) => x.mobile === normMobile(b.mobile) || x.mobile2 === normMobile(b.mobile)); if (!u || !u.demoPassword || u.demoPassword !== b.password) throw E(401, 'pw_wrong', 'شماره یا رمز درست نیست. اگر رمز نگذاشته‌ای یا یادت رفته، با بله وارد شو.'); DBV.session = u.id; return { needsRegistration: false, user: profile(u) }; });
 on('PATCH', '/auth/me', (_m, b) => {
   const u = me();
   if (b.firstName) u.firstName = b.firstName.trim(); if (b.lastName) u.lastName = b.lastName.trim(); if (b.countyId) u.countyId = b.countyId;

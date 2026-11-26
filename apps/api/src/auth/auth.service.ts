@@ -1,12 +1,13 @@
 import { BadRequestException, HttpException, HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
 import { userIdByMobile, applyPendingInvites } from './mobiles';
+import { checkPassword, failed, hashPassword, lockedFor, passwordProblem, succeeded } from './password';
 import { JwtService } from '@nestjs/jwt';
 import { and, desc, eq, gt, isNull } from 'drizzle-orm';
 import { createHash, createHmac, randomBytes, randomInt, timingSafeEqual } from 'node:crypto';
 import { config } from '../config';
 import { dec, enc, mobileKey } from '../common/crypto';
 import { Db, InjectDb } from '../db/db.module';
-import { coreMemberships, cores, messengerLinks, mosques, networks, otpRequests, roleGrants, sessions, users, userMobiles } from '../db/schema';
+import { coreMemberships, cores, messengerLinks, mosques, networks, otpRequests, publisherAdmins, publishers, roleGrants, sessions, users, userMobiles } from '../db/schema';
 import { Business } from '../business/business';
 import { RoleName } from '../common/auth.decorators';
 import { BaleSafir, SmsSender } from '../sms/sms';
@@ -234,6 +235,47 @@ export class AuthService {
     return { userId: u.id, notice };
   }
 
+  // ───────── ورود با رمز ثابت
+  /** رمز ثابت برای اعضای تیم یک برگزارکنندهٔ فعال و استادهاست */
+  async canPassword(userId: string): Promise<boolean> {
+    if ((await this.rolesOf(userId)).includes('INSTRUCTOR')) return true;
+    const r = await this.db.select({ id: publishers.id }).from(publisherAdmins).innerJoin(publishers, eq(publishers.id, publisherAdmins.publisherId))
+      .where(and(eq(publisherAdmins.userId, userId), eq(publishers.status, 'ACTIVE'))).limit(1);
+    return r.length > 0;
+  }
+  async passwordLogin(mobile: string, password: string) {
+    const key = mobileKey(mobile);
+    const wait = lockedFor(key);
+    if (wait) throw new HttpException({ code: 'pw_locked', message: `چند بار رمز اشتباه زده شد؛ ${wait} دقیقهٔ دیگر دوباره امتحان کن یا با بله وارد شو`, data: { wait } }, HttpStatus.TOO_MANY_REQUESTS);
+    const uid = await userIdByMobile(this.db, mobile);
+    const u = uid ? await this.db.query.users.findFirst({ where: eq(users.id, uid), columns: { id: true, isActive: true, passwordHash: true } }) : undefined;
+    const good = await checkPassword(password, u?.passwordHash);
+    if (!u || !good || !u.isActive || !(await this.canPassword(u.id))) {
+      const left = failed(key);
+      throw new UnauthorizedException({ code: 'pw_wrong', message: 'شماره یا رمز درست نیست. اگر رمز نگذاشته‌ای یا یادت رفته، با بله وارد شو.', data: { left } });
+    }
+    succeeded(key);
+    return u.id;
+  }
+  async setPassword(userId: string, password: string, current: string | undefined, viaPassword: boolean) {
+    const u = await this.db.query.users.findFirst({ where: eq(users.id, userId), columns: { passwordHash: true, mobileEnc: true } });
+    if (!(await this.canPassword(userId))) throw new BadRequestException({ code: 'pw_not_allowed', message: 'ورود با رمز برای برگزارکنندگان و استادهاست' });
+    // کسی که با رمز وارد شده، برای عوض کردنش رمز فعلی را هم می‌دهد؛ کسی که با بله آمده، نه (رمز فراموش‌شده)
+    if (u?.passwordHash && viaPassword && !(await checkPassword(current ?? '', u.passwordHash))) throw new BadRequestException({ code: 'pw_current', message: 'رمز فعلی درست نیست' });
+    const m2 = await this.secondMobile(userId);
+    const bad = passwordProblem(password, [dec(u?.mobileEnc) ?? '', m2 ?? '']);
+    if (bad) throw new BadRequestException({ code: 'pw_weak', message: bad });
+    await this.db.update(users).set({ passwordHash: await hashPassword(password), passwordSetAt: new Date() }).where(eq(users.id, userId));
+    // نشست‌هایی که با رمز قبلی باز شده بودند بسته می‌شوند
+    await this.db.update(sessions).set({ revokedAt: new Date() }).where(and(eq(sessions.userId, userId), eq(sessions.via, 'password'), isNull(sessions.revokedAt)));
+    return { ok: true };
+  }
+  async removePassword(userId: string) {
+    await this.db.update(users).set({ passwordHash: null, passwordSetAt: null }).where(eq(users.id, userId));
+    await this.db.update(sessions).set({ revokedAt: new Date() }).where(and(eq(sessions.userId, userId), eq(sessions.via, 'password'), isNull(sessions.revokedAt)));
+    return { ok: true };
+  }
+
   async rolesOf(userId: string): Promise<RoleName[]> {
     const u = await this.db.query.users.findFirst({ where: eq(users.id, userId), columns: { mobileEnc: true } });
     const second = config.bootstrapAdmins.length ? await this.secondMobile(userId) : null;
@@ -244,16 +286,16 @@ export class AuthService {
     return [...new Set(rows.map((r) => r.role as RoleName))];
   }
 
-  async issueTokens(userId: string, userAgent?: string, mfaAt: Date | null = null) {
+  async issueTokens(userId: string, userAgent?: string, mfaAt: Date | null = null, via: string | null = null) {
     const roles = await this.rolesOf(userId);
     const refresh = randomBytes(32).toString('base64url');
     await this.db.insert(sessions).values({
       userId, tokenHash: sha(refresh), userAgent: userAgent?.slice(0, 200),
-      expiresAt: new Date(Date.now() + (roles.some((r) => r === 'HQ_ADMIN' || r === 'HQ_OPERATOR') ? config.staffRefreshTtlDays : config.refreshTtlDays) * 86400_000), mfaAt,
+      expiresAt: new Date(Date.now() + (roles.some((r) => r === 'HQ_ADMIN' || r === 'HQ_OPERATOR') ? config.staffRefreshTtlDays : config.refreshTtlDays) * 86400_000), mfaAt, via,
     });
     // رمز دوم هر ۱۲ ساعت دوباره پرسیده می‌شود
     const mfa = !!mfaAt && Date.now() - mfaAt.getTime() < 12 * 3600_000;
-    const access = this.jwt.sign({ sub: userId, roles, mfa }, { expiresIn: config.accessTtlSec });
+    const access = this.jwt.sign({ sub: userId, roles, mfa, ...(via === 'password' ? { pw: true } : {}) }, { expiresIn: config.accessTtlSec });
     return { access, refresh };
   }
 
@@ -263,7 +305,7 @@ export class AuthService {
     const u = await this.db.query.users.findFirst({ where: eq(users.id, s.userId), columns: { isActive: true } });
     if (!u?.isActive) throw new UnauthorizedException({ code: 'inactive', message: 'این حساب غیرفعال است' });
     await this.db.update(sessions).set({ revokedAt: new Date() }).where(eq(sessions.id, s.id));
-    return this.issueTokens(s.userId, userAgent, s.mfaAt);
+    return this.issueTokens(s.userId, userAgent, s.mfaAt, s.via);
   }
 
   /** رمز دوم تأیید شد: نشست فعلی را با نشانهٔ تأیید دوباره صادر می‌کند */
@@ -271,7 +313,7 @@ export class AuthService {
     const s = await this.db.query.sessions.findFirst({ where: eq(sessions.tokenHash, sha(refreshToken)) });
     if (!s || s.revokedAt || s.expiresAt < new Date()) throw new UnauthorizedException({ code: 'session_ended', message: 'برای امنیت حساب، دوباره وارد شو' });
     await this.db.update(sessions).set({ revokedAt: new Date() }).where(eq(sessions.id, s.id));
-    return this.issueTokens(s.userId, userAgent, new Date());
+    return this.issueTokens(s.userId, userAgent, new Date(), s.via);
   }
 
   async logout(refreshToken?: string) {

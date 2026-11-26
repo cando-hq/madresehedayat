@@ -35,6 +35,8 @@ export const users = pgTable('users', {
   notifyMessenger: boolean('notify_messenger').notNull().default(true), // اعلان‌ها در بله هم برسد
   totpSecret: text('totp_secret'), // رمز دوم کارکنان (رمزگذاری‌شده)
   totpEnabledAt: timestamp('totp_enabled_at', { withTimezone: true }),
+  passwordHash: text('password_hash'), // ورود با رمز ثابت برگزارکنندگان و استادها (۱.۸)
+  passwordSetAt: timestamp('password_set_at', { withTimezone: true }),
   /** منطق مسیر (نسخهٔ ۲): نقش کنشگر در مسجد، مسیر اصلی، مسجد روی نقشه، نخستین ورود */
   actorRole: text('actor_role'), // IMAM | SHARIK | BAZU | HASTEH | OTHER
   mainPathId: text('main_path_id'),
@@ -74,6 +76,7 @@ export const sessions = pgTable('sessions', {
   revokedAt: timestamp('revoked_at', { withTimezone: true }),
   lastSeenAt: timestamp('last_seen_at', { withTimezone: true }).notNull().defaultNow(),
   mfaAt: timestamp('mfa_at', { withTimezone: true }), // رمز دوم کارکنان در این نشست تأیید شده
+  via: text('via'), // password وقتی نشست با رمز ثابت باز شده (۱.۸)
   createdAt: createdAt(),
 }, (t) => [index('sessions_user_idx').on(t.userId)]);
 

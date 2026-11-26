@@ -265,7 +265,8 @@ export class LivesService {
     const minutes = d.minutes ?? Math.round((e.endsAt.getTime() - e.startsAt.getTime()) / MIN);
     if (d.startsAt || d.minutes) { set.startsAt = start; set.endsAt = new Date(start.getTime() + minutes * MIN); }
     if (d.record !== undefined) set.record = e.useBbb && d.record;
-    if (d.onlineUrl !== undefined && !e.useBbb) { if (!/^https?:\/\/\S+$/i.test(d.onlineUrl.trim())) throw new BadRequestException(err('bad_link', 'پیوند کلاس باید با https:// شروع شود')); set.onlineUrl = d.onlineUrl.trim(); }
+    // پیوند بیرونی: هم برای پخش‌های بی‌سرور، هم وقتی سرور کلاس مدرسه جواب نمی‌دهد (پخش از سرور مدرسه به پیوند بیرونی می‌رود)
+    if (d.onlineUrl !== undefined) { if (!/^https?:\/\/\S+$/i.test(d.onlineUrl.trim())) throw new BadRequestException(err('bad_link', 'پیوند کلاس باید با https:// شروع شود')); set.onlineUrl = d.onlineUrl.trim(); set.useBbb = false; set.record = false; }
     if (Object.keys(set).length) await this.db.update(events).set(set as any).where(eq(events.id, id));
     if (d.startsAt && Math.abs(start.getTime() - e.startsAt.getTime()) > MIN) {
       const ids = (await this.db.select({ u: registrations.userId }).from(registrations).where(and(eq(registrations.eventId, id), eq(registrations.status, 'REGISTERED')))).map((r) => r.u);

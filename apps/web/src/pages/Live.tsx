@@ -234,6 +234,7 @@ export function LiveRoom() {
           : <>
             <p className="text-body">{r.state === 'LIVE' ? 'پخش در جریان است.' : `${left(r.startsAt, now)} تا شروع. تو هر وقت بخواهی وارد می‌شوی؛ مخاطب‌ها از ساعت ${hhmm(r.joinOpensAt)}.`}</p>
             <button className="btn btn-primary btn-lg w-full sm:w-auto" disabled={join.isPending} onClick={() => join.mutate(id)}><MonitorPlay className="size-5" />{r.state === 'LIVE' ? 'ورود به پخش (میزبان)' : 'باز کردن اتاق (میزبان)'}</button>
+            {r.useBbb && join.isError && <ExternalFallback id={id} onDone={refresh} />}
             {r.useBbb ? <p className="text-sm text-muted">میزبان با اختیار کامل وارد می‌شود: میکروفون، تصویر، صفحه و {r.record ? 'دکمهٔ ضبط (ضبط از وقتی که آن را بزنی شروع می‌شود)' : 'مدیریت حاضران'}.</p> : r.onlineUrl && <p className="text-sm text-muted" dir="ltr">{r.onlineUrl}</p>}
           </>}
       </section>
@@ -271,6 +272,19 @@ export function LiveRoom() {
   );
 }
 
+/** وقتی سرور کلاس مدرسه جواب نمی‌دهد: پخش با یک پیوند بیرونی ادامه پیدا می‌کند */
+function ExternalFallback({ id, onDone }: { id: string; onDone: () => void }) {
+  const toast = useToast(); const [url, setUrl] = useState('');
+  const save = useMutation({ mutationFn: () => api(`/v2/lives/${id}`, { method: 'PATCH', body: { onlineUrl: url.trim() } }), onSuccess: () => { onDone(); toast('از این به بعد مخاطب‌ها با همین پیوند وارد می‌شوند'); }, onError: (e) => toast(errorText(e), 'err') });
+  return (
+    <form className="grid gap-2 rounded-xl bg-flame-soft p-3" onSubmit={(e) => { e.preventDefault(); save.mutate(); }}>
+      <b className="text-sm text-flame-ink">سرور کلاس مدرسه جواب نمی‌دهد؟ پخش را با یک اتاق بیرونی ادامه بده.</b>
+      <div className="flex flex-wrap gap-2"><input className="input h-10 min-w-0 flex-1" dir="ltr" placeholder="https://… (اسکای‌روم، گوگل‌میت…)" value={url} onChange={(e) => setUrl(e.target.value)} aria-label="پیوند اتاق بیرونی" /><button className="btn btn-primary btn-sm h-10" disabled={save.isPending || !/^https?:\/\//.test(url.trim())}>جایگزین کن</button></div>
+      <span className="text-xs text-flame-ink">مخاطب‌ها از همین صفحه به پیوند تازه می‌روند. ضبط و حضور خودکار در اتاق بیرونی ثبت نمی‌شود.</span>
+    </form>
+  );
+}
+
 /* ───────── پخش‌های من (پنل برگزارکننده و استودیو) ───────── */
 export function MyLives({ intro }: { intro: string }) {
   const q = useQuery({ queryKey: ['v2', 'lives', 'mine'], queryFn: () => api<LiveCard[]>('/v2/lives/mine') });
@@ -298,6 +312,7 @@ export function AdminLives() {
   return (
     <div className="grid gap-6">
       <header className="flex flex-wrap items-end justify-between gap-4"><div><h1 className="text-2xl font-extrabold">پخش‌های زنده</h1><p className="mt-1 max-w-2xl text-muted">برگزارکنندگان و استادها بی‌بازبینی پخش می‌گذارند. این‌جا همه را می‌بینی و هر کدام را که لازم شد، با دلیل متوقف می‌کنی.</p></div><Link to="/live/new" className="btn btn-primary"><Radio className="size-4" />پخش زندهٔ تازه</Link></header>
+      <ServerCheck />
       {!xs.length ? <Empty icon={Radio} title="هنوز پخشی نیست">پخش‌های برگزارکنندگان این‌جا می‌آید.</Empty> : (
         <div className="card divide-y divide-line">{xs.map((x) => (
           <div key={x.id} className="flex flex-wrap items-center gap-3 px-4 py-3">
@@ -310,5 +325,19 @@ export function AdminLives() {
       )}
       <p className="text-sm text-muted">پخش‌های دو ماه اخیر و آینده.</p>
     </div>
+  );
+}
+
+/** ستاد: آزمون سرور کلاس زنده (BigBlueButton) */
+function ServerCheck() {
+  const q = useQuery({ queryKey: ['v2', 'admin', 'live-check'], queryFn: () => api<{ configured: boolean; ok: boolean; host: string | null; step: string; error: string | null; version?: string | null }>('/admin/live/check'), retry: false });
+  const STEP: Record<string, string> = { config: 'تنظیم نشده', reach: 'سرور در دسترس نیست', secret: 'رمز مشترک (BBB_SECRET) پذیرفته نشد' };
+  return (
+    <section className="card flex flex-wrap items-center gap-3 p-4" aria-label="سرور کلاس">
+      <span className={`size-3 shrink-0 rounded-full ${q.isLoading ? 'bg-line' : q.data?.ok ? 'bg-leaf' : 'bg-rose'}`} aria-hidden="true" />
+      <span className="min-w-0 flex-1 text-sm"><b className="text-ink">سرور کلاس زنده{q.data?.host ? <> (<bdi dir="ltr">{q.data.host}</bdi>)</> : ''}: </b>
+        {q.isLoading ? 'در حال آزمودن…' : q.error ? errorText(q.error) : q.data!.ok ? `کار می‌کند${q.data!.version ? `، نسخهٔ ${q.data!.version}` : ''}` : <>{STEP[q.data!.step] ?? 'مشکل دارد'}<span className="block text-muted" dir="auto">{q.data!.error}</span></>}</span>
+      <button className="btn btn-secondary btn-sm" disabled={q.isFetching} onClick={() => q.refetch()}>دوباره بیازما</button>
+    </section>
   );
 }

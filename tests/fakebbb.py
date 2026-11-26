@@ -17,7 +17,8 @@ class H(BaseHTTPRequestHandler):
         u = urlparse(self.path)
         if u.path == '/state': return self.send(200, json.dumps(STATE), 'application/json')
         call = u.path.rsplit('/', 1)[-1]; q = u.query
-        base, _, cs = q.rpartition('&checksum=')
+        base, _, cs = q.rpartition('&checksum=') if '&checksum=' in q else ('', '', q[len('checksum='):] if q.startswith('checksum=') else '')
+        if not q: return self.send(200, ok('<version>2.0</version>'))
         if hashlib.sha1((call + base + SECRET).encode()).hexdigest() != cs: return self.send(200, fail('checksumError', 'bad checksum'))
         p = dict(parse_qsl(base)); STATE['calls'].append({'call': call, **p})
         mid = p.get('meetingID')
@@ -33,5 +34,6 @@ class H(BaseHTTPRequestHandler):
             x = ''.join(f'<recording><recordID>{r}</recordID><startTime>{int(time.time()*1000)-3600000}</startTime><endTime>{int(time.time()*1000)}</endTime><playback><format><type>presentation</type><url>https://bbb.test/playback/{r}</url></format></playback></recording>' for r in rs)
             return self.send(200, ok(f'<recordings>{x}</recordings>'))
         if call == 'deleteRecordings': return self.send(200, ok('<deleted>true</deleted>'))
+        if call == 'getMeetings': return self.send(200, ok('<meetings/>'))
         return self.send(200, fail('unsupported'))
 HTTPServer(('127.0.0.1', 9300), H).serve_forever()

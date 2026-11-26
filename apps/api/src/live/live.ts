@@ -87,6 +87,24 @@ export class BbbClient {
   }
 
   deleteRecording(recordId: string) { return this.call('deleteRecordings', { recordID: recordId }); }
+
+  /** آزمون سرور کلاس برای ستاد: نشانی درست است، سرور جواب می‌دهد، رمز مشترک (checksum) پذیرفته می‌شود؟ */
+  async check() {
+    if (!bbbEnabled()) return { configured: false, ok: false, host: null, step: 'config', error: 'BBB_URL یا BBB_SECRET در .env خالی است' };
+    const host = (() => { try { return new URL(config.bbbUrl).host; } catch { return config.bbbUrl; } })();
+    const ac = new AbortController(); const t = setTimeout(() => ac.abort(), 10_000);
+    try {
+      const base = await fetch(config.bbbUrl, { signal: ac.signal }).then((r) => r.text());
+      if (!/<response>/.test(base)) return { configured: true, ok: false, host, step: 'reach', error: `نشانی جواب داد ولی BigBlueButton نیست (باید به ‎/bigbluebutton/api‎ ختم شود): ${base.slice(0, 120)}` };
+      const xml = await fetch(this.url('getMeetings', {}), { signal: ac.signal }).then((r) => r.text());
+      const code = /<returncode>(\w+)<\/returncode>/.exec(xml)?.[1];
+      if (code !== 'SUCCESS') return { configured: true, ok: false, host, step: 'secret', error: `${/<messageKey>([^<]*)<\/messageKey>/.exec(xml)?.[1] ?? ''} ${/<message>([^<]*)<\/message>/.exec(xml)?.[1] ?? ''}`.trim() || 'پاسخ نامعلوم' };
+      return { configured: true, ok: true, host, step: 'ok', error: null, version: /<version>([^<]*)<\/version>/.exec(base)?.[1] ?? null };
+    } catch (e: any) {
+      const c = e?.cause?.code ?? e?.code;
+      return { configured: true, ok: false, host, step: 'reach', error: e?.name === 'AbortError' ? 'سرور کلاس در ۱۰ ثانیه جواب نداد' : `${c ?? ''} ${e?.cause?.message ?? e?.message ?? ''}`.trim() };
+    } finally { clearTimeout(t); }
+  }
 }
 
 @Injectable()
@@ -111,7 +129,7 @@ export class LiveService {
       if (Date.now() < e.startsAt.getTime() - 15 * MIN) throw new BadRequestException(err('early', 'کلاس از ۱۵ دقیقه پیش از شروع باز می‌شود'));
     }
     if (Date.now() > e.endsAt.getTime() + 30 * MIN) throw new BadRequestException(err('ended', 'زمان این کلاس تمام شده است؛ اگر ضبط شده باشد، از صفحهٔ برنامه ببین'));
-    try { await this.bbb.create(e); } catch (x: any) { this.log.error(x?.message); throw new BadRequestException(err('bbb_error', 'سرور کلاس زنده الان در دسترس نیست؛ چند دقیقهٔ دیگر دوباره امتحان کن')); }
+    try { await this.bbb.create(e); } catch (x: any) { this.log.error(`سرور کلاس: ${x?.message} ${x?.cause?.code ?? ''} ${x?.cause?.message ?? ''}`); throw new BadRequestException(err('bbb_error', 'سرور کلاس زنده الان در دسترس نیست؛ چند دقیقهٔ دیگر دوباره امتحان کن')); }
     const me = await this.db.query.users.findFirst({ where: eq(users.id, u.id), columns: { firstName: true, lastName: true } });
     return { url: this.bbb.joinUrl(e, { id: u.id, name: [me?.firstName, me?.lastName].filter(Boolean).join(' ') || 'کاربر مدرسه' }, host), live: true };
   }
@@ -244,9 +262,10 @@ export class LiveService {
 
 @Controller()
 export class LiveController {
-  constructor(private readonly live: LiveService) {}
+  constructor(private readonly live: LiveService, private readonly bbb: BbbClient) {}
   @Get('events/:id/live') info(@CurrentUser() u: AuthUser, @Param('id') id: string) { return this.live.liveInfo(u, id); }
   /** ستاد: همگام‌سازی همین حالا (بی‌منتظر زمان‌بند)، مثلاً پس از پایان یک کلاس مهم */
+  @Get('admin/live/check') @Roles('HQ_ADMIN', 'HQ_OPERATOR') check() { return this.bbb.check(); }
   @Post('admin/live/sync') @Roles('HQ_ADMIN') @HttpCode(200) async sync() { await this.live.poll(); await this.live.finalize(); return { ok: true, available: bbbEnabled() }; }
   @Post('events/:id/recordings/:rid') @HttpCode(200) open(@CurrentUser() u: AuthUser, @Param('id') id: string, @Param('rid') rid: string) { return this.live.openRecording(u, id, rid); }
 }

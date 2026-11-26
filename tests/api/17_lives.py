@@ -74,7 +74,14 @@ ok(psql(f"select publisher_id from events where id='{L3}'") == pid, 'به نام
 ok(lead.get(f'{B}/v2/lives/{L3}/room').status_code == 200, 'تیم برگزارکننده هم اتاق پخش را دارد')
 ok(view.get(f'{B}/v2/lives/{L3}').json()['inAudience'] is False, 'کسی که دوره را ندارد مخاطب نیست')
 
-print('۶. توقف')
+print('۶. سرور کلاس و جایگزین بیرونی')
+c = hq.get(f'{B}/admin/live/check').json(); ok(c['ok'] is True and c['step'] == 'ok', 'آزمون سرور کلاس برای ستاد', c)
+ok(view.get(f'{B}/admin/live/check').status_code == 403, 'آزمون سرور فقط برای ستاد')
+r = lead.patch(f'{B}/v2/lives/{L3}', json={'onlineUrl': 'https://example.org/room-b'}); ok(r.status_code == 200, 'میزبان پیوند بیرونی جایگزین کرد', r.text[:160])
+ok(psql(f"select use_bbb||'/'||record||'/'||online_url from events where id='{L3}'") == 'false/false/https://example.org/room-b', 'پخش از سرور مدرسه به پیوند بیرونی رفت')
+r = lead.patch(f'{B}/v2/lives/{L3}', json={'onlineUrl': 'not-a-link'}); ok(r.status_code == 400 and r.json()['code'] == 'bad_link', 'پیوند نادرست پذیرفته نیست')
+
+print('۷. توقف')
 r = hq.post(f'{B}/v2/lives/{L1}/stop', json={'reason': 'آزمون توقف'}); ok(r.status_code == 200, 'ستاد متوقف کرد')
 ok(view.get(f'{B}/v2/lives/{L1}').status_code == 404, 'برای مخاطب دیگر نیست')
 ok(lead.get(f'{B}/v2/lives/{L1}/room').json()['state'] == 'STOPPED', 'میزبان «متوقف شد» می‌بیند')
